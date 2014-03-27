@@ -9,3 +9,7 @@ with open(os.path.join(BASE_DIR, "api.settings.yaml"), 'rb') as C:
 	config = yaml.load(C.read())
 	API_PORT = config['api_port']
 	NUM_PROCESSES = config['num_processes']
+
+with open(os.path.join(BASE_DIR, "local.config.yaml"), 'rb') as C:
+	config = yaml.load(C.read())
+	SSH_ROOT = config['ssh_root']
