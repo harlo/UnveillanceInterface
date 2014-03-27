@@ -30,13 +30,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			'annex_admin' : [
 				"/web/js/lib/md5.js",
 				"/web/js/models/unveillance_annex.js",
-				"/web/js/models/informa_annex.js",
 				"/web/js/modules/init_annex.js",
 				"/web/js/lib/dropzone.js",
 				"/web/js/models/unveillance_dropzone.js"
 			]
 		}
-	
+		
 		class RouteHandler(tornado.web.RequestHandler):
 			def initialize(self, route): 
 				self.route = route
@@ -77,22 +76,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				
 					if hasattr(self.application, r):
 						print "doing %s with:\n" % r
-						res.result = 200
-	
 						func = getattr(self.application, r)
-						if len(self.request.body) > 0:
-							if not passesParameterFilter(self.request.body):
-								res.result = 404
-							
-								self.set_status(res.result)
-								self.finish(res.emit())
-								return
-							
-							print self.request.body				
-							res.data = func(json.loads(self.request.body))
-						else: res.data = func()
-					
-						if res.data is None: res.data = {}
+						
+						res.result = 200
+						res.data = func(self.request)
+
+						if res.data is None: res.data = {}						
 			
 				self.set_status(res.result)					
 				self.finish(res.emit())

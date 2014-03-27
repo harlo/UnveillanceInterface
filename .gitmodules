@@ -1,0 +1,3 @@
+[submodule "lib/Core"]
+	path = lib/Core
+	url = git@github.com:harlo/UnveillanceCore.git

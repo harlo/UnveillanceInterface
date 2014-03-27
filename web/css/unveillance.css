@@ -1,0 +1,32 @@
+body {
+	font-size:14px;
+	width:100%;
+	height:100%;
+	position:relative;
+	margin:0 0 0 0.05%;
+	padding:0;
+	overflow:hidden;
+}
+
+a {
+	cursor:pointer;
+}
+
+.uv_activated {
+	background-color:#ccc !important;
+}
+
+.uv_mandatory {
+	color:#444 !important;
+}
+
+.uv_dropzone_holder {
+	border:1px solid #000 !important;
+	width:15% !important;
+	height:0.95em !important;
+	display:inline-flex;
+}
+
+.uv_form_elements p {
+	margin:10px 0 !important;
+}

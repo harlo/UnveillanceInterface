@@ -1,0 +1,24 @@
+body {
+	font-family:arial;
+}
+
+h1, h2, h3, h4, h5, h6, h7, h8 {
+	margin:0;
+	padding:0 0 0 0.1em;
+	font-weight:normal;
+}
+
+h2.uv_header {
+	background-color:#999999;
+	color:#fff;
+}
+
+p {
+	padding:0;
+	margin:0;
+}
+
+pre {
+	padding:0;
+	margin:1%;
+}
