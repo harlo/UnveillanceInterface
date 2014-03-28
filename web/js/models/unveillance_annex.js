@@ -9,7 +9,7 @@ var UnveillanceAnnex = Backbone.Model.extend({
 		this.batch_root = MD5(BATCH_SALT + d.getTime());
 	},
 	
-	initAnnex: function() {
+	build: function() {
 		var values = $(this.values_holder).find("input");
 		annex_bundle = { batch_root : this.batch_root };
 		
@@ -22,8 +22,6 @@ var UnveillanceAnnex = Backbone.Model.extend({
 			}
 		});
 		
-		doInnerAjax("init_annex", "post", JSON.stringify(annex_bundle), function(json) {
-			console.info(json);
-		});
+		this.annex_bundle = annex_bundle;
 	}
 });

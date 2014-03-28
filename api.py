@@ -1,8 +1,20 @@
-from lib.Core.Utils.funcs import passesParameterFilter
+import os
+
+from Utils.funcs import passesParameterFilter
+from conf import BASE_DIR
 
 class UnveillanceAPI():
 	def __init__(self):
 		print "Stock Unveillance Frontend API started..."
+	
+	def do_num_views(self, query):
+		path = os.path.join(BASE_DIR, "web", "layout", "views", query['view_root'])
+		print "GETTIN NUM VIEWS IN %s" % path
+		
+		if os.path.exists(path):
+			for _, _, files in os.walk(path): return len(files)
+				
+		return None
 	
 	def do_post_batch(self, request):
 		print "POST BATCH"
@@ -47,7 +59,7 @@ class UnveillanceAPI():
 			with open(
 				os.path.join(SSH_ROOT, "unveillance.local_remote.key.pub"), 'rb') as PK:
 				self.do_post_batch({
-					'file' : ("unveillance.local_remote.key.pub", PK.read()),
+					'files' : [("unveillance.local_remote.key.pub", PK.read())],
 					'url' : "http://%s/post_batch/%s/" % (SERVER_HOST,
 						credentials['batch_root'])
 				})

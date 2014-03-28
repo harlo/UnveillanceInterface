@@ -8,9 +8,11 @@ function discoverDropzones(dz_profile, el) {
 	
 	$.each(file_zones, function(idx, item) {
 		var param_name = $(item).attr('name');
+		var max_files = $(item).attr('rel');
 	
 		var dz_profile_ = _.clone(dz_profile);
 		dz_profile_.paramName = param_name;
+		dz_profile_.maxFiles = max_files ? max_files : 1;
 
 		var dropzone_id = param_name.replace(/\./g, "_") + "_dropzone";
 

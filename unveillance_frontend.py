@@ -9,7 +9,7 @@ import tornado.httpserver
 
 from api import UnveillanceAPI
 from lib.Core.Utils.uv_result import Result
-from lib.Core.Utils.funcs import startDaemon, stopDaemon
+from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseQueryString
 from conf import MONIOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
 
 def terminationHandler(signal, frame): exit(0)
@@ -21,71 +21,105 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
 		self.routes = [
-			(r"/(?:(?!web/|externals/))([a-zA-Z0-9_/]*/$)?", 
+			(r"/frontend/", self.FrontendHandler),
+			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", 
 				self.RouteHandler, dict(route=None)),
 			(r"/web/([a-zA-Z0-9\-\._]+)", tornado.web.StaticFileHandler,
 				{"path" : os.path.join(BASE_DIR, "web")})]
 		
 		self.on_loads = {
-			'annex_admin' : [
+			'setup' : [
+				"/web/js/lib/sammy.js",
 				"/web/js/lib/md5.js",
 				"/web/js/models/unveillance_annex.js",
-				"/web/js/modules/init_annex.js",
+				"/web/js/modules/setup.js",
 				"/web/js/lib/dropzone.js",
 				"/web/js/models/unveillance_dropzone.js"
 			]
 		}
 		
-		class RouteHandler(tornado.web.RequestHandler):
-			def initialize(self, route): 
-				self.route = route
-		
-			@tornado.web.asynchronous
-			def get(self, route):
-				static_path = os.path.join(BASE_DIR, "web")
-				content = None
-				r = "main"
+	class FrontendHandler(tornado.web.RequestHandler):
+		@tornado.web.asynchronous
+		def get(self):
+			res = Result()
+			query = parseQueryString(self.request.query)
 			
-				if route is None:
-					idx = Template(filename=os.path.join(static_path, "index.html"))
-				else:
-					route = [r_ for r_ in route.split("/") if r_ != '']
-					r = route[0]
-					print r
+			if query is not None:
+				try:
+					r = "do_%s" % query['req']
+					del query['req']
+					
+					res = self.application.routeRequest(res, r, query)
+				except KeyError as e: print e				
 				
-					idx = Template(filename=os.path.join(static_path, "module.html"))
-					content = Template(filename=os.path.join(
-						static_path, "layout", "%s.html" % r)).render()
+			self.set_result(res.result)
+			self.finish(res.emit())
+		
+	class RouteHandler(tornado.web.RequestHandler):
+		def initialize(self, route): 
+			self.route = route
+	
+		@tornado.web.asynchronous
+		def get(self, route):
+			static_path = os.path.join(BASE_DIR, "web")			
+			content = None
+			r = "main"
+		
+			if route is None:
+				idx = Template(filename=os.path.join(static_path, "index.html"))
+			else:
+				route = [r_ for r_ in route.split("/") if r_ != '']
+				r = route[0]
+				print r
 			
-				self.finish(idx.render(on_loader=self.getOnLoad(r), content=content))
-		
-			def getOnLoad(self, route):
-				js = '<script type="text/javascript" src="%s"></script>'
-				if route in [k for k,v in self.on_loads.iteritems()]:
-					return "".join([js % v for v in self.on_loads[route]])
-
-				return ""
-		
-			@tornado.web.asynchronous
-			def post(self, route):
+				idx = Template(filename=os.path.join(static_path, "module.html"))
+			
+			layout = os.path.join(static_path, "layout", "%s.html" % r)
+				
+			if not os.path.exists(layout):
+				# try the externals...
+				layout = os.path.join(static_path, "extras", "layout", "%s.html" % r)
+				
+			if not os.path.exists(layout):
 				res = Result()
-			
-				if route is not None:
-					route = [r_ for r_ in route.split("/") if r_ != '']
-					r = "do_%s" % route[0]
 				
-					if hasattr(self.application, r):
-						print "doing %s with:\n" % r
-						func = getattr(self.application, r)
-						
-						res.result = 200
-						res.data = func(self.request)
-
-						if res.data is None: res.data = {}						
-			
-				self.set_status(res.result)					
+				self.set_status(res.result)
 				self.finish(res.emit())
+				return
+
+			content = Template(filename=layout).render()
+			self.finish(idx.render(on_loader=self.getOnLoad(r), content=content))
+	
+		def getOnLoad(self, route):
+			js = '<script type="text/javascript" src="%s"></script>'
+			if route in [k for k,v in self.on_loads.iteritems()]:
+				return "".join([js % v for v in self.on_loads[route]])
+
+			return ""
+	
+		@tornado.web.asynchronous
+		def post(self, route):
+			res = Result()
 		
+			if route is not None:
+				route = [r_ for r_ in route.split("/") if r_ != '']
+				r = "do_%s" % route[0]
+				
+				res = self.application.routeRequest(res, r, self.request)
+		
+			self.set_status(res.result)					
+			self.finish(res.emit())
+	
+	def routeRequest(result_obj, func_name, request):
+		if hasattr(self, func_name):
+			print "doing %s with:\n" % r
+			func = getattr(self, func_name)
+			
+			result_obj.result = 200
+			result_obj.data = func(request)
+
+		return result_obj
+	
 	def startup(self):
 		p = Process(target=self.startRESTAPI)
 		p.start()

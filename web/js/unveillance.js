@@ -1,10 +1,14 @@
+function toURLString(json) {
+	return encodeURIComponent(JSON.stringify(json));
+}
+
 function doInnerAjax(url, method, data, callback) {
 	$.ajax({
 		url: "/" + url + "/",
 		dataType: "json",
 		data: data,
 		method: method,
-		success: callback
+		complete: callback
 	});
 }
 
