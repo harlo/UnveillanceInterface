@@ -15,7 +15,6 @@ var UnveillanceAnnex = Backbone.Model.extend({
 		
 		for(var a=0; a<values.length; a++) {
 			var field = values[a];
-			console.info($(field));
 
 			$($(field).siblings(".uv_error_msg")[0]).css('visibility','hidden');
 			if($(field).hasClass('uv_invalid')) {

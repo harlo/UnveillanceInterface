@@ -30,7 +30,6 @@ function setupAnnex() {
 		"init_annex", "post", JSON.stringify(annex.annex_bundle),
 		function(json) {
 			json = JSON.parse(json['responseText']);
-			console.info(json);
 
 			var tmpl = "init_annex_fail.html";
 			var label = "Try Again?";
@@ -41,8 +40,6 @@ function setupAnnex() {
 				tmpl = "init_annex_success.html"; 
 				label = "OK!";
 				href = "/";
-			} else {
-				console.info("unbinding click...");
 			}
 
 			insertTemplate(
@@ -63,7 +60,6 @@ function loadSetupStep(pos) {
 		null,									// mustache data
 		"#uv_setup_view_holder",				// append_root
 		function() {							// on_complete
-			console.info("SETTING UP STEP");
 			discoverDropzones(
 				{ url: ("/post_batch/" + annex.batch_root + "/") },
 				"#uv_setup_view_holder"

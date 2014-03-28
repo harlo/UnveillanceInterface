@@ -10,19 +10,10 @@ function showErrorMessage(el, msg) {
 	$(el).css('visibility','visible');
 }
 
-function toggleVisibility(el) {
-	return d;
-}
-
-function validateFormField(field, form_root) {
-	console.info($(field));
-	
+function validateFormField(field, form_root) {	
 	var val = $(field).val();
 	var name = $(field).attr('name');
-	
-	console.info(name);
-	console.info(val);
-			
+				
 	if($(field).hasClass('uv_mandatory')) {
 		if(val == "") {
 			$(field).addClass("uv_invalid");

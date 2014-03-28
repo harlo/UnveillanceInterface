@@ -1,7 +1,7 @@
-import os
+import os, requests, json
 
 from lib.Core.Utils.funcs import parseRequestEntity
-from conf import BASE_DIR, DEBUG
+from conf import BASE_DIR, buildServerURL, getUUID, DEBUG
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -17,12 +17,23 @@ class UnveillanceAPI():
 		return None
 	
 	def do_post_batch(self, request):
+		# just bouce request to server/post_batch/tmp_id
+		url = "%s%s" % (buildServerURL(), request.uri)
+
 		if DEBUG:
 			print "POST BATCH"
-			print request
+			print request.files
+			print url
 		
-		# just bouce request to server/post_batch/tmp_id
+		try:
+			r = requests.post(url, files=request.files)
+			if DEBUG:
+				print "BOUNCE:"
+				print r.content
+			
+			return json.loads(r.content)
 	
+		except requests.exceptions.ConnectionError as e: print e
 		return None
 	
 	def do_init_annex(self, request):
@@ -34,51 +45,37 @@ class UnveillanceAPI():
 		if DEBUG: print credentials
 		if credentials is None: return None
 		
-		'''
 		from subprocess import Popen
-		from conf import SSH_ROOT, BASE_DIR, SERVER_HOST
-		from lib.Core.Utils.funcs import hashEntireFile
+		from conf import SSH_ROOT
 		
 		try:
-			# 1. create keypair
-			password = credentials['unveillance.local_remote.key.password']
-			del credentials['unveillance.local_remote.key.password']
+			if DEBUG: print "initing annex script"
+			
+			password = credentials['unveillance.local_remote.password']
+			del credentials['unveillance.local_remote.password']
 			
 			folder = credentials['unveillance.local_remote.folder']
 			del credentials['unveillance.local_remote.folder']
-			
-			cmd = ["ssh-keygen", "-f", 
-				os.path.join(SSH_ROOT, "unveillance.local_remote.key"),
-				"-t", "rsa", "-b", "4096", "-N", password]
-		
-			p = Popen(cmd)
+					
+			p = Popen([os.path.join(BASE_DIR, "init_local_remote.sh"), 
+				SSH_ROOT, folder, password])
 			p.wait()
 		
-			# 2. create uuid 
-			# (uuid is hash of public key)
-			credentials['uuid'] = hashEntireFile(os.path.join(SSH_ROOT,
-				"unveillance.local_remote.key.pub"))
+			pk_label = "unveillance.local_remote.key.pub"
+			pk_path = os.path.join(SSH_ROOT, pk_label)
 			
-			# 3. copy public key into batch_root
-			# (so it can be picked up later)
-			with open(
-				os.path.join(SSH_ROOT, "unveillance.local_remote.key.pub"), 'rb') as PK:
-				self.do_post_batch({
-					'files' : [("unveillance.local_remote.key.pub", PK.read())],
-					'url' : "http://%s/post_batch/%s/" % (SERVER_HOST,
-						credentials['batch_root'])
-				})
-			
-			# 4. save password, folder to config
-			from Utils.funcs import updateConfig
-			updateConfig({
-				'unveillance.local_remote.key.password' : password,
-				'unveillance.local_remote.folder' : folder
-			})
-						
-		except Exception as e:
+			credentials['uuid'] = getUUID()
+		
+		except Exception as e: 
 			print e
 			return None
-		'''
 		
-		return None
+		with open(pk_path, 'rb') as pk:
+			uri = "/post_batch/%s/" % credentials['batch_root']	
+			
+			from vars import PostBatchStub
+			post_batch = self.do_post_batch(PostBatchStub({pk_label: pk.read()}, uri))
+			
+			if post_batch is None: return None
+		
+		return credentials
