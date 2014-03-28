@@ -1,7 +1,7 @@
 import os
 
 from lib.Core.Utils.funcs import parseRequestEntity
-from conf import BASE_DIR
+from conf import BASE_DIR, DEBUG
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -9,7 +9,7 @@ class UnveillanceAPI():
 	
 	def do_num_views(self, query):
 		path = os.path.join(BASE_DIR, "web", "layout", "views", query['view_root'])
-		print "GETTIN NUM VIEWS IN %s" % path
+		if DEBUG: print "GETTIN NUM VIEWS IN %s" % path
 		
 		if os.path.exists(path):
 			for _, _, files in os.walk(path): return len(files)
@@ -17,20 +17,24 @@ class UnveillanceAPI():
 		return None
 	
 	def do_post_batch(self, request):
-		print "POST BATCH"
-		print request
+		if DEBUG:
+			print "POST BATCH"
+			print request
 		
 		# just bouce request to server/post_batch/tmp_id
 	
 		return None
 	
 	def do_init_annex(self, request):
-		print "INIT ANNEX (Stock Context)"
-		print request
+		if DEBUG:
+			print "INIT ANNEX (Stock Context)"
+			print request
 		
-		credentials = parseRequestEntity(request.body)	
+		credentials = parseRequestEntity(request.body)
+		if DEBUG: print credentials
 		if credentials is None: return None
 		
+		'''
 		from subprocess import Popen
 		from conf import SSH_ROOT, BASE_DIR, SERVER_HOST
 		from lib.Core.Utils.funcs import hashEntireFile
@@ -75,5 +79,6 @@ class UnveillanceAPI():
 		except Exception as e:
 			print e
 			return None
+		'''
 		
 		return None

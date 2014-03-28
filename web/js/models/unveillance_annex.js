@@ -11,17 +11,24 @@ var UnveillanceAnnex = Backbone.Model.extend({
 	
 	build: function() {
 		var values = $(this.values_holder).find("input");
-		annex_bundle = { batch_root : this.batch_root };
+		var annex_bundle = { batch_root : this.batch_root };
 		
-		$.each(values, function(idx, item) {
-			console.info($(item).attr('name') + " : " + $(item).attr('type'));
-			if($(item).val() != "") {
-				console.info($(item).val());
-				
-				annex_bundle[$(item).attr('name')] = $(item).val();
+		for(var a=0; a<values.length; a++) {
+			var field = values[a];
+			console.info($(field));
+
+			$($(field).siblings(".uv_error_msg")[0]).css('visibility','hidden');
+			if($(field).hasClass('uv_invalid')) {
+				$(field).removeClass('uv_invalid');
 			}
-		});
-		
+			
+			if(!(validateFormField($(field), $(this.values_holder)))) { return false; }
+			if($(field).hasClass('uv_confirm')) { continue; }
+			
+			annex_bundle[$(field).attr('name')] = $(field).val();
+		}
+				
 		this.annex_bundle = annex_bundle;
+		return true;
 	}
 });

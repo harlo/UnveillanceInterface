@@ -113,6 +113,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				res = self.application.routeRequest(res, r, self.request)
 			
 			if DEBUG : print res.emit()
+			
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
@@ -125,6 +126,10 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			result_obj.data = func(request)
 		else:
 			if DEBUG : print "could not find function %s" % func_name
+
+		if result_obj.data is None: 
+			del result_obj.data
+			result_obj.result = 412
 
 		return result_obj
 	

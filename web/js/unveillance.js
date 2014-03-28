@@ -1,5 +1,51 @@
-function toURLString(json) {
-	return encodeURIComponent(JSON.stringify(json));
+function JSONtoURLString(json) {
+	var url_str = Object.keys(json).map(function(key) {
+		return (encodeURIComponent(key) + "=" + encodeURIComponent(json[key]));
+	}).join('&');
+	return url_str;
+}
+
+function showErrorMessage(el, msg) {
+	$(el).html(msg);
+	$(el).css('visibility','visible');
+}
+
+function toggleVisibility(el) {
+	return d;
+}
+
+function validateFormField(field, form_root) {
+	console.info($(field));
+	
+	var val = $(field).val();
+	var name = $(field).attr('name');
+	
+	console.info(name);
+	console.info(val);
+			
+	if($(field).hasClass('uv_mandatory')) {
+		if(val == "") {
+			$(field).addClass("uv_invalid");
+			showErrorMessage($(field).siblings(".uv_error_msg")[0], "Required.");
+			return false;
+		}
+	}
+	
+	if($(field).hasClass('uv_confirm')) {
+		var check_name = name.replace(".confirm", "");
+		var check_input = $(form_root).find("input[name='" + check_name + "']")[0];
+		
+		if(val != $(check_input).val()) {
+			$(field).addClass("uv_invalid");
+			showErrorMessage(
+				$(field).siblings(".uv_error_msg")[0], 
+				$(field).attr('uv_error_msg'));
+			
+			return false;
+		}		
+	}
+	
+	return true;
 }
 
 function doInnerAjax(url, method, data, callback) {

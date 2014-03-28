@@ -20,6 +20,15 @@ a {
 	color:#444 !important;
 }
 
+.uv_invalid {
+	background-color: #94004a !important;
+	color: #fff !important;
+}
+
+.uv_error_msg {
+	visibility: hidden;
+}
+
 .uv_dropzone_holder {
 	border:1px solid #000 !important;
 	width:15% !important;
