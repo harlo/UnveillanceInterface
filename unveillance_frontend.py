@@ -6,11 +6,12 @@ from time import sleep
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
+from mako.template import Template
 
 from api import UnveillanceAPI
 from lib.Core.Utils.uv_result import Result
-from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseQueryString
-from conf import MONIOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
+from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -24,7 +25,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", self.RouteHandler),
-			(r"/web/([a-zA-Z0-9\-\._]+)", tornado.web.StaticFileHandler,
+			(r"/web/([a-zA-Z0-9\-\._/]+)", tornado.web.StaticFileHandler,
 				{"path" : os.path.join(BASE_DIR, "web")})]
 		
 		self.on_loads = {
@@ -38,11 +39,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			]
 		}
 		
+		UnveillanceAPI.__init__(self)
+		
 	class FrontendHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self):
 			res = Result()
 			query = parseRequestEntity(self.request.query)
+			
+			if DEBUG : 
+				print self.request.query
+				print query
 			
 			if query is not None:
 				try:
@@ -52,7 +59,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 					res = self.application.routeRequest(res, r, query)
 				except KeyError as e: print e				
 				
-			self.set_result(res.result)
+			self.set_status(res.result)
 			self.finish(res.emit())
 		
 	class RouteHandler(tornado.web.RequestHandler):	
@@ -89,8 +96,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	
 		def getOnLoad(self, route):
 			js = '<script type="text/javascript" src="%s"></script>'
-			if route in [k for k,v in self.on_loads.iteritems()]:
-				return "".join([js % v for v in self.on_loads[route]])
+			if route in [k for k,v in self.application.on_loads.iteritems()]:
+				if DEBUG : print self.application.on_loads[route]
+				return "".join([js % v for v in self.application.on_loads[route]])
 
 			return ""
 	
@@ -108,9 +116,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
-	def routeRequest(result_obj, func_name, request):
+	def routeRequest(self, result_obj, func_name, request):
 		if hasattr(self, func_name):
-			if DEBUG : print "doing %s with:\n" % func_name
+			if DEBUG : print "doing %s" % func_name
 			func = getattr(self, func_name)
 			
 			result_obj.result = 200
@@ -141,3 +149,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	def stopRESTAPI(self):
 		if DEBUG : print "shutting down REST API"
 		stopDaemon(self.api_pid_file, extra_pids_port=API_PORT)
+
+if __name__ == "__main__":
+	unveillance_frontend = UnveillanceFrontend()
+	
+	if len(argv) != 2: exit("Usage: unveillance_frontend.py [-start, -stop, -restart]")
+	
+	if argv[1] == "-start" or argv[1] == "-firstuse":
+		unveillance_frontend.startup()
+	elif argv[1] == "-stop":
+		unveillance_frontend.shutdown()
+	elif argv[1] == "-restart":
+		unveillance_frontend.shutdown()
+		sleep(5)
+		unveillance_frontend.startup()

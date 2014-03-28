@@ -1,6 +1,6 @@
 import os
 
-from Utils.funcs import parseRequestEntity
+from lib.Core.Utils.funcs import parseRequestEntity
 from conf import BASE_DIR
 
 class UnveillanceAPI():

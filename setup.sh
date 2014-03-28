@@ -14,6 +14,6 @@ echo ssh_root: $SSH_HOME > $LOCAL_CONFIG
 
 echo "Enter your Server's IP address:"
 read SERVER_HOST
-echo server_host: $SERVER_HOST > $LOCAL_CONFIG
+echo server_host: $SERVER_HOST >> $LOCAL_CONFIG
 
 sudo pip install --upgrade -r requirements.txt

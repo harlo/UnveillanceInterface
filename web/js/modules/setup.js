@@ -1,6 +1,6 @@
 (function($) {
 	var annex = new UnveillanceAnnex();
-	var num_views = 0;
+	var num_views = 1;
 	
 	var setup_sammy = $.sammy(function() {
 		this.get("#save", function(context) {
@@ -12,7 +12,7 @@
 
 					var tmpl = "init_annex_fail.html";
 					var label = "Try Again?";
-					var href = "#step-1';
+					var href = "#step-1";
 					var m_data = json['data'] ? json['data'] : null;
 					
 					if(json['result'] == 200) { 
@@ -67,7 +67,7 @@
 			view_root : "setup"
 		}
 
-		doInnerAjax("frontend", "post", toURLString(req), function(res) {
+		doInnerAjax("frontend", "get", toURLString(req), function(res) {
 			if(res.result == 200) {
 				num_views = res.data.num_views;
 		
