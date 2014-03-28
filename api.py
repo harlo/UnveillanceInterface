@@ -109,4 +109,10 @@ class UnveillanceAPI():
 		"""
 		cmd = [os.path.join(BASE_DIR, "link_local_remote.sh"), SSH_ROOT, 
 			folder, password, SERVER_HOST, credentials['p22']]
+		
+		p = Popen(cmd, stdout=PIPE, close_fds=True)
+		p_result = bool(p.stdout.read().strip())
+		p.stdout.close()
+		
+		if p_result: return credentials
 		return None
