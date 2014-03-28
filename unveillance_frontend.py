@@ -11,6 +11,7 @@ from api import UnveillanceAPI
 from lib.Core.Utils.uv_result import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseQueryString
 from conf import MONIOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
+from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
 signal.signal(signal.SIGINT, terminationHandler)
@@ -22,8 +23,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
-			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", 
-				self.RouteHandler, dict(route=None)),
+			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", self.RouteHandler),
 			(r"/web/([a-zA-Z0-9\-\._]+)", tornado.web.StaticFileHandler,
 				{"path" : os.path.join(BASE_DIR, "web")})]
 		
@@ -42,7 +42,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		@tornado.web.asynchronous
 		def get(self):
 			res = Result()
-			query = parseQueryString(self.request.query)
+			query = parseRequestEntity(self.request.query)
 			
 			if query is not None:
 				try:
@@ -55,26 +55,23 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.set_result(res.result)
 			self.finish(res.emit())
 		
-	class RouteHandler(tornado.web.RequestHandler):
-		def initialize(self, route): 
-			self.route = route
-	
+	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
 		def get(self, route):
 			static_path = os.path.join(BASE_DIR, "web")			
-			content = None
 			r = "main"
 		
 			if route is None:
 				idx = Template(filename=os.path.join(static_path, "index.html"))
 			else:
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				r = route[0]
-				print r
+				r = route[0]				
 			
 				idx = Template(filename=os.path.join(static_path, "module.html"))
 			
 			layout = os.path.join(static_path, "layout", "%s.html" % r)
+			
+			if DEBUG : print (r, layout)
 				
 			if not os.path.exists(layout):
 				# try the externals...
@@ -106,17 +103,20 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				r = "do_%s" % route[0]
 				
 				res = self.application.routeRequest(res, r, self.request)
-		
+			
+			if DEBUG : print res.emit()
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
 	def routeRequest(result_obj, func_name, request):
 		if hasattr(self, func_name):
-			print "doing %s with:\n" % r
+			if DEBUG : print "doing %s with:\n" % func_name
 			func = getattr(self, func_name)
 			
 			result_obj.result = 200
 			result_obj.data = func(request)
+		else:
+			if DEBUG : print "could not find function %s" % func_name
 
 		return result_obj
 	
@@ -139,5 +139,5 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		tornado.ioloop.IOLoop.instance().start()
 	
 	def stopRESTAPI(self):
-		print "shutting down REST API"
+		if DEBUG : print "shutting down REST API"
 		stopDaemon(self.api_pid_file, extra_pids_port=API_PORT)

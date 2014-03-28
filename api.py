@@ -1,6 +1,6 @@
 import os
 
-from Utils.funcs import passesParameterFilter
+from Utils.funcs import parseRequestEntity
 from conf import BASE_DIR
 
 class UnveillanceAPI():
@@ -28,13 +28,8 @@ class UnveillanceAPI():
 		print "INIT ANNEX (Stock Context)"
 		print request
 		
-		try:
-			credentials = json.loads(request.body)
-		except Exception as e:
-			print e
-			return None
-			
-		if not passesParameterFilter(credentials): return None
+		credentials = parseRequestEntity(request.body)	
+		if credentials not None: return None
 		
 		from subprocess import Popen
 		from conf import SSH_ROOT, BASE_DIR, SERVER_HOST
@@ -42,9 +37,15 @@ class UnveillanceAPI():
 		
 		try:
 			# 1. create keypair
+			password = credentials['unveillance.local_remote.key.password']
+			del credentials['unveillance.local_remote.key.password']
+			
+			folder = credentials['unveillance.local_remote.folder']
+			del credentials['unveillance.local_remote.folder']
+			
 			cmd = ["ssh-keygen", "-f", 
 				os.path.join(SSH_ROOT, "unveillance.local_remote.key"),
-				"-t", "rsa", "-b", "4096", "-N", credentials['unveillance.local_remote.key.password']]
+				"-t", "rsa", "-b", "4096", "-N", password]
 		
 			p = Popen(cmd)
 			p.wait()
@@ -64,17 +65,13 @@ class UnveillanceAPI():
 						credentials['batch_root'])
 				})
 			
-			# 4. save password, folder to config and remove from credentials
+			# 4. save password, folder to config
 			from Utils.funcs import updateConfig
 			updateConfig({
-				'unveillance.local_remote.key.password' : credentials['unveillance.local_remote.key.password'],
-				'unveillance.local_remote.folder' : credentials['unveillance.local_remote.folder']
+				'unveillance.local_remote.key.password' : password,
+				'unveillance.local_remote.folder' : folder
 			})
-			
-			del credentials['unveillance.local_remote.key.password']
-			del credentials['unveillance.local_remote.folder']
-			
-			
+						
 		except Exception as e:
 			print e
 			return None

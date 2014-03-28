@@ -1,11 +1,6 @@
 var annex = new UnveillanceAnnex();
 var num_views = 0;
 
-function loadSetupView() {
-	var pos = 0;
-	window.location = "#step-" + (pos + 1) + "/";
-}
-
 $(document).ready(function() {
 	// 1. init sammy
 	(function($) {
@@ -84,7 +79,7 @@ $(document).ready(function() {
 			$("#uv_setup_step_num").html(num_views);
 			
 			// 4. loadView 0
-			loadSetupView();
+			window.location = "#step-1";
 		}
 	});
 });	
