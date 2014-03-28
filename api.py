@@ -29,7 +29,7 @@ class UnveillanceAPI():
 		print request
 		
 		credentials = parseRequestEntity(request.body)	
-		if credentials not None: return None
+		if credentials is None: return None
 		
 		from subprocess import Popen
 		from conf import SSH_ROOT, BASE_DIR, SERVER_HOST
