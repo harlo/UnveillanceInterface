@@ -1,7 +1,8 @@
-import os, requests, json
+import os, requests, json, re
+from subprocess import Popen, PIPE
 
 from lib.Core.Utils.funcs import parseRequestEntity
-from conf import BASE_DIR, buildServerURL, getUUID, DEBUG
+from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -45,9 +46,10 @@ class UnveillanceAPI():
 		if DEBUG: print credentials
 		if credentials is None: return None
 		
-		from subprocess import Popen
-		from conf import SSH_ROOT
-		
+		"""
+			1. run init_local_remote.sh
+			2. get/set uuid
+		"""
 		try:
 			if DEBUG: print "initing annex script"
 			
@@ -70,6 +72,9 @@ class UnveillanceAPI():
 			print e
 			return None
 		
+		"""
+			3. post public key
+		"""
 		with open(pk_path, 'rb') as pk:
 			uri = "/post_batch/%s/" % credentials['batch_root']	
 			
@@ -78,4 +83,30 @@ class UnveillanceAPI():
 			
 			if post_batch is None: return None
 		
-		return credentials
+		"""
+			4. request annex to be opened on the server
+			   (this returns the ports on success)
+		"""
+		try:
+			url = "%s/init/" % buildServerURL()
+			if DEBUG: 
+				print "now requesting annex creation on server"
+				print url
+				
+			r = requests.post(url, data=json.dumps(credentials))
+			r = json.loads(r.content)
+			if DEBUG: print r
+			
+			if r['result'] != 200: return None
+			credentials.update(r['data'])
+			
+		except requests.exceptions.ConnectionError as e: 
+			print e
+			return None
+		
+		"""
+			5. run link_local_remote to associate local with remote annex
+		"""
+		cmd = [os.path.join(BASE_DIR, "link_local_remote.sh"), SSH_ROOT, 
+			folder, password, SERVER_HOST, credentials['p22']]
+		return None
