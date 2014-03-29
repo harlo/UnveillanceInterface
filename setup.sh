@@ -30,4 +30,13 @@ then
 fi
 echo server.port: $SERVER_PORT >> $LOCAL_CONFIG
 
+echo "Your Server support SSL connections: true or false?"
+echo "[DEFAULT: false]:"
+read SERVER_USE_SSL
+if [[ -z "$SERVER_USE_SSL" ]]
+then
+	SERVER_USE_SSL=8888
+fi
+echo server.port: $SERVER_USE_SSL >> $LOCAL_CONFIG
+
 sudo pip install --upgrade -r requirements.txt
