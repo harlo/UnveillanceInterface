@@ -88,7 +88,7 @@ class UnveillanceAPI():
 			   (this returns the ports on success)
 		"""
 		try:
-			url = "%s/init/" % buildServerURL()
+			url = "%s/init_annex/" % buildServerURL()
 			if DEBUG: 
 				print "now requesting annex creation on server"
 				print url

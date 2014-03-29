@@ -1,4 +1,6 @@
 .DS_Store
 *.pyc
+test.py
+test.sh
 
 conf/*.config.yaml

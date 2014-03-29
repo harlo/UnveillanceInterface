@@ -22,6 +22,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
+		self.reserved_routes = ["frontend", "web", "setup"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", self.RouteHandler),
@@ -53,7 +54,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			
 			if query is not None:
 				try:
-					r = "do_%s" % query['req']
+					r = query['req']
 					del query['req']
 					
 					res = self.application.routeRequest(res, r, query)
@@ -108,9 +109,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 			if route is not None:
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				r = "do_%s" % route[0]
-				
-				res = self.application.routeRequest(res, r, self.request)
+				res = self.application.routeRequest(res, route[0], self.request)
 			
 			if DEBUG : print res.emit()
 			
@@ -118,6 +117,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.finish(res.emit())
 	
 	def routeRequest(self, result_obj, func_name, request):
+		func_name = "do_%s" % func_name
 		if hasattr(self, func_name):
 			if DEBUG : print "doing %s" % func_name
 			func = getattr(self, func_name)
