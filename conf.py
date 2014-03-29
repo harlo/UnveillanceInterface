@@ -24,11 +24,10 @@ def getRemotePort():
 		if DEBUG: print e
 	return None
 
-def buildServerURL():
-	protocol = "http"
-	if SERVER_USE_SSL: protocol += "s"
+def buildServerURL(port=None):
+	if port is None: port = SERVER_PORT
 	
-	return "%s://%s:%d" % (protocol, SERVER_HOST, SERVER_PORT)
+	return "http://%s:%d" % (SERVER_HOST, port)
 
 def buildRemoteURL():
 	protocol = "http"
@@ -50,7 +49,6 @@ with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 	config = yaml.load(C.read())
 	SSH_ROOT = config['ssh_root']
 	SERVER_HOST = config['server.host']
-	SERVER_USE_SSL = config['server.use_ssl']
 	SERVER_PORT = config['server.port']
 
 UUID = getUUID()

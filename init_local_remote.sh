@@ -15,8 +15,9 @@ if [[ -z "$has_lm" ]]
 then
 	echo "checking dir"
 else
-	LM=$LM/LOCAL_REMOTE_FOLDER
-	mkdir $LM
+	echo "dir exists. deleting"
+	# SECURITY!
+	rm -rf $LM
 fi
 
 ssh-keygen -f $SSH_ROOT/unveillance.local_remote.key -t rsa -b 4096 -N $LOCAL_REMOTE_PWD

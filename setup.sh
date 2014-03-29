@@ -30,13 +30,4 @@ then
 fi
 echo server.port: $SERVER_PORT >> $LOCAL_CONFIG
 
-echo "Does the server use HTTPS? (i.e. true or false)"
-echo "[DEFAULT: false]: "
-read SERVER_USE_SSL
-if [[ -z "$SERVER_USE_SSL" ]]
-then
-	SERVER_USE_SSL=false
-fi
-echo server.use_ssl: SERVER_USE_SSL >> $LOCAL_CONFIG
-
 sudo pip install --upgrade -r requirements.txt
