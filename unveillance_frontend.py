@@ -1,4 +1,4 @@
-import json, signal, os, logging
+import json, signal, os, logging, re
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep
@@ -22,10 +22,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
-		self.reserved_routes = ["frontend", "web", "setup"]
+		self.reserved_routes = ["frontend", "web"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
-			(r"/(?:(?!web/|frontend/))([a-zA-Z0-9_/]*/$)?", self.RouteHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", tornado.web.StaticFileHandler,
 				{"path" : os.path.join(BASE_DIR, "web")})]
 		
@@ -84,6 +83,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if not os.path.exists(layout):
 				# try the externals...
 				layout = os.path.join(static_path, "extras", "layout", "%s.html" % r)
+				if DEBUG: 
+					print "could not find layout at web root.  trying externals:"
+					print layout
 				
 			if not os.path.exists(layout):
 				res = Result()
@@ -142,7 +144,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	
 	def startRESTAPI(self):
 		#startDaemon(self.api_log_file, self.api_pid_file)
-
+		
+		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
+		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
 		tornado.web.Application.__init__(self, self.routes)
 		
 		server = tornado.httpserver.HTTPServer(self)

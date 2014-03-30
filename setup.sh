@@ -1,10 +1,19 @@
 #! /bin/bash
-$SERVER_NAME=$1
-OLD_DIR=`pwd`
-LOCAL_CONFIG=$OLD_DIR/conf/local.config.yaml
+THIS_DIR=`pwd`
+LOCAL_CONFIG=$THIS_DIR/conf/local.config.yaml
+
+if [ $# -eq 0 ]
+then
+	echo "no initial arguments (Stock Unveillance context)"
+	OLD_DIR=$THIS_DIR
+	FRONTEND_NAME=unveillance_frontend
+else
+	OLD_DIR=$1
+	FRONTEND_NAME=$2
+fi
 
 echo "**************************************************"
-echo "************** ANNEX SETUP **************"
+echo "************** FRONTEND SETUP **************"
 mkdir $OLD_DIR/.monitor
 
 echo "What's the full path to your ssh folder? (i.e ~/.ssh)"
@@ -35,8 +44,13 @@ echo "[DEFAULT: false]:"
 read SERVER_USE_SSL
 if [[ -z "$SERVER_USE_SSL" ]]
 then
-	SERVER_USE_SSL=8888
+	SERVER_USE_SSL=false
 fi
-echo server.port: $SERVER_USE_SSL >> $LOCAL_CONFIG
+echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 
 sudo pip install --upgrade -r requirements.txt
+
+echo "**************************************************"
+echo "Launching server..."
+cd $OLD_DIR
+python $FRONTEND_NAME.py -firstuse
