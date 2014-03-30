@@ -1,0 +1,3 @@
+$.event.trigger({
+	type: "annexEvent"
+});

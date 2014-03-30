@@ -16,8 +16,17 @@ function initSetup() {
 			annex = new UnveillanceAnnex();			
 			num_views = res.data;
 			
+			// 3. post to event listener
+			try {
+				$(document).on("annexEvent", onAnnexEvent);
+				onAnnexAvailable();
+			} catch(err) {
+				console.info(err);
+			}
+
+			// 4. load first step			
 			$("#uv_setup_step_num").html(num_views);
-			setTimeout(loadSetupStep(1), 1000);
+			setTimeout(loadSetupStep(1), 1000);			
 		}
 	});
 }
@@ -67,10 +76,12 @@ function loadSetupStep(pos) {
 		"#uv_setup_view_holder",				// append_root
 		function() {							// on_complete
 			$("#uv_setup_current_step").html(pos);
-			discoverDropzones(
-				{ url: ("/post_batch/" + annex.batch_root + "/") },
-				"#uv_setup_view_holder"
-			);
+			
+			try {
+				onFormLoaded(pos);
+			} catch(err) {
+				console.info(err);
+			}
 			
 			var label = (pos == num_views ? "Save" : "Next");
 			var href = null;

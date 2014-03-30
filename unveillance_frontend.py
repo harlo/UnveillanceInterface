@@ -32,6 +32,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				"/web/js/lib/sammy.js",
 				"/web/js/lib/md5.js",
 				"/web/js/models/unveillance_annex.js",
+				"/web/js/handlers/uv_annex_listener.js",
 				"/web/js/modules/setup.js",
 				"/web/js/lib/dropzone.js",
 				"/web/js/models/unveillance_dropzone.js"
