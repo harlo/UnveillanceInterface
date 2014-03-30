@@ -11,16 +11,19 @@ var UnveillanceSyncTask = Backbone.Model.extend({
 		this.synctask_bundle = {};
 	},
 	
-	build: function() {
-		console.info("COMMITTING MYSELF!");		
-		
+	build: function() {		
 		var input_holder = $("#uv_synctask_add_holder");
-		var values = _.union(input_holder.find("input"), input_holder.find("select"));
+		var values = [];
+		_.each(["input", "select"], function(tag) {
+			$.each(input_holder.find(tag), function(idx, item) { values.push(item); });
+		});
+		
 		console.info(values);
 		if(values.length == 0) { return false; }
 		
 		for(var a=0; a<values.length; a++) {
 			var field = values[a];
+			console.info($(field));
 			
 			$($(field).siblings(".uv_error_msg")[0]).css('visibility','hidden');
 			if($(field).hasClass('uv_invalid')) {

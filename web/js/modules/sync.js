@@ -1,8 +1,5 @@
 function initSync() {
-	//	1. get user's synctasks
-	synctask_holder = new UnveillanceSyncTaskHolder();
 	
-	//	2. add holder for a new task
 	addNewTask();
 }
 
@@ -22,11 +19,13 @@ function addNewTask() {
 }
 
 function onSynctaskFileSubmitted(file, res) {
-	var synctask_stub = new UnveillanceSyncTask();
-	synctask_stub.synctask_bundle.alias = file.name;
-	synctask_stub.synctask_bundle.local_path = res.data.addedFiles[0][file.name];
+	var synctask = new UnveillanceSyncTask();
 	
-	$("#uv_synctask_commit").click(function() { synctask_stub.build(); });
+	synctask.synctask_bundle['unveillance.uvscript.alias'] = file.name;
+	synctask.synctask_bundle['unveillance.uvscript.local_path'] =
+		res.data.addedFiles[0][file.name];
+	
+	$("#uv_synctask_commit").click(function() { synctask.build(); });
 }
 
 (function($) {
