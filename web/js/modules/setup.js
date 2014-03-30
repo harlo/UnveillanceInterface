@@ -1,5 +1,5 @@
-var annex = new UnveillanceAnnex();
-var num_views = 1;
+var annex = null;
+var num_views = null;
 
 function initSetup() {
 	// 1. get count of setup views
@@ -11,20 +11,19 @@ function initSetup() {
 	doInnerAjax("frontend", "get", JSONtoURLString(req), function(res) {
 		res = JSON.parse(res.responseText);
 		
-		if(res.result == 200) {
+		if(res.result == 200) {			
+			// 2. set "#uv_setup_step_num" value as count
+			annex = new UnveillanceAnnex();			
 			num_views = res.data;
 			
-			// 2. set "#uv_setup_step_num" value as count
 			$("#uv_setup_step_num").html(num_views);
-	
-			// 3. loadView 1
-			window.location = "#step-1";
+			setTimeout(loadSetupStep(1), 1000);
 		}
 	});
 }
 
 function setupAnnex() {
-	if(!(annex.build())) { return; }
+	if(!(annex.validate())) { return; }
 			
 	doInnerAjax(
 		"init_annex", "post", JSON.stringify(annex.annex_bundle),
@@ -33,7 +32,7 @@ function setupAnnex() {
 
 			var tmpl = "init_annex_fail.html";
 			var label = "Try Again?";
-			var href = "#step-1";
+			var href = "/setup/";
 			var m_data = json['data'] ? json['data'] : null;
 			
 			if(json['result'] == 200) { 
@@ -54,27 +53,43 @@ function setupAnnex() {
 	);
 }
 
-function loadSetupStep(pos) {	
+function loadSetupStep(pos) {
+	$("#uv_setup_save_or_advance").unbind("click");
+	
+	if(pos == 1 && num_views == null) {
+		initSetup();
+		return;
+	}
+	
 	insertTemplate(
 		("init_annex_step_" + pos + ".html"),	// tmpl
 		null,									// mustache data
 		"#uv_setup_view_holder",				// append_root
 		function() {							// on_complete
+			$("#uv_setup_current_step").html(pos);
 			discoverDropzones(
 				{ url: ("/post_batch/" + annex.batch_root + "/") },
 				"#uv_setup_view_holder"
 			);
 			
 			var label = (pos == num_views ? "Save" : "Next");
-			var href = (pos == num_views ? "#save" : ("#step-" + (pos + 1)));
+			var href = null;
 
+			if(pos == num_views) { 
+				href = "#save";
+				$("#uv_setup_save_or_advance").click(setupAnnex);
+			} else {
+				$("#uv_setup_save_or_advance").click(function() {
+					if(annex.build(Number(pos))) {
+						href = ("#step-" + (Number(pos) + 1));
+						$("#uv_setup_save_or_advance").attr('href', href);
+					}
+				});
+			}
+			
 			$("#uv_setup_save_or_advance")
 				.html(label)
 				.attr('href', href);
-			
-			if(pos == num_views) { 
-				$("#uv_setup_save_or_advance").click(setupAnnex);
-			}
 		},
 		"/web/layout/views/setup/"				// static_root
 	);
@@ -93,7 +108,7 @@ function loadSetupStep(pos) {
 	
 	$(function() {
 		setup_sammy.run();
-		initSetup();
+		window.location = "#step-1";
 	});
 })(jQuery);
 

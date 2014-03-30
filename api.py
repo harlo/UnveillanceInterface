@@ -9,13 +9,21 @@ class UnveillanceAPI():
 		print "Stock Unveillance Frontend API started..."
 	
 	def do_num_views(self, query):
+		views = 0
 		path = os.path.join(BASE_DIR, "web", "layout", "views", query['view_root'])
+		path_e = os.path.join(BASE_DIR, "web", "extras", "layout",
+			"views", query['view_root'])
+			
 		if DEBUG: print "GETTIN NUM VIEWS IN %s" % path
 		
-		if os.path.exists(path):
-			for _, _, files in os.walk(path): return len(files)
+		for dir in [path, path_e]:			
+			if os.path.exists(dir):
+				for _, _, files in os.walk(dir):
+					views += len(files)
+					break
 				
-		return None
+		if views != 0: return views
+		else: return None
 	
 	def do_post_batch(self, request):
 		# just bouce request to server/post_batch/tmp_id

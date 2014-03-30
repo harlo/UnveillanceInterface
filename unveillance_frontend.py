@@ -25,8 +25,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.reserved_routes = ["frontend", "web"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
-			(r"/web/([a-zA-Z0-9\-\._/]+)", tornado.web.StaticFileHandler,
-				{"path" : os.path.join(BASE_DIR, "web")})]
+			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler)]
 		
 		self.on_loads = {
 			'setup' : [
@@ -40,7 +39,26 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		}
 		
 		UnveillanceAPI.__init__(self)
-		
+	
+	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
+		@tornado.web.asynchronous
+		def get(self, uri):
+			static_path = os.path.join(BASE_DIR, "web")
+			
+			asset = os.path.join(static_path, uri)
+			
+			if not os.path.exists(asset):
+				asset = os.path.join(static_path, "extras", uri)
+			
+			if not os.path.exists(asset):
+				res = Result()
+				
+				self.set_status(res.result)
+				self.finish(res.emit())
+				return
+			
+			with open(asset, 'rb') as a: self.finish(a.read())
+				
 	class FrontendHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self):
@@ -65,7 +83,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
 		def get(self, route):
-			static_path = os.path.join(BASE_DIR, "web")			
+			static_path = os.path.join(BASE_DIR, "web")
 			r = "main"
 		
 			if route is None:
