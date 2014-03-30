@@ -11,7 +11,8 @@ var UnveillanceAnnex = Backbone.Model.extend({
 	},
 	
 	parseFields: function(annex_bundle) {
-		var values = $(this.values_holder).find("input");
+		var values = _.union(
+			$(this.values_holder).find("input"), $(this.values_holder).find("select"));
 		if(values.length == 0) { return false; }
 		
 		for(var a=0; a<values.length; a++) {

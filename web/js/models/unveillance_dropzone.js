@@ -1,7 +1,7 @@
 Dropzone.autoDiscover = false;
 var dropzones = [];
 
-function discoverDropzones(dz_profile, el) {
+function discoverDropzones(dz_profile, el, onSuccess) {
 	if(!el) { el = "#content"; }
 	
 	file_zones = $(el).find("input:file");
@@ -21,14 +21,14 @@ function discoverDropzones(dz_profile, el) {
 			.addClass('uv_dropzone_holder'));
 		$(item).remove();
 
-		dropzones.push(new UnveillanceDropzone(dropzone_id, dz_profile_));
+		dropzones.push(new UnveillanceDropzone(dropzone_id, dz_profile_, onSuccess));
 	});
 }
 
 var UnveillanceDropzone = Backbone.Model.extend({
-	constructor: function(id, dz_profile) {		
+	constructor: function(id, dz_profile, onSuccess) {		
 		this.dropzone = new Dropzone("div#" + id, dz_profile);		
-		this.dropzone.on("success", this.onSuccess);
+		this.dropzone.on("success", onSuccess ? onSuccess : this.onSuccess);
 		this.dropzone.on("error", this.onError);
 		this.dropzone.on("addedfile", this.onFileAdded);
 	},

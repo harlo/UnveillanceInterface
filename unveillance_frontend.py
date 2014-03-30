@@ -36,6 +36,18 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				"/web/js/modules/setup.js",
 				"/web/js/lib/dropzone.js",
 				"/web/js/models/unveillance_dropzone.js"
+			],
+			'collaboration' : [
+				"/web/js/lib/sammy.js",
+				"/web/js/modules/collaboration.js"
+			],
+			'sync' : [
+				"/web/js/lib/sammy.js",
+				"/web/js/lib/dropzone.js",
+				"/web/js/lib/md5.js",
+				"/web/js/models/unveillance_dropzone.js",
+				"/web/js/models/unveillance_synctask.js",
+				"/web/js/modules/sync.js",
 			]
 		}
 		

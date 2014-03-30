@@ -2,6 +2,7 @@ import os, requests, json, re
 from subprocess import Popen, PIPE
 
 from lib.Core.Utils.funcs import parseRequestEntity
+from lib.Core.Utils.uv_result import Result
 from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST
 
 class UnveillanceAPI():
@@ -25,24 +26,55 @@ class UnveillanceAPI():
 		if views != 0: return views
 		else: return None
 	
-	def do_post_batch(self, request):
+	def do_post_batch(self, request, save_local=False):		
 		# just bouce request to server/post_batch/tmp_id
 		url = "%s%s" % (buildServerURL(), request.uri)
 
 		if DEBUG:
 			print "POST BATCH"
-			print request.files
 			print url
 		
-		try:
-			r = requests.post(url, files=request.files)
-			if DEBUG:
-				print "BOUNCE:"
-				print r.content
+		if not save_local:
+			try:
+				r = requests.post(url, files=request.files)
+				if DEBUG:
+					print "BOUNCE:"
+					print r.content
 			
-			return json.loads(r.content)
+				return json.loads(r.content)
 	
-		except requests.exceptions.ConnectionError as e: print e
+			except requests.exceptions.ConnectionError as e: print e
+		else:
+			data = {'addedFiles' :  []}
+			
+			for f in request.files.iteritems():
+				name = f[0]
+				for i, file in enumerate(f[1]):
+					n = name
+					if i != 0: n = "%s_%d" % (n, i)
+					
+					data['addedFiles'].append({file['filename']: n})
+					with open(os.path.join(BASE_DIR, "tmp", n), "wb+") as added_file:
+						added_file.write(file['body'])
+			
+			return data
+
+		return None
+	
+	def do_init_synctask(self, request):
+		"""
+		if we have a file, this is the first build step
+		
+		if we dont, and we just have a body, this is the second build step
+		"""		
+		if len(request.files.keys()) > 0:
+			return self.do_post_batch(request, save_local=True)
+		else:
+			synctask = parseRequestEntity(request.body)
+			
+			if DEBUG: print synctask
+			if synctask is None: return None
+						
 		return None
 	
 	def do_init_annex(self, request):

@@ -5,4 +5,5 @@ test.sh
 
 conf/*.config.yaml
 
+tmp/
 web/extras

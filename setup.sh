@@ -15,6 +15,7 @@ fi
 echo "**************************************************"
 echo "************** FRONTEND SETUP **************"
 mkdir $OLD_DIR/.monitor
+mkdir $OLD_DIR/tmp
 
 echo "What's the full path to your ssh folder? (i.e ~/.ssh)"
 echo "[DEFAULT: ~/.ssh]: "
