@@ -64,7 +64,6 @@ class UnveillanceAPI():
 	def do_init_synctask(self, request):
 		"""
 		if we have a file, this is the first build step
-		
 		if we dont, and we just have a body, this is the second build step
 		"""		
 		if len(request.files.keys()) > 0:
@@ -74,6 +73,10 @@ class UnveillanceAPI():
 			
 			if DEBUG: print synctask
 			if synctask is None: return None
+			
+			"""
+			script and data get rsynced directly to git annex
+			"""
 						
 		return None
 	
