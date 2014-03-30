@@ -10,12 +10,10 @@ var UnveillanceAnnex = Backbone.Model.extend({
 		this.batch_root = MD5(BATCH_SALT + d.getTime());
 	},
 	
-	buildLocalRemote: function() {
+	parseFields: function(annex_bundle) {
 		var values = $(this.values_holder).find("input");
 		if(values.length == 0) { return false; }
 		
-		var annex_bundle = { batch_root : this.batch_root };
-			
 		for(var a=0; a<values.length; a++) {
 			var field = values[a];
 
@@ -27,11 +25,22 @@ var UnveillanceAnnex = Backbone.Model.extend({
 			if(!(validateFormField($(field), $(this.values_holder)))) { return false; }
 			if($(field).hasClass('uv_confirm')) { continue; }
 		
+			if(!annex_bundle) { annex_bundle = this.annex_bundle; }
 			annex_bundle[$(field).attr('name')] = $(field).val();
 		}
-			
-		this.annex_bundle = annex_bundle;
+		
 		return true;
+	},
+	
+	buildLocalRemote: function() {
+		var annex_bundle = { batch_root : this.batch_root };
+
+		if(this.parseFields(annex_bundle)) {
+			this.annex_bundle = annex_bundle;
+			return true;
+		}
+		
+		return false;
 	},
 	
 	build: function(step) {
