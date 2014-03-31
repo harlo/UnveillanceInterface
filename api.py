@@ -1,8 +1,9 @@
 import os, requests, json, re
 from subprocess import Popen, PIPE
 
+from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
-from lib.Core.Utils.uv_result import Result
+
 from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST
 
 class UnveillanceAPI():

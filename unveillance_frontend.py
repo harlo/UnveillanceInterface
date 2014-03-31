@@ -9,8 +9,9 @@ import tornado.httpserver
 from mako.template import Template
 
 from api import UnveillanceAPI
-from lib.Core.Utils.uv_result import Result
+from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
+
 from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
 from conf import DEBUG
 
