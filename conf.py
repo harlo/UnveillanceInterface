@@ -56,7 +56,6 @@ with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 
 UUID = getUUID()
 REMOTE_PORT = getRemotePort()
-ELS_PORT = getRemotePort()
 
 if DEBUG:
 	print "\nLOCAL.CONFIG.YAML:"
