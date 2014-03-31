@@ -1,5 +1,5 @@
 import os
-from json import dumps
+from json import dumps, loads
 
 from lib.Core.Models.uv_object import UnveillanceObject as UVO_Stub
 from conf import ANNEX_DIR, DEBUG
@@ -7,6 +7,13 @@ from conf import ANNEX_DIR, DEBUG
 class UnveillanceObject(UVO_Stub):
 	def __init__(self, **args):			
 		super(UnveillanceObject, self).__init__(**args)
+	
+	def getObject(self, _id):
+		try:
+			with open(os.path.join(ANNEX_DIR, self.manifest), 'rb') as inflate:
+				self.inflate(loads(inflate.read()))
+		except Exception as e:
+			if DEBUG: print e
 
 	def save(self):
 		if DEBUG: print "SAVING FROM FRONTEND"
