@@ -15,9 +15,8 @@ if [[ -z "$has_lm" ]]
 then
 	echo "checking dir"
 else
-	echo "dir exists. deleting"
-	# SECURITY!
-	rm -rf $LM
+	echo "dir exists. must be blank!"
+	# return error here pls.
 fi
 
 ssh-keygen -f $SSH_ROOT/unveillance.local_remote.key -t rsa -b 4096 -N $LOCAL_REMOTE_PWD

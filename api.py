@@ -27,7 +27,7 @@ class UnveillanceAPI():
 		else: return None
 	
 	def do_post_batch(self, request, save_local=False):		
-		# just bouce request to server/post_batch/tmp_id
+		# just bounce request to server/post_batch/tmp_id
 		url = "%s%s" % (buildServerURL(), request.uri)
 
 		if DEBUG:

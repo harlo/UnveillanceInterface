@@ -16,6 +16,12 @@ echo unveillance.local_remote.port: $REMOTE_PORT >> $LOCAL_CONFIG
 
 git clone ssh://root@$REMOTE_HOST/home/unveillance_remote $LOCAL_REMOTE_FOLDER
 cd $LOCAL_REMOTE_FOLDER
+mkdir .synctasks
+echo .DS_Store > .gitignore
+echo *.pyc >> .gitignore
+echo *.exe >> .gitignore
+echo .synctasks/local/ >> .gitignore
+
 git annex init "unveillance_remote"
 git annex untrust web
 git remote add unveillance_remote ssh://root@$REMOTE_HOST/home/unveillance_remote
