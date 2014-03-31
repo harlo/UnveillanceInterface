@@ -53,6 +53,7 @@ with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 	SERVER_HOST = config['server.host']
 	SERVER_PORT = config['server.port']
 	SERVER_USE_SSL = config['server.use_ssl']
+	ANNEX_DIR = config['unveillance.local_remote.folder']
 
 UUID = getUUID()
 REMOTE_PORT = getRemotePort()
