@@ -14,6 +14,9 @@ class UnveillanceObject(UVO_Stub):
 				self.inflate(loads(inflate.read()))
 		except Exception as e:
 			if DEBUG: print e
+			self.invalidate(error="Object does not exist in local annex")
+			
+		if DEBUG: print self.emit()
 
 	def save(self):
 		if DEBUG: print "SAVING FROM FRONTEND"
