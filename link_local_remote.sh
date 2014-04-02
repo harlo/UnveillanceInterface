@@ -9,13 +9,15 @@ REMOTE_HOST=$4
 REMOTE_PORT=$5
 
 # ssh into annex to establish trust (AKA ToFUPoP)
-ssh -t -oStrictHostKeyChecking=no -i $SSH_ROOT/unveillance.local_remote.key root@$REMOTE_HOST -p $REMOTE_PORT -v 'sudo echo "$LOCAL_REMOTE_PWD"'
+ssh -t -oStrictHostKeyChecking=no -i $SSH_ROOT/unveillance.local_remote.key root@$REMOTE_HOST -p $REMOTE_PORT -v <<EOF
+echo "hello" > /dev/null 2>&1
+EOF
 
 # append to ssh/config
 echo unveillance.local_remote.port: $REMOTE_PORT >> $LOCAL_CONFIG
-# Host $REMOTE_HOST
-#	IdentityFile $SSH_ROOT/unveillance.local_remote.key
-#	Port $REMOTE_PORT
+echo "Host $REMOTE_HOST" >> $SSH_ROOT/config
+echo "	IdentityFile $SSH_ROOT/unveillance.local_remote.key" >> $SSH_ROOT/config
+echo "	Port $REMOTE_PORT" >> $SSH_ROOT/config
 
 git clone ssh://root@$REMOTE_HOST/home/unveillance_remote $LOCAL_REMOTE_FOLDER
 cd $LOCAL_REMOTE_FOLDER
