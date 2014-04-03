@@ -160,10 +160,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			result_obj.data = func(request)
 		else:
 			if DEBUG : print "could not find function %s" % func_name
-
-		if result_obj.data is None: 
-			del result_obj.data
-			result_obj.result = 412
+		
+		try:
+			if result_obj.data is None: 
+				del result_obj.data
+				result_obj.result = 412
+		except AttributeError as e: pass
 
 		return result_obj
 	

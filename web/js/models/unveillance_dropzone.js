@@ -21,15 +21,16 @@ function discoverDropzones(dz_profile, el, onSuccess) {
 			.addClass('uv_dropzone_holder'));
 		$(item).remove();
 
-		dropzones.push(new UnveillanceDropzone(dropzone_id, dz_profile_, onSuccess));
+		dropzones.push(new UnveillanceDropzone(dropzone_id, dz_profile_, 
+			onSuccess, onError));
 	});
 }
 
 var UnveillanceDropzone = Backbone.Model.extend({
-	constructor: function(id, dz_profile, onSuccess) {		
+	constructor: function(id, dz_profile, onSuccess, onError) {		
 		this.dropzone = new Dropzone("div#" + id, dz_profile);		
 		this.dropzone.on("success", onSuccess ? onSuccess : this.onSuccess);
-		this.dropzone.on("error", this.onError);
+		this.dropzone.on("error", onError ? onError : this.onError);
 		this.dropzone.on("addedfile", this.onFileAdded);
 	},
 	

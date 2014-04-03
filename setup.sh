@@ -52,6 +52,6 @@ echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 sudo pip install --upgrade -r requirements.txt
 
 echo "**************************************************"
-echo "Launching server..."
+echo "Launching frontend..."
 cd $OLD_DIR
 python $FRONTEND_NAME.py -firstuse
