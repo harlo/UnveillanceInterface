@@ -22,4 +22,3 @@ fi
 ssh-keygen -f $SSH_ROOT/unveillance.local_remote.key -t rsa -b 4096 -N $LOCAL_REMOTE_PWD
 
 echo unveillance.local_remote.folder: $LM >> $LOCAL_CONFIG
-echo unveillance.local_remote.password: $LOCAL_REMOTE_PWD >> $LOCAL_CONFIG
