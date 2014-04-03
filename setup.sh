@@ -6,16 +6,16 @@ if [ $# -eq 0 ]
 then
 	echo "no initial arguments (Stock Unveillance context)"
 	OLD_DIR=$THIS_DIR
-	FRONTEND_NAME=unveillance_frontend
+	LAUNCH_FRONTEND=true
 else
 	OLD_DIR=$1
-	FRONTEND_NAME=$2
+	LAUNCH_FRONTEND=false
 fi
 
 echo "**************************************************"
 echo "************** FRONTEND SETUP **************"
-mkdir $OLD_DIR/.monitor
-mkdir $OLD_DIR/tmp
+mkdir $THIS_DIR/.monitor
+mkdir $THIS_DIR/tmp
 
 echo "What's the full path to your ssh folder? (i.e ~/.ssh)"
 echo "[DEFAULT: ~/.ssh]: "
@@ -49,9 +49,13 @@ then
 fi
 echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 
-sudo pip install --upgrade -r requirements.txt
-
 echo "**************************************************"
-echo "Launching frontend..."
+pip install --upgrade -r requirements.txt
 cd $OLD_DIR
-python $FRONTEND_NAME.py -firstuse
+
+if $LAUNCH_FRONTEND
+then
+	echo "**************************************************"
+	echo "Launching frontend..."
+	python unveillance_frontend.py -firstuse
+fi
