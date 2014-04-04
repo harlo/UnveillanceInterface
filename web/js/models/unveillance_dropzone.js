@@ -1,7 +1,7 @@
 Dropzone.autoDiscover = false;
 var dropzones = [];
 
-function discoverDropzones(dz_profile, el, onSuccess) {
+function discoverDropzones(dz_profile, el, onSuccess, onError) {
 	if(!el) { el = "#content"; }
 	
 	file_zones = $(el).find("input:file");

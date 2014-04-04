@@ -27,7 +27,7 @@ class UnveillanceAPI():
 		if views != 0: return views
 		else: return None
 	
-	def do_post_batch(self, request, save_local=False):		
+	def do_post_batch(self, request, save_local=False, save_to=None):		
 		# just bounce request to server/post_batch/tmp_id
 		url = "%s%s" % (buildServerURL(), request.uri)
 
@@ -47,15 +47,17 @@ class UnveillanceAPI():
 			except requests.exceptions.ConnectionError as e: print e
 		else:
 			data = {'addedFiles' :  []}
-			
 			for f in request.files.iteritems():
 				name = f[0]
 				for i, file in enumerate(f[1]):
 					n = name
 					if i != 0: n = "%s_%d" % (n, i)
 					
+					if save_to is None: save_to = os.path.join(BASE_DIR, "tmp", n)
+					else: save_to = os.path.join(save_to, n)
+					
 					data['addedFiles'].append({file['filename']: n})
-					with open(os.path.join(BASE_DIR, "tmp", n), "wb+") as added_file:
+					with open(save_to, "wb+") as added_file:
 						added_file.write(file['body'])
 			
 			return data
@@ -158,5 +160,5 @@ class UnveillanceAPI():
 		p_result = bool(p.stdout.read().strip())
 		p.stdout.close()
 		
-		if p_result: return credentials
+		if p_result: return (credentials, password)
 		return None

@@ -86,21 +86,16 @@ function loadSetupStep(pos) {
 			var label = (pos == num_views ? "Save" : "Next");
 			var href = null;
 
-			if(pos == num_views) { 
-				href = "#save";
-				$("#uv_setup_save_or_advance").click(setupAnnex);
-			} else {
-				$("#uv_setup_save_or_advance").click(function() {
-					if(annex.build(Number(pos))) {
-						href = ("#step-" + (Number(pos) + 1));
-						$("#uv_setup_save_or_advance").attr('href', href);
-					}
-				});
-			}
-			
+			if(pos == num_views) { href = "#save"; }
+			else { href = ("#step-" + (Number(pos) + 1)); }
+						
 			$("#uv_setup_save_or_advance")
 				.html(label)
-				.attr('href', href);
+				.click(function() {
+					if(annex.build(Number(pos))) {
+						$(this).attr('href', href);
+					}
+				});
 		},
 		"/web/layout/views/setup/"				// static_root
 	);
