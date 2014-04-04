@@ -18,7 +18,7 @@ function discoverDropzones(dz_profile, el, onSuccess, onError, onFileAdded) {
 		var mandatory = $(item).hasClass('uv_mandatory');
 
 		$($(item).parent()).append($(document.createElement('div'))
-			.attr('id', dropzone_id)
+			.attr({ 'id' : dropzone_id, 'name' : param_name })
 			.addClass('uv_dropzone_holder' + (mandatory ? ' uv_mandatory_dz' : "")));
 		$(item).remove();
 
@@ -46,7 +46,5 @@ var UnveillanceDropzone = Backbone.Model.extend({
 		console.info(err);	
 	},
 	
-	onFileAdded: function(file) {
-		console.info("added file: " + file);
-	}
+	onFileAdded: function(file) {}
 });

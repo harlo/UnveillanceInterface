@@ -33,7 +33,9 @@ var UnveillanceAnnex = Backbone.Model.extend({
 			if($(field).hasClass('uv_confirm')) { continue; }
 		
 			if(!annex_bundle) { annex_bundle = this.annex_bundle; }
-			annex_bundle[$(field).attr('name')] = $(field).val();
+			if(!$(field).hasClass('uv_mandatory_dz')) {
+				annex_bundle[$(field).attr('name')] = $(field).val();
+			}
 		}
 		
 		return true;
