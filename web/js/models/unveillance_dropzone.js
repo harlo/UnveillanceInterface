@@ -1,7 +1,7 @@
 Dropzone.autoDiscover = false;
 var dropzones = [];
 
-function discoverDropzones(dz_profile, el, onSuccess, onError) {
+function discoverDropzones(dz_profile, el, onSuccess, onError, onFileAdded) {
 	if(!el) { el = "#content"; }
 	
 	file_zones = $(el).find("input:file");
@@ -15,23 +15,24 @@ function discoverDropzones(dz_profile, el, onSuccess, onError) {
 		dz_profile_.maxFiles = max_files ? max_files : 1;
 
 		var dropzone_id = param_name.replace(/\./g, "_") + "_dropzone";
+		var mandatory = $(item).hasClass('uv_mandatory');
 
 		$($(item).parent()).append($(document.createElement('div'))
 			.attr('id', dropzone_id)
-			.addClass('uv_dropzone_holder'));
+			.addClass('uv_dropzone_holder' + (mandatory ? ' uv_mandatory_dz' : "")));
 		$(item).remove();
 
 		dropzones.push(new UnveillanceDropzone(dropzone_id, dz_profile_, 
-			onSuccess, onError));
+			onSuccess, onError, onFileAdded));
 	});
 }
 
 var UnveillanceDropzone = Backbone.Model.extend({
-	constructor: function(id, dz_profile, onSuccess, onError) {		
+	constructor: function(id, dz_profile, onSuccess, onError, onFileAdded) {		
 		this.dropzone = new Dropzone("div#" + id, dz_profile);		
 		this.dropzone.on("success", onSuccess ? onSuccess : this.onSuccess);
 		this.dropzone.on("error", onError ? onError : this.onError);
-		this.dropzone.on("addedfile", this.onFileAdded);
+		this.dropzone.on("addedfile", onFileAdded ? onFileAdded : this.onFileAdded);
 	},
 	
 	onSuccess: function(file, res) {

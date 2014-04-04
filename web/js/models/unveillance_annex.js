@@ -11,13 +11,19 @@ var UnveillanceAnnex = Backbone.Model.extend({
 	},
 	
 	parseFields: function(annex_bundle) {
-		var values = _.union(
-			$(this.values_holder).find("input"), $(this.values_holder).find("select"));
+		var values = [];
+		var tags = ["input", "select", "div.uv_mandatory_dz"];
+		for(var v=0; v<tags.length; v++) {
+			$.each($(this.values_holder).find(tags[v]), function(idx, item) {
+				values.push(item);
+			});
+		}
+		
 		if(values.length == 0) { return false; }
 		
 		for(var a=0; a<values.length; a++) {
 			var field = values[a];
-
+						
 			$($(field).siblings(".uv_error_msg")[0]).css('visibility','hidden');
 			if($(field).hasClass('uv_invalid')) {
 				$(field).removeClass('uv_invalid');

@@ -12,9 +12,13 @@ function showErrorMessage(el, msg) {
 
 function validateFormField(field, form_root) {	
 	var val = $(field).val();
+	
+	if($(field).hasClass('uv_mandatory_dz')) {
+		val = $(field).html();
+	}
 	var name = $(field).attr('name');
 				
-	if($(field).hasClass('uv_mandatory')) {
+	if($(field).hasClass('uv_mandatory') || $(field).hasClass('uv_mandatory_dz')) {
 		if(val == "") {
 			$(field).addClass("uv_invalid");
 			showErrorMessage($(field).siblings(".uv_error_msg")[0], "Required.");
