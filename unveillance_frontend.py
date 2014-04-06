@@ -12,7 +12,7 @@ from api import UnveillanceAPI
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -99,12 +99,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		def get(self, route):
 			static_path = os.path.join(BASE_DIR, "web")
 			r = "main"
+
+			if hasattr(self.application, "WEB_TITLE"): 
+				web_title = self.application.WEB_TITLE
+			else: web_title = WEB_TITLE
 		
 			if route is None:
 				idx = Template(filename=os.path.join(static_path, "index.html"))
 			else:
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				r = route[0]				
+				r = route[0]
+				web_title = "%s : %s" % (web_title, r)				
 			
 				idx = Template(filename=os.path.join(static_path, "module.html"))
 			
@@ -127,7 +132,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				return
 
 			content = Template(filename=layout).render()
-			self.finish(idx.render(on_loader=self.getOnLoad(r), content=content))
+			self.finish(idx.render(web_title=web_title, on_loader=self.getOnLoad(r),
+				content=content))
 	
 		def getOnLoad(self, route):
 			on_loads = []

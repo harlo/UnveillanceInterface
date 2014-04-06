@@ -46,6 +46,7 @@ with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	API_PORT = config['api.port']
 	NUM_PROCESSES = config['api.num_processes']
 	DEBUG = config['flags.debug']
+	WEB_TITLE = config['api.web.title']
 
 with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 	config = yaml.load(C.read())
