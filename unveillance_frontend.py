@@ -130,13 +130,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.finish(idx.render(on_loader=self.getOnLoad(r), content=content))
 	
 		def getOnLoad(self, route):
+			on_loads = []
+			if hasattr(self.application, "default_on_loads"):
+				on_loads.extend(self.application.default_on_loads)
+				
 			js = '<script type="text/javascript" src="%s"></script>'
 			if route in [k for k,v in self.application.on_loads.iteritems()]:
-				if DEBUG : print self.application.on_loads[route]
-				return "".join([js % v for v in self.application.on_loads[route]])
+				on_loads.extend(self.application.on_loads[route])
+			
+			if DEBUG: print "ALL ON_LOADS\n%s" % on_loads
+			return "".join([js % v for v in on_loads])
 
-			return ""
-	
 		@tornado.web.asynchronous
 		def post(self, route):
 			res = Result()
