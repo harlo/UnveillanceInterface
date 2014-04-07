@@ -54,6 +54,7 @@ with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 	SERVER_HOST = config['server.host']
 	SERVER_PORT = config['server.port']
 	SERVER_USE_SSL = config['server.use_ssl']
+	UV_COOKIE_SECRET = config['api.web.cookie_secret']
 	try:
 		ANNEX_DIR = config['unveillance.local_remote.folder']
 	except Exception as e: 

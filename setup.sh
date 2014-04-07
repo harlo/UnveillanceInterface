@@ -49,6 +49,9 @@ then
 fi
 echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 
+GENERATE_COOKIE_SECRET="from lib.Core.Utils.funcs import generateSecureNonce;print generateSecureNonce()"
+echo api.web.cookie_secret: $(python -c "$GENERATE_COOKIE_SECRET") >> $LOCAL_CONFIG
+
 echo "**************************************************"
 pip install --upgrade -r requirements.txt
 cd $OLD_DIR

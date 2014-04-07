@@ -1,6 +1,10 @@
 from collections import namedtuple
 
-PostBatchStub = namedtuple("PostBatchStub", "files uri")
+PostBatchRequestStub = namedtuple("PostBatchRequestStub", "files uri")
+
+class PostBatchStub(object):
+	def __init__(self, files, uri):
+		self.request = PostBatchRequestStub(files, uri)
 
 MIME_TYPES = {
 	'txt' : "text/plain",

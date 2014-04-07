@@ -27,9 +27,9 @@ class UnveillanceAPI():
 		if views != 0: return views
 		else: return None
 	
-	def do_post_batch(self, request, save_local=False, save_to=None):		
+	def do_post_batch(self, handler, save_local=False, save_to=None):		
 		# just bounce request to server/post_batch/tmp_id
-		url = "%s%s" % (buildServerURL(), request.uri)
+		url = "%s%s" % (buildServerURL(), handler.request.uri)
 
 		if DEBUG:
 			print "POST BATCH"
@@ -37,7 +37,7 @@ class UnveillanceAPI():
 		
 		if not save_local:
 			try:
-				r = requests.post(url, files=request.files)
+				r = requests.post(url, files=handler.request.files)
 				if DEBUG:
 					print "BOUNCE:"
 					print r.content
@@ -47,7 +47,7 @@ class UnveillanceAPI():
 			except requests.exceptions.ConnectionError as e: print e
 		else:
 			data = {'addedFiles' :  []}
-			for f in request.files.iteritems():
+			for f in handler.request.files.iteritems():
 				name = f[0]
 				for i, file in enumerate(f[1]):
 					n = name
@@ -64,15 +64,15 @@ class UnveillanceAPI():
 
 		return None
 	
-	def do_init_synctask(self, request):
+	def do_init_synctask(self, handler):
 		"""
 		if we have a file, this is the first build step
 		if we dont, and we just have a body, this is the second build step
 		"""		
-		if len(request.files.keys()) > 0:
+		if len(handler.request.files.keys()) > 0:
 			return self.do_post_batch(request, save_local=True)
 		else:
-			synctask = parseRequestEntity(request.body)
+			synctask = parseRequestEntity(handler.request.body)
 			
 			if DEBUG: print synctask
 			if synctask is None: return None
@@ -83,12 +83,12 @@ class UnveillanceAPI():
 						
 		return None
 	
-	def do_init_annex(self, request):
+	def do_init_annex(self, handler):
 		if DEBUG:
 			print "INIT ANNEX (Stock Context)"
 			print request
 		
-		credentials = parseRequestEntity(request.body)
+		credentials = parseRequestEntity(handler.request.body)
 		if DEBUG: print credentials
 		if credentials is None: return None
 		

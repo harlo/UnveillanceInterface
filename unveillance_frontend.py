@@ -12,7 +12,7 @@ from api import UnveillanceAPI
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -98,28 +98,40 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		@tornado.web.asynchronous
 		def get(self, route):
 			static_path = os.path.join(BASE_DIR, "web")
-			r = "main"
+			module = "main"
+			header = None
+			footer = None
 
 			if hasattr(self.application, "WEB_TITLE"): 
 				web_title = self.application.WEB_TITLE
 			else: web_title = WEB_TITLE
 		
 			if route is None:
+				if hasattr(self.application, "INDEX_HEADER"):
+					header = self.application.INDEX_HEADER
+				if hasattr(self.application, "INDEX_FOOTER"):
+					footer = self.application.INDEX_FOOTER
+				
 				idx = Template(filename=os.path.join(static_path, "index.html"))
+					
 			else:
-				route = [r_ for r_ in route.split("/") if r_ != '']
-				r = route[0]
-				web_title = "%s : %s" % (web_title, r)				
+				route = [r for r in route.split("/") if r != '']
+				module = route[0]
+				if hasattr(self.application, "MODULE_HEADER"):
+					header = self.application.MODULE_HEADER
+				if hasattr(self.application, "MODULE_FOOTER"):
+					footer = self.application.MODULE_FOOTER
 			
 				idx = Template(filename=os.path.join(static_path, "module.html"))
+				web_title = "%s : %s" % (web_title, module)
 			
-			layout = os.path.join(static_path, "layout", "%s.html" % r)
+			layout = os.path.join(static_path, "layout", "%s.html" % module)
 			
-			if DEBUG : print (r, layout)
+			if DEBUG : print (module, layout)
 				
 			if not os.path.exists(layout):
 				# try the externals...
-				layout = os.path.join(static_path, "extras", "layout", "%s.html" % r)
+				layout = os.path.join(static_path, "extras", "layout", "%s.html" % module)
 				if DEBUG: 
 					print "could not find layout at web root.  trying externals:"
 					print layout
@@ -132,17 +144,24 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				return
 
 			content = Template(filename=layout).render()
-			self.finish(idx.render(web_title=web_title, on_loader=self.getOnLoad(r),
-				content=content))
+
+			if header is not None: header = Template(filename=header).render()
+			else: header = ""
+			
+			if footer is not None: footer = Template(filename=footer).render()
+			else: footer = ""
+			
+			self.finish(idx.render(web_title=web_title, on_loader=self.getOnLoad(module),
+				content=content, header=header, footer=footer))
 	
-		def getOnLoad(self, route):
+		def getOnLoad(self, module):
 			on_loads = []
 			if hasattr(self.application, "default_on_loads"):
 				on_loads.extend(self.application.default_on_loads)
 				
 			js = '<script type="text/javascript" src="%s"></script>'
-			if route in [k for k,v in self.application.on_loads.iteritems()]:
-				on_loads.extend(self.application.on_loads[route])
+			if module in [k for k,v in self.application.on_loads.iteritems()]:
+				on_loads.extend(self.application.on_loads[module])
 			
 			if DEBUG: print "ALL ON_LOADS\n%s" % on_loads
 			return "".join([js % v for v in on_loads])
@@ -153,21 +172,21 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 			if route is not None:
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				res = self.application.routeRequest(res, route[0], self.request)
+				res = self.application.routeRequest(res, route[0], self)
 			
 			if DEBUG : print res.emit()
 			
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
-	def routeRequest(self, result_obj, func_name, request):
+	def routeRequest(self, result_obj, func_name, handler):
 		func_name = "do_%s" % func_name
 		if hasattr(self, func_name):
 			if DEBUG : print "doing %s" % func_name
 			func = getattr(self, func_name)
 			
 			result_obj.result = 200
-			result_obj.data = func(request)
+			result_obj.data = func(handler)
 		else:
 			if DEBUG : print "could not find function %s" % func_name
 		
@@ -191,7 +210,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
-		tornado.web.Application.__init__(self, self.routes)
+		tornado.web.Application.__init__(self, self.routes,
+			**{'cookie_secret' : UV_COOKIE_SECRET })
 		
 		server = tornado.httpserver.HTTPServer(self)
 		server.bind(API_PORT)

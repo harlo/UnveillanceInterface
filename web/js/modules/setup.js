@@ -109,7 +109,7 @@ function loadSetupStep(pos) {
 }
 
 (function($) {
-	var setup_sammy = $.sammy(function() {
+	var setup_sammy = $.sammy("#content", function() {
 		this.get("#save", function(context) {
 			$("#uv_setup_save_or_advance").unbind("click");
 		});
