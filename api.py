@@ -4,7 +4,7 @@ from subprocess import Popen, PIPE
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
 
-from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST
+from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -70,7 +70,7 @@ class UnveillanceAPI():
 		if we dont, and we just have a body, this is the second build step
 		"""		
 		if len(handler.request.files.keys()) > 0:
-			return self.do_post_batch(request, save_local=True)
+			return self.do_post_batch(handler, save_local=True)
 		else:
 			synctask = parseRequestEntity(handler.request.body)
 			
@@ -86,7 +86,7 @@ class UnveillanceAPI():
 	def do_init_annex(self, handler):
 		if DEBUG:
 			print "INIT ANNEX (Stock Context)"
-			print request
+			print handler.request
 		
 		credentials = parseRequestEntity(handler.request.body)
 		if DEBUG: print credentials
@@ -106,7 +106,7 @@ class UnveillanceAPI():
 			del credentials['unveillance.local_remote.folder']
 					
 			p = Popen([os.path.join(BASE_DIR, "init_local_remote.sh"), 
-				SSH_ROOT, folder, password])
+				SSH_ROOT, folder, password, CONF_ROOT])
 			p.wait()
 		
 			pk_label = "unveillance.local_remote.key.pub"
@@ -138,6 +138,7 @@ class UnveillanceAPI():
 			if DEBUG: 
 				print "now requesting annex creation on server"
 				print url
+				print credentials
 				
 			r = requests.post(url, data=json.dumps(credentials))
 			r = json.loads(r.content)
@@ -153,8 +154,16 @@ class UnveillanceAPI():
 		"""
 			5. run link_local_remote to associate local with remote annex
 		"""
+		if DEBUG:
+			print "WOW, can you believe you made it this far?"
+			print credentials
+
+		if 'p22' not in credentials.keys(): 
+			if DEBUG: print "there is no port 22 assigned to annex.  sorry!"
+			return None
+
 		cmd = [os.path.join(BASE_DIR, "link_local_remote.sh"), SSH_ROOT, 
-			folder, password, SERVER_HOST, credentials['p22']]
+			folder, SERVER_HOST, credentials['p22']]
 		
 		p = Popen(cmd, stdout=PIPE, close_fds=True)
 		p_result = bool(p.stdout.read().strip())

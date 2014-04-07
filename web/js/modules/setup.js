@@ -31,9 +31,7 @@ function initSetup() {
 	});
 }
 
-function setupAnnex() {
-	if(!(annex.validate())) { return; }
-			
+function setupAnnex() {			
 	doInnerAjax(
 		"init_annex", "post", JSON.stringify(annex.annex_bundle),
 		function(json) {
@@ -112,6 +110,7 @@ function loadSetupStep(pos) {
 	var setup_sammy = $.sammy("#content", function() {
 		this.get("#save", function(context) {
 			$("#uv_setup_save_or_advance").unbind("click");
+			setupAnnex();
 		});
 		
 		this.get('#step-:pos', function(context) {

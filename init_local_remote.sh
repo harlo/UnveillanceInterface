@@ -1,13 +1,13 @@
 #! /bin/bash
-OLD_DIR=`pwd`
-LOCAL_CONFIG=$OLD_DIR/conf/local.config.yaml
-
 SSH_ROOT=$1
 
 LM=$2
 LOCAL_REMOTE_PARENT=`dirname "$LM"`
 LOCAL_REMOTE_FOLDER=`basename "$LM"`
 LOCAL_REMOTE_PWD=$3
+CONF_ROOT=$4
+
+LOCAL_CONFIG=$CONF_ROOT/conf/local.config.yaml
 
 # if it exists...
 has_lm=$(find $LOCAL_REMOTE_PARENT -type d -name "$(echo $LOCAL_REMOTE_FOLDER)")

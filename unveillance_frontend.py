@@ -1,4 +1,4 @@
-import json, signal, os, logging, re
+import json, signal, os, logging, re, webbrowser
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep
@@ -201,6 +201,10 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	def startup(self):
 		p = Process(target=self.startRESTAPI)
 		p.start()
+
+		url = "http://localhost:%d/" % API_PORT
+		if argv[1] == "-firstuse": url += "setup/"
+		webbrowser.open(url)
 		
 	def shutdown(self):
 		self.stopRESTAPI()

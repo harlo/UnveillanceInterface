@@ -55,9 +55,5 @@ var UnveillanceAnnex = Backbone.Model.extend({
 	build: function(step) {
 		console.info("ANNEX BUILD");		
 		return this.buildSteps[step - 1].call(this);
-	},
-	
-	validate: function() {
-		return false;
 	}
 });

@@ -4,9 +4,8 @@ LOCAL_CONFIG=$OLD_DIR/conf/local.config.yaml
 
 SSH_ROOT=$1
 LOCAL_REMOTE_FOLDER=$2
-LOCAL_REMOTE_PWD=$3
-REMOTE_HOST=$4
-REMOTE_PORT=$5
+REMOTE_HOST=$3
+REMOTE_PORT=$4
 
 # ssh into annex to establish trust (AKA ToFUPoP)
 ssh -t -oStrictHostKeyChecking=no -i $SSH_ROOT/unveillance.local_remote.key root@$REMOTE_HOST -p $REMOTE_PORT -v <<EOF
