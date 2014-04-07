@@ -5,6 +5,16 @@ function JSONtoURLString(json) {
 	return url_str;
 }
 
+function toggleElement(el) {
+	if($(el).css('display') == "block") {
+		$(el).css('display','none');
+		return false;
+	} else {
+		$(el).css('display','block');
+		return true;
+	}
+}
+
 function showErrorMessage(el, msg) {
 	$(el).html(msg);
 	$(el).css('visibility','visible');
