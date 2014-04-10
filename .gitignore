@@ -1,9 +1,9 @@
 .DS_Store
-
-*.exe
 *.pyc
+*test*
 
-conf/*.config.yaml
+conf/*
+!conf/*.settings.yaml
 
 tmp/
 web/extras/*

@@ -10,7 +10,7 @@ class UnveillanceObject(UVO_Stub):
 	
 	def getObject(self, _id):
 		try:
-			with open(os.path.join(ANNEX_DIR, self.manifest), 'rb') as inflate:
+			with open(asset_path, 'rb') as inflate:
 				self.inflate(loads(inflate.read()))
 		except Exception as e:
 			if DEBUG: print e
