@@ -6,5 +6,15 @@ conf/*
 !conf/*.settings.yaml
 
 tmp/
+<<<<<<< HEAD
 web/extras
 .synctasks/local/
+=======
+<<<<<<< HEAD
+web/extras
+.synctasks/local/
+=======
+web/extras/*
+.synctasks/local/
+>>>>>>> 7e64afe2dd951b2d4ce1fb356a69c4271c7ff0c0
+>>>>>>> 0931ff109673c3dc04d72a5cd75602915c7f74c5

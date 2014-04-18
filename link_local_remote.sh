@@ -10,7 +10,7 @@ REMOTE_USER=$5
 REMOTE_PATH=$6
 
 # ssh into annex to establish trust (AKA ToFUPoP)
-ssh -t -oStrictHostKeyChecking=no -i $SSH_ROOT/unveillance.local_remote.key root@$REMOTE_HOST -p $REMOTE_PORT -v <<EOF
+ssh -t -oStrictHostKeyChecking=no -i $SSH_ROOT/unveillance.local_remote.key $REMOTE_USER@$REMOTE_HOST -p $REMOTE_PORT -v <<EOF
 echo "hello" > /dev/null 2>&1
 EOF
 
