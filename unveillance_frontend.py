@@ -178,12 +178,14 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.finish(res.emit())
 	
 	def passToAnnex(self, handler):
-		ref = handler.request.headers['Referer']
+		if handler.request.body != None:
+			ref = "?%s" % handler.request.body
+		else:
+			ref = handler.request.headers['Referer']
 		query = ""
 		try:
 			query += ref[ref.index("?"):]
 		except ValueError as e: pass
-
 
 		r = requests.get("%s%s%s" % (buildServerURL(), handler.request.uri, query))
 		try:
