@@ -21,7 +21,7 @@ class UnveillanceObject(UVO_Stub):
 	def save(self):
 		if DEBUG: print "SAVING FROM FRONTEND"
 		try:
-			asset_path = os.path.join(ANNEX_DIR, self.manifest)
+			asset_path = os.path.join(ANNEX_DIR, self.base_path, self.file_name)
 			with open(asset_path, 'wb+') as file: file.write(self.emit())
 			return True
 		except Exception as e: print e

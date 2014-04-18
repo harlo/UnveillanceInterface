@@ -1,10 +1,15 @@
 .DS_Store
-
-*.exe
 *.pyc
+*test*
 
-conf/*.config.yaml
+conf/*
+!conf/*.settings.yaml
 
 tmp/
+<<<<<<< HEAD
 web/extras
 .synctasks/local/
+=======
+web/extras/*
+.synctasks/local/
+>>>>>>> 7e64afe2dd951b2d4ce1fb356a69c4271c7ff0c0
