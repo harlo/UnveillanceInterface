@@ -6,5 +6,5 @@
 conf/*.config.yaml
 
 tmp/
-web/extras/*
+web/extras
 .synctasks/local/
