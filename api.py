@@ -4,11 +4,17 @@ from subprocess import Popen, PIPE
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
 
-from conf import BASE_DIR, buildServerURL, getUUID, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT
+from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT
 
 class UnveillanceAPI():
 	def __init__(self):
 		print "Stock Unveillance Frontend API started..."
+
+	def do_documents(self, handler): return self.passToAnnex(handler)
+
+	def do_list(self, handler): return self.passToAnnex(handler)
+
+	def do_cluster(self, handler): return self.passToAnnex(handler)
 	
 	def do_num_views(self, query):
 		views = 0
@@ -112,7 +118,7 @@ class UnveillanceAPI():
 			pk_label = "unveillance.local_remote.key.pub"
 			pk_path = os.path.join(SSH_ROOT, pk_label)
 			
-			credentials['uuid'] = getUUID()
+			credentials['uuid'] = getConfig('unveillance.uuid')
 		
 		except Exception as e: 
 			print e

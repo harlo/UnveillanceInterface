@@ -1,3 +1,4 @@
+from lib.Core.vars import *
 from collections import namedtuple
 
 PostBatchRequestStub = namedtuple("PostBatchRequestStub", "files uri")

@@ -1,28 +1,9 @@
 import os, yaml
-from lib.Core.Utils.funcs import generateMD5Hash
 
 BASE_DIR = os.path.abspath(os.path.join(__file__, os.pardir))
 CONF_ROOT = os.path.join(BASE_DIR, "conf")
 
 MONITOR_ROOT = os.path.join(BASE_DIR, ".monitor")
-
-def getUUID():
-	try:
-		with open(os.path.join(SSH_ROOT, "unveillance.local_remote.key.pub"), 'rb') as PK:			
-			return generateMD5Hash(content=PK.read())
-
-	except Exception as e: print e
-	return None
-
-def getRemotePort():
-	try:
-		with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
-			config = yaml.load(C.read())
-			return config['unveillance.local_remote.port']
-			
-	except Exception as e: 
-		if DEBUG: print e
-	return None
 
 def buildServerURL(port=None):
 	protocol = "http"
@@ -40,6 +21,13 @@ def buildRemoteURL():
 	except Exception as e: 
 		if DEBUG: print e
 	return None
+
+def getConfig(key):
+	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
+		config = yaml.load(C.read())
+		try:
+			return config[key]
+		except Exception as e: raise e
 
 with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	config = yaml.load(C.read())
@@ -59,15 +47,3 @@ with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
 		ANNEX_DIR = config['unveillance.local_remote.folder']
 	except Exception as e: 
 		if DEBUG: print e
-
-UUID = getUUID()
-REMOTE_PORT = getRemotePort()
-
-if DEBUG:
-	print "\nLOCAL.CONFIG.YAML:"
-	
-	print "\tSERVER_URL: %s" % buildServerURL()
-	print "\tUUID: %s" % getUUID()
-	print "\tREMOTE_PORT: %s" % getRemotePort() 
-	
-	print "\n"

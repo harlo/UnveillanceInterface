@@ -78,6 +78,7 @@ function getTemplate(tmpl, on_complete, static_root) {
 }
 
 function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
+	console.info(data);
 	if(data == null) { data = {}; }
 	if(!static_root) { static_root = "/web/layout/tmpl/"; }
 	

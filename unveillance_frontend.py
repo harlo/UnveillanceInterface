@@ -1,4 +1,4 @@
-import json, signal, os, logging, re, webbrowser
+import json, signal, os, logging, re, webbrowser, requests
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep
@@ -12,7 +12,7 @@ from api import UnveillanceAPI
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -173,12 +173,26 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if route is not None:
 				route = [r_ for r_ in route.split("/") if r_ != '']
 				res = self.application.routeRequest(res, route[0], self)
-			
-			if DEBUG : print res.emit()
-			
+						
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
+	def passToAnnex(self, handler):
+		ref = handler.request.headers['Referer']
+		query = ""
+		try:
+			query += ref[ref.index("?"):]
+		except ValueError as e: pass
+
+
+		r = requests.get("%s%s%s" % (buildServerURL(), handler.request.uri, query))
+		try:
+			return json.loads(r.content)['data']
+		except Exception as e:
+			if DEBUG: print e
+		
+		return None
+
 	def routeRequest(self, result_obj, func_name, handler):
 		func_name = "do_%s" % func_name
 		if hasattr(self, func_name):
