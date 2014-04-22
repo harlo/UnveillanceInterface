@@ -1,3 +1,12 @@
+function getFileContent(ctx, path, callback) {
+	$.ajax({
+		url: "/files/" + path,
+		method: "get",
+		complete: callback,
+		context: ctx
+	});
+}
+
 function JSONtoURLString(json) {
 	var url_str = Object.keys(json).map(function(key) {
 		return (encodeURIComponent(key) + "=" + encodeURIComponent(json[key]));

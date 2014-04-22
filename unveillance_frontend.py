@@ -12,7 +12,7 @@ from api import UnveillanceAPI
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL, buildRemoteURL
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -23,10 +23,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
-		self.reserved_routes = ["frontend", "web"]
+		self.reserved_routes = ["frontend", "web", "files"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
-			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler)]
+			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
+			(r"/files/(.+)", self.FileHandler)]
 		
 		self.on_loads = {
 			'setup' : [
@@ -93,6 +94,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				
 			self.set_status(res.result)
 			self.finish(res.emit())
+	
+	class FileHandler(tornado.web.RequestHandler):
+		@tornado.web.asynchronous
+		def get(self, file):
+			url = "%s%s" % (buildRemoteURL(), self.request.uri)
+			if DEBUG: print url
+			
+			r = requests.get(url)
+			self.finish(r.content)
 		
 	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
