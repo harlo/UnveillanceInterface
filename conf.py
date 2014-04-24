@@ -17,7 +17,7 @@ def buildRemoteURL():
 	if SERVER_USE_SSL: protocol += "s"
 	
 	try:
-		return "%s://%s:%d" % (protocol, SERVER_HOST, getConfig("unveillance.local_remote.port"))
+		return "%s://%s:%d" % (protocol, SERVER_HOST, getConfig("unveillance.local_remote.api_port"))
 	except Exception as e: 
 		if DEBUG: print e
 	return None
