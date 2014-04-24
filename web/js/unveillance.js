@@ -86,6 +86,16 @@ function getTemplate(tmpl, on_complete, static_root) {
 	$.ajax(a_obj);
 }
 
+function translate(obj) {
+	var new_html = $(obj).html();
+	
+	if($(obj).hasClass("uv_date")) {
+		new_html = moment(Number(new_html)).format("MM-DD-YYYY HH:mm");
+	}
+	
+	return new_html;
+}
+
 function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
 	if(data == null) { data = {}; }
 	if(!static_root) { static_root = "/web/layout/tmpl/"; }
@@ -96,6 +106,9 @@ function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
 		dataType: "html",
 		success: function(html) {
 			$(append_root).html(Mustache.to_html(html, data));
+			$.each($(append_root).find(".uv_translate"), function(idx, item) { 
+				$(item).html(translate(item)); 
+			});
 		}
 	};
 	
