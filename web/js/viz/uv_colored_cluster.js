@@ -1,32 +1,9 @@
-var UVColoredCluster = Backbone.Model.extend({
-	constructor: function(ctx) {		
-		this.dims = {
-			width : $(ctx.get('root_el')).width(),
-			height: $(ctx.get('root_el')).height(),
-			max_clusters : ctx.get('cluster').data.matrix.length,
-			duration : 750,
-			cluster_padding : 6
-		};
+var UVColoredCluster = UnveillanceViz.extend({
+	constructor: function() {
+		UnveillanceViz.prototype.constructor.apply(this, arguments);
+		if(this.invalid) { return; }	
 		
-		this.svg = d3.select(ctx.get('root_el')).append("svg:svg")
-			.attr({
-				'width' : this.dims.width,
-				'height' : this.dims.height
-			});
 		
-		this.clusters = this.svg.selectAll("circle")
-			.data(ctx.get('cluster').data.matrix)
-			.enter()
-				.append("svg:circle")
-					.attr({
-						"cy" : 90,
-						"cx" : 160,
-						"r" : 30
-					});
-			
-		this.dims.colors = d3.scale.category10().domain(d3.range(this.dims.max_clusters));
-		
-		console.info(this.clusters);
 		
 	}
 });

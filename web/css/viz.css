@@ -1,0 +1,18 @@
+div.uv_legend {
+	width:10%;
+	height:auto;
+	border:2px solid #000;
+	position:relative;
+	background-color:#fff;
+	float:right;
+	margin:0.6em;
+	padding:0.4em;
+}
+
+h3.uv_viz_header {
+	clear:both;
+}
+
+.uv_viz path.uv_it_link {
+	color: #ccc;
+}

@@ -1,7 +1,6 @@
-var UnveillanceCluster = Backbone.Model.extend({
+var UnveillanceCluster = UnveillanceViz.extend({
 	constructor: function() {
-		Backbone.Model.apply(this, arguments);
-		this.idAttribute = "_id";
+		UnveillanceViz.prototype.constructor.apply(this, arguments);
 		
 		if(this.get("cluster").file_name) {
 			// load data from csv

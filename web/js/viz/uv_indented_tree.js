@@ -1,30 +1,25 @@
 var tree, diagonal, uv_it;
 
-var UVIndentedTree = Backbone.Model.extend({
+var UVIndentedTree = UnveillanceViz.extend({
 	constructor: function() {
-		Backbone.Model.apply(this, arguments);
+		UnveillanceViz.prototype.constructor.apply(this, arguments);
+		if(this.invalid) { return; }
 
 		uv_it = this;
-		
-		this.i = 0;
-		this.root_el = this.get("root_el");
-		this.unset("root_el");
-		
-		this.dims = {
-			width : $(this.root_el).width(),
-			margin : {
-				top : 10,
-				right : 10,
-				bottom : 10,
-				left : 10
-			},
-			tabs : {
-				width : $(this.root_el).width() * 0.9,
-				height: 20,
-				count: 0
-			},
-			duration: 400
+		this.dims.margin = {
+			top : 10,
+			right : 10,
+			bottom : 10,
+			left : 10
 		};
+		
+		this.dims.tabs = {
+			width : $(this.root_el).width() * 0.9,
+			height: 20,
+			count: 0
+		};
+		
+		this.dims.duration = 400;
 		
 		this.set({'data' : this.buildDataTree()});
 		this.dims.height = this.dims.tabs.height * this.dims.tabs.count;
@@ -32,15 +27,13 @@ var UVIndentedTree = Backbone.Model.extend({
 		tree = d3.layout.tree().size([this.dims.height, this.dims.width/2]);
 		diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; });
 		
-		this.svg = d3.select(this.root_el).append("svg:svg")
-			.attr({
-				'width' : this.dims.width,
-				'height' : this.dims.height
-			});
+		this.svg.attr("height", this.dims.height);
+		
 		
 		this.svg.append("svg:g")
 			.attr({
-				'transform' : "translate(" + this.dims.margin.top + "," + this.dims.margin.left + ")"
+				'transform' : "translate(" + this.dims.margin.top + 
+					"," + this.dims.margin.left + ")"
 			});
 		
 		update(this.root_d3 = {
@@ -106,11 +99,11 @@ function update(source) {
 	});
 
 	// Update the nodes
-	var node = uv_it.svg.selectAll("g.node")
+	var node = uv_it.svg.selectAll("g.uv_it_node")
 	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
 	var nodeEnter = node.enter().append("svg:g")
-		.attr("class", "node")
+		.attr("class", "uv_it_node")
 		.attr("transform", function(d) { 
 			return "translate(" + source.y0 + "," + source.x0 + ")"; 
 		})
@@ -158,12 +151,12 @@ function update(source) {
 		.style("opacity", 1e-6)
 		.remove();
 
-	var link = uv_it.svg.selectAll("path.link")
+	var link = uv_it.svg.selectAll("path.uv_it_link")
 		.data(tree.links(nodes), function(d) { return d.target.id; });
 
 	// Enter any new links at the parent's previous position.
 	link.enter().insert("svg:path", "g")
-	  	.attr("class", "link")
+	  	.attr("class", "uv_it_link")
 		.attr("d", function(d) {
 			var o = {x: source.x0, y: source.y0};
 			return diagonal({source: o, target: o});
