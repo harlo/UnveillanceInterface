@@ -14,5 +14,12 @@ h3.uv_viz_header {
 }
 
 .uv_viz path.uv_it_link {
-	color: #ccc;
+	stroke: #ccc;
+	fill: none;
+	shape-rendering: crispEdges;
+}
+
+.uv_viz path.uv_graph {
+	fill: none;
+	stroke-width:3;
 }
