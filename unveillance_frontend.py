@@ -236,7 +236,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.stopRESTAPI()
 	
 	def startRESTAPI(self):
-		#startDaemon(self.api_log_file, self.api_pid_file)
+		startDaemon(self.api_log_file, self.api_pid_file)
 		
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))

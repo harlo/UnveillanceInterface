@@ -1,18 +1,21 @@
-var tree, diagonal, uv_it;
-
 var UVIndentedTree = UnveillanceViz.extend({
-	constructor: function() {
+	constructor: function() {		
 		UnveillanceViz.prototype.constructor.apply(this, arguments);
 		if(this.invalid) { return; }
 
-		uv_it = this;
-		this.dims.margin = {
-			top : 10,
-			right : 10,
-			bottom : 10,
-			left : 10
-		};
-		
+		if(!this.has('dims')) {
+			this.dims.margin = {
+				top : 10,
+				right : 10,
+				bottom : 10,
+				left : 10
+			};
+			
+		} else {
+			this.dims = this.get('dims');
+			this.unset('dims');
+		}
+
 		this.dims.tabs = {
 			width : $(this.root_el).width() * 0.9,
 			height: 20,
@@ -24,8 +27,8 @@ var UVIndentedTree = UnveillanceViz.extend({
 		this.set({'data' : this.buildDataTree()});
 		this.dims.height = this.dims.tabs.height * this.dims.tabs.count;
 		
-		tree = d3.layout.tree().size([this.dims.height, this.dims.width/2]);
-		diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; });
+		this.tree = d3.layout.tree().size([this.dims.height, this.dims.width/2]);
+		this.diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; });
 		
 		this.svg.attr("height", this.dims.height);
 		
@@ -38,10 +41,10 @@ var UVIndentedTree = UnveillanceViz.extend({
 		
 		update(this.root_d3 = {
 			children : this.get('data'),
-			node_name : "data_root",
+			node_name : this.has("data_root_name") ? this.get("data_root_name") : "data_root",
 			x0 : 0,
 			y0 : 0
-		});
+		}, this);
 		
 		
 	},
@@ -52,7 +55,7 @@ var UVIndentedTree = UnveillanceViz.extend({
 		for(var key in data) {
 			var child_data = {};		
   		
-  		    if (data[key] instanceof Array|| data[key] instanceof Object) {
+  		    if (data[key] instanceof Array || data[key] instanceof Object) {
 				child_data.node_name = key;
 				child_data.children = this.buildDataTree(data[key]);	
   			} else {
@@ -75,31 +78,20 @@ function getColor(d_point) {
 	return d_point._children ? "#3182bd" : d_point.children ? "#c6dbef" : "#fd8d3c";
 }
 
-function toggleNode(d_point) {
-	if(d_point.children) {
-		d_point._children = d_point.children;
-		d_point.children = null;
-	} else {
-		d_point.children = d_point._children;
-		d_point._children = null;
-	}
-	
-	update(d_point);
-}
-
-function update(source) {	
+function update(source, ctx) {
+	source = (source == null ? ctx.root_d3 : source);
 	var i = 0;
 	
 	// Compute the flattened node list. TODO use d3.layout.hierarchy.
-	var nodes = tree.nodes(uv_it.root_d3);
+	var nodes = ctx.tree.nodes(ctx.root_d3);
 
 	// Compute the "layout".
 	nodes.forEach(function(n, i) {
-		n.x = i * uv_it.dims.tabs.height;
+		n.x = i * ctx.dims.tabs.height;
 	});
 
 	// Update the nodes
-	var node = uv_it.svg.selectAll("g.uv_it_node")
+	var node = ctx.svg.selectAll("g.uv_it_node")
 	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
 	var nodeEnter = node.enter().append("svg:g")
@@ -111,31 +103,43 @@ function update(source) {
 
 	// Enter any new nodes at the parent's previous position.
 	nodeEnter.append("svg:rect")
-		.attr("y", -uv_it.dims.tabs.height / 2)
-		.attr("height", uv_it.dims.tabs.height)
-		.attr("width", uv_it.dims.width * .5)
+		.attr("y", -ctx.dims.tabs.height / 2)
+		.attr("height", ctx.dims.tabs.height)
+		.attr("width", ctx.dims.width * .5)
 		.attr("rx", 6)
 		.attr("ry", 6)
 		.style("fill", getColor)
-		.on("click", toggleNode);
+		.on("click", function(d) {
+			if(d.children) {
+				d._children = d.children;
+				d.children = null;
+			} else {
+				d.children = d._children;
+				d._children = null;
+			}
+
+			update(d, ctx);
+			
+		});
 
 	nodeEnter.append("svg:text")
 		.attr("dy", 3.5)
 		.attr("dx", 5.5)
 		.text(function(d) { 
 			return d.node_name;
-		});
+		})
+		.on("click", function(d) { if(ctx.onNodeClick) { ctx.onNodeClick(d);} });
 
 	// Transition nodes to their new position.
 	nodeEnter.transition()
-		.duration(uv_it.dims.duration)
+		.duration(ctx.dims.duration)
 		.attr("transform", function(d) { 
 			return "translate(" + d.y + "," + d.x + ")"; 
 		})
 		.style("opacity", 1);
 
 	node.transition()
-	  	.duration(uv_it.dims.duration)
+	  	.duration(ctx.dims.duration)
 		.attr("transform", function(d) { 
 			return "translate(" + d.y + "," + d.x + ")"; 
 		})
@@ -144,38 +148,38 @@ function update(source) {
 
 	// Transition exiting nodes to the parent's new position.
 	node.exit().transition()
-		.duration(uv_it.dims.duration)
+		.duration(ctx.dims.duration)
 		.attr("transform", function(d) {
 			return "translate(" + source.y + "," + source.x + ")"; 
 		})
 		.style("opacity", 1e-6)
 		.remove();
 
-	var link = uv_it.svg.selectAll("path.uv_it_link")
-		.data(tree.links(nodes), function(d) { return d.target.id; });
+	var link = ctx.svg.selectAll("path.uv_it_link")
+		.data(ctx.tree.links(nodes), function(d) { return d.target.id; });
 
 	// Enter any new links at the parent's previous position.
 	link.enter().insert("svg:path", "g")
 	  	.attr("class", "uv_it_link")
 		.attr("d", function(d) {
 			var o = {x: source.x0, y: source.y0};
-			return diagonal({source: o, target: o});
+			return ctx.diagonal({source: o, target: o});
 		})
 		.transition()
-		.duration(uv_it.dims.duration)
-		.attr("d", diagonal);
+		.duration(ctx.dims.duration)
+		.attr("d", ctx.diagonal);
 
 	// Transition links to their new position.
 	link.transition()
-		.duration(uv_it.dims.duration)
-		.attr("d", diagonal);
+		.duration(ctx.dims.duration)
+		.attr("d", ctx.diagonal);
 
 	// Transition exiting nodes to the parent's new position.
 	link.exit().transition()
-		.duration(uv_it.dims.duration)
+		.duration(ctx.dims.duration)
 		.attr("d", function(d) {
 			var o = {x: source.x, y: source.y};
-			return diagonal({source: o, target: o});
+			return ctx.diagonal({source: o, target: o});
 		})
 		.remove();
 
