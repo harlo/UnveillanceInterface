@@ -224,13 +224,14 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 
 		return result_obj
 	
-	def startup(self):
+	def startup(self, openurl=False):
 		p = Process(target=self.startRESTAPI)
 		p.start()
 
-		url = "http://localhost:%d/" % API_PORT
-		if argv[1] == "-firstuse": url += "setup/"
-		webbrowser.open(url)
+		if openurl:
+			url = "http://localhost:%d/" % API_PORT
+			if argv[1] == "-firstuse": url += "setup/"
+			webbrowser.open(url)
 		
 	def shutdown(self):
 		self.stopRESTAPI()
@@ -256,6 +257,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 if __name__ == "__main__":
 	unveillance_frontend = UnveillanceFrontend()
 	
+	openurl = False
+	
+	if len(argv) == 3 and argv[2] == "-webapp":
+		openurl = True
+		arvg.pop()
+		
 	if len(argv) != 2: exit("Usage: unveillance_frontend.py [-start, -stop, -restart]")
 	
 	if argv[1] == "-start" or argv[1] == "-firstuse":
@@ -265,4 +272,4 @@ if __name__ == "__main__":
 	elif argv[1] == "-restart":
 		unveillance_frontend.shutdown()
 		sleep(5)
-		unveillance_frontend.startup()
+		unveillance_frontend.startup(openurl)
