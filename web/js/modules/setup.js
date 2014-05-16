@@ -31,7 +31,12 @@ function initSetup() {
 	});
 }
 
-function setupAnnex() {			
+function setupAnnex() {
+	for(key in UV['unveillance.local_remote']) {
+		console.info(key);
+		annex.annex_bundle['unveillance.local_remote.' + key] = UV['unveillance.local_remote'].key;
+	}
+	
 	doInnerAjax(
 		"init_annex", "post", JSON.stringify(annex.annex_bundle),
 		function(json) {

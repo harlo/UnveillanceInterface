@@ -4,7 +4,7 @@ from subprocess import Popen, PIPE
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
 
-from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT
+from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT, getConfig
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -96,84 +96,32 @@ class UnveillanceAPI():
 		
 		credentials = parseRequestEntity(handler.request.body)
 		if DEBUG: print credentials
-		if credentials is None: return None
+		if credentials is None: return False
 		
 		"""
 			1. run init_local_remote.sh
-			2. get/set uuid
 		"""
-		try:
-			if DEBUG: print "initing annex script"
-			
-			password = credentials['unveillance.local_remote.password']
-			del credentials['unveillance.local_remote.password']
-			
-			folder = credentials['unveillance.local_remote.folder']
-			del credentials['unveillance.local_remote.folder']
-					
-			p = Popen([os.path.join(BASE_DIR, "init_local_remote.sh"), 
-				SSH_ROOT, folder, password, CONF_ROOT])
-			p.wait()
+		credential_keys = ['unveillance.local_remote.folder',
+			'unveillance.local_remote.password', 'unveillance.local_remote.hostname',
+			'unveillance.local_remote.port', 'unveillance.local_remote.user',
+			'unveillance.local_remote.remote_path', 'unveillance.local_remote.uv_uuid']
 		
-			pk_label = "unveillance.local_remote.key.pub"
-			pk_path = os.path.join(SSH_ROOT, pk_label)
-			
-			credentials['uuid'] = getConfig('unveillance.uuid')
+		cmd = [os.path.join(BASE_DIR, "init_local_remote.sh")]	
+		for key in credential_keys:
+			if key not in credentials.keys():
+				credentials[key] = None
+			cmd.append(credentials[key])
 		
-		except Exception as e: 
-			print e
-			return None
+		if DEBUG: print cmd
 		
-		"""
-			3. post public key
-		"""
-		with open(pk_path, 'rb') as pk:
-			uri = "/post_batch/%s/" % credentials['batch_root']	
-			
-			from vars import PostBatchStub
-			post_batch = self.do_post_batch(PostBatchStub({pk_label: pk.read()}, uri))
-			
-			if post_batch is None: return None
-		
-		"""
-			4. request annex to be opened on the server
-			   (this returns the ports on success)
-		"""
-		try:
-			url = "%s/init_annex/" % buildServerURL()
-			if DEBUG: 
-				print "now requesting annex creation on server"
-				print url
-				print credentials
-				
-			r = requests.post(url, data=json.dumps(credentials))
-			r = json.loads(r.content)
-			if DEBUG: print r
-			
-			if r['result'] != 200: return None
-			credentials.update(r['data'])
-			
-		except requests.exceptions.ConnectionError as e: 
-			print e
-			return None
-		
-		"""
-			5. run link_local_remote to associate local with remote annex
-		"""
-		if DEBUG:
-			print "WOW, can you believe you made it this far?"
-			print credentials
-
-		if 'p22' not in credentials.keys(): 
-			if DEBUG: print "there is no port 22 assigned to annex.  sorry!"
-			return None
-
-		cmd = [os.path.join(BASE_DIR, "link_local_remote.sh"), SSH_ROOT, 
-			folder, SERVER_HOST, credentials['p22']]
-		
+		cmd.extend([SSH_ROOT, CONF_ROOT])		
 		p = Popen(cmd, stdout=PIPE, close_fds=True)
 		p_result = bool(p.stdout.read().strip())
 		p.stdout.close()
 		
-		if p_result: return (credentials, password)
-		return None
+		return p_result
+	
+	def do_send_public_key(self, handler):
+		if DEBUG:
+			print "SENDING PUBLIC KEY (stock context)"
+			print handler.request

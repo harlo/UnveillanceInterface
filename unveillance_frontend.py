@@ -58,8 +58,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
 		@tornado.web.asynchronous
 		def get(self, uri):
-			static_path = os.path.join(BASE_DIR, "web")
+			if uri == "conf.json":
+				if hasattr(self.application, "init_vars"):
+					init_vars = self.application.init_vars
+				else: init_vars = {}
+					
+				self.finish(json.dumps(init_vars))
+				return
 			
+			static_path = os.path.join(BASE_DIR, "web")
 			asset = os.path.join(static_path, uri)
 			
 			if not os.path.exists(asset):
