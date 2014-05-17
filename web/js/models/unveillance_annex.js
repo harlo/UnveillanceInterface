@@ -7,7 +7,7 @@ var UnveillanceAnnex = Backbone.Model.extend({
 		this.buildSteps = [this.buildLocalRemote];
 		
 		var d = new Date();
-		this.batch_root = MD5(UV.web.BATCH_SALT + d.getTime());
+		this.batch_root = MD5(UV.BATCH_SALT + d.getTime());
 	},
 	
 	parseFields: function(annex_bundle) {

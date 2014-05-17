@@ -7,6 +7,8 @@ class PostBatchStub(object):
 	def __init__(self, files, uri):
 		self.request = PostBatchRequestStub(files, uri)
 
+FILE_NON_OVERWRITES = []
+
 MIME_TYPES = {
 	'txt' : "text/plain",
 	'zip' : "application/zip",

@@ -33,6 +33,11 @@ var UnveillanceDropzone = Backbone.Model.extend({
 		this.dropzone.on("success", onSuccess ? onSuccess : this.onSuccess);
 		this.dropzone.on("error", onError ? onError : this.onError);
 		this.dropzone.on("addedfile", onFileAdded ? onFileAdded : this.onFileAdded);
+		this.dropzone.on("sending", this.onSending);
+	},
+	
+	onSending: function(file, xhr, form_data) {
+		
 	},
 	
 	onSuccess: function(file, res) {
@@ -46,5 +51,8 @@ var UnveillanceDropzone = Backbone.Model.extend({
 		console.info(err);	
 	},
 	
-	onFileAdded: function(file) {}
+	onFileAdded: function(file) {
+		console.info("added file:");
+		console.info(file);
+	}
 });

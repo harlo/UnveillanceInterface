@@ -5,10 +5,13 @@ from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
 
 from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT, getConfig
+from vars import FILE_NON_OVERWRITES
 
 class UnveillanceAPI():
 	def __init__(self):
 		print "Stock Unveillance Frontend API started..."
+		
+		self.UNVEILLANCE_LM_VARS = {}
 
 	def do_documents(self, handler): return self.passToAnnex(handler)
 
@@ -57,7 +60,9 @@ class UnveillanceAPI():
 				name = f[0]
 				for i, file in enumerate(f[1]):
 					n = name
-					if i != 0: n = "%s_%d" % (n, i)
+					
+					if i != 0: n = "%s.%d" % (n, i)
+					if n in FILE_NON_OVERWRITES: n = "%s.%s" % (n, file['filename'])
 					
 					if save_to is None: save_to = os.path.join(BASE_DIR, "tmp", n)
 					else: save_to = os.path.join(save_to, n)
@@ -92,7 +97,6 @@ class UnveillanceAPI():
 	def do_init_annex(self, handler):
 		if DEBUG:
 			print "INIT ANNEX (Stock Context)"
-			print handler.request
 		
 		credentials = parseRequestEntity(handler.request.body)
 		if DEBUG: print credentials
@@ -109,19 +113,31 @@ class UnveillanceAPI():
 		cmd = [os.path.join(BASE_DIR, "init_local_remote.sh")]	
 		for key in credential_keys:
 			if key not in credentials.keys():
-				credentials[key] = None
-			cmd.append(credentials[key])
+				try:
+					key_name = key.replace("unveillance.local_remote.","")
+					credentials[key] = self.UNVEILLANCE_LM_VARS[key_name]
+				except Exception as e:
+					if DEBUG: print "NO UNVEILLANCE_LM_VARS FOR %s" % key
+					credentials[key] = None
+
+			cmd.append(str(credentials[key]))
+		cmd.extend([SSH_ROOT, CONF_ROOT])
 		
-		if DEBUG: print cmd
+		if DEBUG: print " ".join(cmd)
 		
-		cmd.extend([SSH_ROOT, CONF_ROOT])		
+		# /Users/LvH/Proj/InformaCam2/glsp_remote_test
 		p = Popen(cmd, stdout=PIPE, close_fds=True)
 		p_result = bool(p.stdout.read().strip())
 		p.stdout.close()
 		
-		return p_result
+		return (credentials, p_result)
 	
 	def do_send_public_key(self, handler):
 		if DEBUG:
 			print "SENDING PUBLIC KEY (stock context)"
+			print handler.request
+	
+	def do_link_annex(self, handler):
+		if DEBUG:
+			print "LINKING ANNEX (stock context)"
 			print handler.request

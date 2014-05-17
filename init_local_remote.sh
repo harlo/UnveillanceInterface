@@ -11,15 +11,14 @@ CONF_ROOT=$9
 
 LOCAL_REMOTE_PARENT=`dirname "$LM"`
 LOCAL_REMOTE_FOLDER=`basename "$LM"`
-LOCAL_CONFIG=$CONF_ROOT/conf/local.config.yaml
+LOCAL_CONFIG=$CONF_ROOT/local.config.yaml
 
 # if it exists...
 has_lm=$(find $LOCAL_REMOTE_PARENT -type d -name "$(echo $LOCAL_REMOTE_FOLDER)")
 if [[ -z "$has_lm" ]]
 then :
 else
-	echo False
-	return 1
+	return "False"
 fi
 
 NEW_SSH_KEY=$SSH_ROOT/unveillance.$(`date +%s`).key
@@ -40,5 +39,4 @@ then
 	echo "	Port $REMOTE_PORT" >> $SSH_ROOT/config
 fi
 
-echo True
-return 0
+return "True"
