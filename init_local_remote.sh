@@ -21,7 +21,8 @@ else
 	return "False"
 fi
 
-NEW_SSH_KEY=$SSH_ROOT/unveillance.$(`date +%s`).key
+SECS=`date +%s`
+NEW_SSH_KEY=$SSH_ROOT/unveillance.$SECS.key
 ssh-keygen -f $NEW_SSH_KEY -t rsa -b 4096 -N $LOCAL_REMOTE_PWD
 
 echo unveillance.local_remote.folder: $LM >> $LOCAL_CONFIG
@@ -35,7 +36,8 @@ echo unveillance.uv_uuid: $UV_UUID
 echo "Host $REMOTE_HOST" >> $SSH_ROOT/config
 echo "	IdentityFile $NEW_SSH_KEY" >> $SSH_ROOT/config
 if [ $REMOTE_PORT -eq 22 ]
-then
+then :
+else
 	echo "	Port $REMOTE_PORT" >> $SSH_ROOT/config
 fi
 
