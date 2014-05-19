@@ -1,9 +1,6 @@
 import socket, os
 
-from lib.Frontend.lib.Core.Models.uv_synctask import UnveillanceSyncTask
-
 from conf import DEBUG, ANNEX_DIR, getConfig
-
 
 class UnveillanceAnnexClient(object):
 	def __init__(self):
