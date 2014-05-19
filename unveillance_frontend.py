@@ -30,6 +30,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
+			(r"/cdn/([a-zA-Z0-9\-\._/]+)", self.CDNHandler),
 			(r"/files/(.+)", self.FileHandler)]
 		
 		self.on_loads = {
@@ -57,6 +58,24 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		}
 		
 		UnveillanceAPI.__init__(self)
+	
+	class CDNHandler(tornado.web.RequestHandler):
+		@tornado.web.asynchronous
+		def get(self, uri):
+			r = requests.get("https://%s" % uri)
+			
+			try:
+				self.set_status(r.status_code)
+				self.finish(r.content)
+
+				return
+
+			except Exception as e:
+				if DEBUG: print e
+				
+			res = Result()
+			self.set_status(res.status)
+			self.finish(res.emit())
 	
 	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
 		@tornado.web.asynchronous
