@@ -10,4 +10,5 @@ tmp/
 .synctasks/local/
 web/extras/*
 web/extras
-.synctasks/local/
+SyncTasks/*
+!SyncTasks/__init__.py

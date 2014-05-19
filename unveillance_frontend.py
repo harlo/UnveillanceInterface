@@ -23,6 +23,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
+		self.taskman_pid_file = os.path.join(MONITOR_ROOT, "taskman.pid.txt")
+		self.taskman_log_file = os.path.join(MONITOR_ROOT, "taskman.log.txt")
+		
 		self.reserved_routes = ["frontend", "web", "files"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
@@ -204,7 +207,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			query += ref[ref.index("?"):]
 		except ValueError as e: pass
 
-		r = requests.get("%s%s%s" % (buildServerURL(), handler.request.uri, query))
+		url = "%s%s%s" % (buildServerURL(), handler.request.uri, query)
+
+		if DEBUG: print "SENDING REQUEST TO %s" % url
+		r = requests.get(url)
+		
 		try:
 			return json.loads(r.content)['data']
 		except Exception as e:
@@ -232,9 +239,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		return result_obj
 	
 	def startup(self, openurl=False):
+		p = Process(target=self.startTaskMan)
+		p.start()
+		
 		p = Process(target=self.startRESTAPI)
 		p.start()
-
+		
 		if openurl:
 			url = "http://localhost:%d/" % API_PORT
 			if argv[1] == "-firstuse": url += "setup/"
@@ -242,6 +252,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 	def shutdown(self):
 		self.stopRESTAPI()
+		self.stopTaskMan()
+	
+	def startTaskMan(self):
+		if DEBUG : print "starting up TASK_MAN"
+		startDaemon(self.taskman_log_file, self.taskman_pid_file)
+		
+		while True: sleep(1)		
+	
+	def stopTaskMan(self):
+		if DEBUG : print "shutting down TASK_MAN"
+		stopDaemon(self.taskman_pid_file)
 	
 	def startRESTAPI(self):
 		#startDaemon(self.api_log_file, self.api_pid_file)

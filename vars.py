@@ -8,6 +8,7 @@ class PostBatchStub(object):
 		self.request = PostBatchRequestStub(files, uri)
 
 FILE_NON_OVERWRITES = []
+TASKS_ROOT = "lib.Frontend.SyncTasks"
 
 MIME_TYPES = {
 	'txt' : "text/plain",

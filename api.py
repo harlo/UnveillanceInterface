@@ -1,6 +1,7 @@
 import os, requests, json, re
 from subprocess import Popen, PIPE
 
+from lib.Core.Models.uv_synctask import UnveillanceSyncTask
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity
 
@@ -35,6 +36,17 @@ class UnveillanceAPI():
 				
 		if views != 0: return views
 		else: return None
+	
+	def do_run_synctask(self, handler):
+		if DEBUG: print parseRequestEntity(handler.request.body)
+		
+		sync_task = UnveillanceSyncTask(parseRequestEntity(handler.request.body))
+		try:
+			return sync_task.emit()
+		except Exception as e:
+			if DEBUG: print e
+		
+		return None
 	
 	def do_post_batch(self, handler, save_local=False, save_to=None):		
 		# just bounce request to server/post_batch/tmp_id
