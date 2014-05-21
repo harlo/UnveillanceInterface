@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import os
 from time import time
 from fabric.api import *
@@ -11,21 +13,31 @@ def buildVars():
 	remote_path = getConfig('%s.remote_path' % uv)
 	hostname = getConfig('%s.hostname' % uv)
 	port = getConfig('%s.port' % uv)
+	folder = getConfig('%s.folder' % uv)
 	port_prefix = ""
 
 	if port != 22:
 		port_prefix += ":%d" % port
 
 	env.hosts = ["%s@%s%s" % (uv_user, hostname, port_prefix)]
+	
+	return {
+		'uv_user' : uv_user,
+		'remote_path' : remote_path,
+		'hostname' : hostname,
+		'port' : port,
+		'folder' : folder
+	}
 
 def linkLocalRemote():
 	if DEBUG: print "linking local remote"
-	buildVars()
+	vars = buildVars()
 	
-	folder = getConfig('%s.folder' % uv)
+	old_dir = os.getcwd()
+	local("git clone ssh://%s%s %s" % (env.hosts[0], vars['remote_path'], vars['folder']))
 
-	local("git clone ssh://%s@%s%s %s" % (uv_user, env.hosts[0], remote_path, folder))
-	local("cd %s" % folder)
+	os.chdir(vars['folder'])
+	local("pwd")
 	local("mkdir .synctasks")
 	local("mkdir .synctasks/local")
 	local("echo .DS_Store > .gitignore")
@@ -33,30 +45,38 @@ def linkLocalRemote():
 	local("echo *.exe >> .gitignore")
 	local("echo .synctasks/local/ >> .gitignore")
 	local("git annex init 'unveillance_remote'")
-	local("git annex untrust web")
-	local("git remote add unveillance_remote ssh://%s@%s%s" % (
-		uv_user, env.hosts[0], remote_path))
-	
+	local("git remote add unveillance_remote ssh://%s%s" % (
+		env.hosts[0], vars['remote_path']))
+	local("git annex status")
+
+	os.chdir(old_dir)
 	return True
 
 def autoSync():
 	if DEBUG: print "AUTO SYNC"
 	
+	'''
 	buildVars()
 	old_dir = os.getcwd()
 	result = False
 
-	try:
-		from conf import ANNEX_DIR
-		with cd(ANNEX_DIR):
-			print local("git annex sync")
-			result = True
+	from conf import ANNEX_DIR
+	if not os.path.exists(ANNEX_DIR): return False
 	
-	except Exception as e:
-		if DEBUG: print e
+	os.chdir(ANNEX_DIR)
+	sync_result = local("git annex sync", capture=True)
+	if DEBUG: 
+		print "TASK STUFF"
+		print sync_result.failed
 	
-	cd(old_dir)
+	if not sync_result.failed: result = True	
+	
+	
+	os.chdir(old_dir)
+	print "AUTO SYNC RESULT: %s" % result
 	return result
+	'''
+	return True
 
 def netcat(file=None):
 	if DEBUG: print "OH HEY NETCAT"

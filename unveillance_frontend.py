@@ -216,7 +216,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.finish(res.emit())
 	
 	def passToAnnex(self, handler):
-		if handler.request.body != None:
+		if handler.request.body != "":
 			ref = "?%s" % handler.request.body
 		else:
 			ref = handler.request.headers['Referer']
