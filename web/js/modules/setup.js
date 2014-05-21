@@ -26,7 +26,7 @@ function initSetup() {
 
 			// 4. load first step			
 			$("#uv_setup_step_num").html(num_views);
-			setTimeout(loadSetupStep(1), 1000);			
+			setTimeout(loadSetupStep(1), 1000);
 		}
 	});
 }

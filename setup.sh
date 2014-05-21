@@ -8,7 +8,7 @@ then
 	OLD_DIR=$THIS_DIR
 	LAUNCH_FRONTEND=true
 	SSH_ROOT=~/.ssh
-	SERVER_HOST="10.51.119.238"
+	SERVER_HOST="10.51.118.238"
 	SERVER_PORT=8888
 	SERVER_USE_SSL=false
 else
@@ -28,7 +28,12 @@ echo server.host: $SERVER_HOST >> $LOCAL_CONFIG
 echo server.port: $SERVER_PORT >> $LOCAL_CONFIG
 echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 
-pip install --upgrade -r requirements.txt
+cd $THIS_DIR/lib/Core
+#pip install --upgrade -r requirements.txt
+
+cd $THIS_DIR
+#pip install --upgrade -r requirements.txt
+
 GENERATE_COOKIE_SECRET="from lib.Core.Utils.funcs import generateSecureNonce;print generateSecureNonce()"
 echo api.web.cookie_secret: $(python -c "$GENERATE_COOKIE_SECRET") >> $LOCAL_CONFIG
 

@@ -1,3 +1,5 @@
+var UV;
+
 function getFileContent(ctx, path, callback) {
 	$.ajax({
 		url: "/files/" + path,

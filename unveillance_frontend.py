@@ -144,7 +144,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if hasattr(self.application, "WEB_TITLE"): 
 				web_title = self.application.WEB_TITLE
 			else: web_title = WEB_TITLE
-		
+			
 			if route is None:
 				if hasattr(self.application, "INDEX_HEADER"):
 					header = self.application.INDEX_HEADER
@@ -163,7 +163,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			
 				idx = Template(filename=os.path.join(static_path, "module.html"))
 				web_title = "%s : %s" % (web_title, module)
-			
+				
 			layout = os.path.join(static_path, "layout", "%s.html" % module)
 			
 			if DEBUG : print (module, layout)
@@ -202,7 +202,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if module in [k for k,v in self.application.on_loads.iteritems()]:
 				on_loads.extend(self.application.on_loads[module])
 			
-			if DEBUG: print "ALL ON_LOADS\n%s" % on_loads
 			return "".join([js % v for v in on_loads])
 
 		@tornado.web.asynchronous

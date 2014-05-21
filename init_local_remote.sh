@@ -18,7 +18,7 @@ has_lm=$(find $LOCAL_REMOTE_PARENT -type d -name "$(echo $LOCAL_REMOTE_FOLDER)")
 if [[ -z "$has_lm" ]]
 then :
 else
-	return "False"
+	echo "False"
 fi
 
 SECS=`date +%s`
@@ -41,4 +41,4 @@ else
 	echo "	Port $REMOTE_PORT" >> $SSH_ROOT/config
 fi
 
-return "True"
+echo "True"

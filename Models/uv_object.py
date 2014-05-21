@@ -2,10 +2,12 @@ import os
 from json import dumps, loads
 
 from lib.Core.Models.uv_object import UnveillanceObject as UVO_Stub
-from conf import ANNEX_DIR, DEBUG
+from conf import DEBUG
 
 class UnveillanceObject(UVO_Stub):
-	def __init__(self, **args):			
+	def __init__(self, **args):
+		from conf import ANNEX_DIR
+		
 		super(UnveillanceObject, self).__init__(**args)
 	
 	def getObject(self, _id):
