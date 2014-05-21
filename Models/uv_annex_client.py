@@ -1,5 +1,7 @@
 from fabric.tasks import execute
 
+from lib.Frontend.Utils.fab_api import netcat, autoSync
+
 from conf import DEBUG, getConfig
 
 class UnveillanceAnnexClient(object):
@@ -38,6 +40,11 @@ class UnveillanceAnnexClient(object):
 		
 		return task_ids
 	
+	def download(self, auto_sync=True):
+		if DEBUG: print "AUTO-SYNCING TO GIT ANNEX, TOO!"
+		if auto_sync:
+			execute(autoSync)
+	
 	def sendToAnnex(self, data, as_binary=False):
 		# tar data 
 		# netcat
@@ -53,7 +60,6 @@ class UnveillanceAnnexClient(object):
 				if DEBUG: print e
 				return False
 		
-		from lib.Frontend.Utils.fab_api import netcat
 		return execute(netcat)		
 	
 	def startTasks(self, _id=None):
