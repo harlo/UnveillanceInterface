@@ -30,7 +30,7 @@ echo unveillance.local_remote.port: $REMOTE_PORT >> $LOCAL_CONFIG
 echo unveillance.local_remote.hostname: $REMOTE_HOST >> $LOCAL_CONFIG
 echo unveillance.local_remote.user: $REMOTE_USER >> $LOCAL_CONFIG
 echo unveillance.local_remote.remote_path: $REMOTE_PATH >> $LOCAL_CONFIG
-echo unveillance.local_remote.pub_key: $NEW_SSH_KEY.pub >> $LOCAL_CONFIG
+echo unveillance.local_remote.pub_key: $NEW_SSH_KEY >> $LOCAL_CONFIG
 echo unveillance.uv_uuid: $UV_UUID
 
 echo "Host $REMOTE_HOST" >> $SSH_ROOT/config
