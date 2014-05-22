@@ -29,15 +29,24 @@ def buildVars():
 		'folder' : folder
 	}
 
+def test(h):
+	if DEBUG: print "TESTING FAB with arg: %s" % h
+	
+	vars = buildVars()
+	if DEBUG: print vars
+		
+	x = local("pwd", capture=True)
+	print "RES: %s" % x
+	
+	return True
+
 def linkLocalRemote():
 	if DEBUG: print "linking local remote"
-	vars = buildVars()
 	
-	old_dir = os.getcwd()
+	vars = buildVars()
 	local("git clone ssh://%s%s %s" % (env.hosts[0], vars['remote_path'], vars['folder']))
 
 	os.chdir(vars['folder'])
-	local("pwd")
 	local("mkdir .synctasks")
 	local("mkdir .synctasks/local")
 	local("echo .DS_Store > .gitignore")
@@ -48,53 +57,11 @@ def linkLocalRemote():
 	local("git remote add unveillance_remote ssh://%s%s" % (
 		env.hosts[0], vars['remote_path']))
 	local("git annex status")
-
-	os.chdir(old_dir)
+	
 	return True
 
 def autoSync():
 	if DEBUG: print "AUTO SYNC"
 	
-	'''
-	buildVars()
-	old_dir = os.getcwd()
-	result = False
-
-	from conf import ANNEX_DIR
-	if not os.path.exists(ANNEX_DIR): return False
+	return local("git annex sync")
 	
-	os.chdir(ANNEX_DIR)
-	sync_result = local("git annex sync", capture=True)
-	if DEBUG: 
-		print "TASK STUFF"
-		print sync_result.failed
-	
-	if not sync_result.failed: result = True	
-	
-	
-	os.chdir(old_dir)
-	print "AUTO SYNC RESULT: %s" % result
-	return result
-	'''
-	return True
-
-def netcat(file=None):
-	if DEBUG: print "OH HEY NETCAT"
-	if file is None: return False
-	
-	old_dir = os.getcwd()
-	result = False
-	
-	from conf import ANNEX_DIR
-	try:
-		with cd(ANNEX_DIR):
-			put(file, os.path.join(remote_path, file))
-			run("cd %s" % remote_path)
-			run("git annex sync")
-			result = True
-	
-	except Exception as e:
-		if DEBUG: print e
-	
-	cd(old_dir)
-	return result
