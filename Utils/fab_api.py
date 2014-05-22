@@ -8,45 +8,46 @@ from conf import DEBUG, getConfig
 
 uv = 'unveillance.local_remote'
 
-def buildVars():
-	uv_user = getConfig('%s.user' % uv)
-	remote_path = getConfig('%s.remote_path' % uv)
-	hostname = getConfig('%s.hostname' % uv)
-	port = getConfig('%s.port' % uv)
-	folder = getConfig('%s.folder' % uv)
-	port_prefix = ""
-
-	if port != 22:
-		port_prefix += ":%d" % port
-
-	env.hosts = ["%s@%s%s" % (uv_user, hostname, port_prefix)]
-	
-	return {
-		'uv_user' : uv_user,
-		'remote_path' : remote_path,
-		'hostname' : hostname,
-		'port' : port,
-		'folder' : folder
-	}
-
 def test(h):
 	if DEBUG: print "TESTING FAB with arg: %s" % h
-	
-	vars = buildVars()
-	if DEBUG: print vars
-		
-	x = local("pwd", capture=True)
+			
+	x = local("pwd")
 	print "RES: %s" % x
 	
 	return True
 
+def netcat(file, save_as=None, remote_path=None):
+	if DEBUG: print "NETCATTING FILE"
+	
+	if remote_path is None:
+		remote_path = getConfig("%s.remote_path" % uv)
+	
+	if type(file) is str:
+		if save_as is None: save_as = os.path.basename(file)
+	else:
+		if save_as is None: save_as = "blah_blah_%d" % time()
+	
+	print save_as
+	res = put(file, os.path.join(remote_path, save_as))
+	with cd(remote_path):
+		cmd = ".git/hooks/post-receive \"%s\"" % save_as
+		res = run(cmd)
+
+		print "*************\n\n%s\n\n*************" % res
+	
+		print "returning"
+
+	return res
+
 def linkLocalRemote():
 	if DEBUG: print "linking local remote"
 	
-	vars = buildVars()
-	local("git clone ssh://%s%s %s" % (env.hosts[0], vars['remote_path'], vars['folder']))
+	remote_path = getConfig("%s.remote_path" % uv)
+	local_folder = getConfig("%s.folder" % uv)
+	
+	local("git clone ssh://%s%s %s" % (hosts[0], remote_path, local_folder))
 
-	os.chdir(vars['folder'])
+	os.chdir(local_folder)
 	local("mkdir .synctasks")
 	local("mkdir .synctasks/local")
 	local("echo .DS_Store > .gitignore")
@@ -54,11 +55,16 @@ def linkLocalRemote():
 	local("echo *.exe >> .gitignore")
 	local("echo .synctasks/local/ >> .gitignore")
 	local("git annex init 'unveillance_remote'")
-	local("git remote add unveillance_remote ssh://%s%s" % (
-		env.hosts[0], vars['remote_path']))
+	local("git remote add unveillance_remote ssh://%s%s" % (hosts[0],
+		remote_path, local_folder))
 	local("git annex status")
 	
 	return True
+
+def initLocalRemote():
+	if DEBUG: print "initing local remote"
+	
+	# TODO: this can be fabric rather than bash...	
 
 def autoSync():
 	if DEBUG: print "AUTO SYNC"
