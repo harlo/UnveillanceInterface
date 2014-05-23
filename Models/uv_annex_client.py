@@ -39,23 +39,6 @@ class UnveillanceAnnexClient(object):
 		
 		return task_ids
 	
-	def sendToAnnex(self, data, as_binary=False):
-		# tar data 
-		# netcat
-		# untar
-		# tell git-annex to sync
-		for required in ['hostname', 'port', 'user', 'remote_path']:
-			if not hasattr(self, required): return False
-		
-		if not as_binary:
-			try:
-				with open(data, 'rb') as d: data = d.read()
-			except IOError as e:
-				if DEBUG: print e
-				return False
-		
-		return None
-	
 	def startTasks(self, _id=None):
 		if _id is not None:
 			_ids = [_id]

@@ -228,7 +228,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		url = "%s%s%s" % (buildServerURL(), handler.request.uri, query)
 
 		if DEBUG: print "SENDING REQUEST TO %s" % url
-		r = requests.get(url)
+		r = requests.get(url, verify=False)
 		
 		try:
 			return json.loads(r.content)['data']

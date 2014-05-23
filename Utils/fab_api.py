@@ -19,13 +19,15 @@ def test(h):
 def netcat(file, save_as=None, remote_path=None):
 	if DEBUG: print "NETCATTING FILE"
 	
+	env.key_filename = [getConfig("%s.pub_key" % uv)]
+	
 	if remote_path is None:
 		remote_path = getConfig("%s.remote_path" % uv)
 	
 	if type(file) is str:
 		if save_as is None: save_as = os.path.basename(file)
 	else:
-		if save_as is None: save_as = "blah_blah_%d" % time()
+		if save_as is None: save_as = "uv_document_%d" % time()
 	
 	print save_as
 	res = put(file, os.path.join(remote_path, save_as))
