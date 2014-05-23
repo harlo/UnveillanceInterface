@@ -16,10 +16,11 @@ def test(h):
 	
 	return True
 
-def netcat(file, save_as=None, remote_path=None):
+def netcat(file, password, save_as=None, remote_path=None):
 	if DEBUG: print "NETCATTING FILE"
 	
 	env.key_filename = [getConfig("%s.pub_key" % uv)]
+	env.password = password
 	
 	if remote_path is None:
 		remote_path = getConfig("%s.remote_path" % uv)
