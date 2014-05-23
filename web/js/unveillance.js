@@ -74,13 +74,14 @@ function doInnerAjax(url, method, data, callback) {
 	});
 }
 
-function getTemplate(tmpl, on_complete, static_root) {
+function getTemplate(tmpl, on_complete, static_root, ctx) {
 	if(!static_root) { static_root = "/web/layout/tmpl/"; }
 	
 	var a_obj = {
 		url : (static_root + tmpl),
 		method: "get",
-		dataType: "html"
+		dataType: "html",
+		context: ctx
 	};
 	
 	if(on_complete) { a_obj.complete = on_complete; }

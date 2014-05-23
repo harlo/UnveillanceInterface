@@ -57,6 +57,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			]
 		}
 		
+		from vars import MIME_TYPES, ASSET_TAGS
+		self.init_vars = {
+			'MIME_TYPES' : MIME_TYPES,
+			'ASSET_TAGS' : ASSET_TAGS
+		}
+		
 		UnveillanceAPI.__init__(self)
 	
 	class CDNHandler(tornado.web.RequestHandler):
@@ -80,12 +86,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
 		@tornado.web.asynchronous
 		def get(self, uri):
-			if uri == "conf.json":
-				if hasattr(self.application, "init_vars"):
-					init_vars = self.application.init_vars
-				else: init_vars = {}
-					
-				self.finish(json.dumps(init_vars))
+			if uri == "conf.json":					
+				self.finish(json.dumps(self.application.init_vars))
 				return
 			
 			static_path = os.path.join(BASE_DIR, "web")
