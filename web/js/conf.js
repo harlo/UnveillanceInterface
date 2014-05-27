@@ -32,7 +32,8 @@ $.ajax({
 			];
 		
 			try {
-				$(document).on("confLoadedEvent", onConfLoadedEvent);
+				
+				$(document).trigger("onConfLoadedEvent");
 			} catch(err) {
 				console.info(err);
 			}
