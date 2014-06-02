@@ -12,12 +12,16 @@ var UnveillanceCSV = UnveillanceViz.extend({
 		});
 		
 		var csv_idx = 0;
+		var tmpl = "<% _.each(cells, function(val) { %> <td><%= val %></td> <% }); %>";
+		
 		_.each(this.get('data'), function(csv) {
 			var lines = csv.match(/[^\r\n]+/g);
-			console.info(lines);
 			for(var l in lines) {
 				if(l != 0 || csv_idx == 0) {
-					$(this.root_el).append($(document.createElement('p')).html(lines[l]));
+					var row = _.template(tmpl, { cells : lines[l].split(",").slice(1) });
+					$($(this.root_el).children('table')[0]).append(
+						$(document.createElement('tr')).html(row)
+					);
 				}
 			}
 			
