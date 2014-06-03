@@ -121,8 +121,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		@tornado.web.asynchronous
 		def post(self):
 			res = Result()
+			res.result = 412
+			
 			query = parseRequestEntity(self.request.body)				
-
 			if query is None or len(query.keys()) != 1 or '_id' not in query.keys(): 
 				self.set_status(res.result)
 				self.finish(res.emit())
@@ -136,7 +137,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				res.result = 200
 			except Exception as e:
 				if DEBUG: print e
-				res.result = 412
 			
 			self.set_status(res.result)
 			self.finish(res.emit())
@@ -144,11 +144,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		@tornado.web.asynchronous
 		def get(self):
 			res = Result()
-			res.data = self.application.passToAnnex(self, uri="tasks/")
+			res.result = 412
 			
+			res.data = self.application.passToAnnex(self, uri="tasks/")
 			if res.data is None:
 				del res.data
-				res.result = 412
 			elif res.data: res.result = 200
 			
 			self.set_status(res.result)
