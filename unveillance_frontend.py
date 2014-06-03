@@ -30,7 +30,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
-			(r"/files/(.+)", self.FileHandler)]
+			(r"/files/(.+)", self.FileHandler),
+			(r"/task/", self.TaskHandler)]
 		
 		self.on_loads = {
 			'setup' : [
@@ -116,6 +117,43 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			r = requests.get(url, verify=False)
 			self.finish(r.content)
 		
+	class TaskHandler(tornado.web.RequestHandler):
+		@tornado.web.asynchronous
+		def post(self):
+			res = Result()
+			query = parseRequestEntity(self.request.body)				
+
+			if query is None or len(query.keys()) != 1 or '_id' not in query.keys(): 
+				self.set_status(res.result)
+				self.finish(res.emit())
+				return
+							
+			r = requests.post("%stask/" % buildServerURL(), 
+				data={ '_id' : query['_id'] }, verify=False)
+			
+			try:
+				res.data = json.loads(r.content)['data']
+				res.result = 200
+			except Exception as e:
+				if DEBUG: print e
+				res.result = 412
+			
+			self.set_status(res.result)
+			self.finish(res.emit())
+		
+		@tornado.web.asynchronous
+		def get(self):
+			res = Result()
+			res.data = self.application.passToAnnex(self, uri="tasks/")
+			
+			if res.data is None:
+				del res.data
+				res.result = 412
+			elif res.data: res.result = 200
+			
+			self.set_status(res.result)
+			self.finish(res.emit())
+			
 	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
 		def get(self, route):
@@ -198,7 +236,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			self.set_status(res.result)					
 			self.finish(res.emit())
 	
-	def passToAnnex(self, handler):
+	def passToAnnex(self, handler, uri=None):
 		if handler.request.body != "":
 			ref = "?%s" % handler.request.body
 		else:
@@ -208,7 +246,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			query += ref[ref.index("?"):]
 		except ValueError as e: pass
 
-		url = "%s%s%s" % (buildServerURL(), handler.request.uri, query)
+		if uri is None: uri = handler.request.uri
+		url = "%s%s%s" % (buildServerURL(), uri, query)
 
 		if DEBUG: print "SENDING REQUEST TO %s" % url
 		r = requests.get(url, verify=False)
