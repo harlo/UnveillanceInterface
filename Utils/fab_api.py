@@ -32,14 +32,15 @@ def netcat(file, password, save_as=None, remote_path=None):
 	
 	print save_as
 	res = put(file, os.path.join(remote_path, save_as))
+	
 	with cd(remote_path):
 		cmd = ".git/hooks/post-receive \"%s\"" % save_as
 		res = run(cmd)
 
+	if DEBUG:
 		print "*************\n\n%s\n\n*************" % res
-	
 		print "returning"
-
+	
 	return res
 
 def linkLocalRemote():
