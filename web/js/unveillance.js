@@ -9,6 +9,14 @@ function getFileContent(ctx, path, callback) {
 	});
 }
 
+function setRawAsset(el, path) {
+	$(el).empty();
+	getFileContent(this, path, function(res) {
+		console.info(res);
+		$(el).append($(document.createElement('textarea')).html(res.responseText));
+	});
+}
+
 function JSONtoURLString(json) {
 	var url_str = Object.keys(json).map(function(key) {
 		return (encodeURIComponent(key) + "=" + encodeURIComponent(json[key]));
