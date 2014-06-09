@@ -21,6 +21,8 @@ class UnveillanceAPI():
 
 	def do_cluster(self, handler): return self.passToAnnex(handler)
 	
+	def do_reindex(self, handler): return self.passToAnnex(handler)
+	
 	def do_num_views(self, query):
 		views = 0
 		path = os.path.join(BASE_DIR, "web", "layout", "views", query['view_root'])

@@ -57,10 +57,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			]
 		}
 		
-		from vars import MIME_TYPES, ASSET_TAGS
+		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
-			'ASSET_TAGS' : ASSET_TAGS
+			'ASSET_TAGS' : ASSET_TAGS,
+			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS
 		}
 		
 		UnveillanceAPI.__init__(self)
