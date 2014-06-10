@@ -29,10 +29,10 @@ echo server.port: $SERVER_PORT >> $LOCAL_CONFIG
 echo server.use_ssl: $SERVER_USE_SSL >> $LOCAL_CONFIG
 
 cd $THIS_DIR/lib/Core
-#pip install --upgrade -r requirements.txt
+pip install --upgrade -r requirements.txt
 
 cd $THIS_DIR
-#pip install --upgrade -r requirements.txt
+pip install --upgrade -r requirements.txt
 
 GENERATE_COOKIE_SECRET="from lib.Core.Utils.funcs import generateSecureNonce;print generateSecureNonce()"
 echo api.web.cookie_secret: $(python -c "$GENERATE_COOKIE_SECRET") >> $LOCAL_CONFIG

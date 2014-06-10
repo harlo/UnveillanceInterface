@@ -306,7 +306,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		stopDaemon(self.taskman_pid_file)
 	
 	def startRESTAPI(self):
-		#startDaemon(self.api_log_file, self.api_pid_file)
+		startDaemon(self.api_log_file, self.api_pid_file)
 		
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 	if len(argv) != 2: exit("Usage: unveillance_frontend.py [-start, -stop, -restart]")
 	
 	if argv[1] == "-start" or argv[1] == "-firstuse":
-		unveillance_frontend.startup()
+		unveillance_frontend.startup(openurl)
 	elif argv[1] == "-stop":
 		unveillance_frontend.shutdown()
 	elif argv[1] == "-restart":
