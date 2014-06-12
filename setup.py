@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	local("pip install --upgrade -r requirements.txt")
 	
 	if launch_frontend:
-		local("python unveillance_frontend.py -firstuse")
+		local("python unveillance_frontend.py -start -webapp")
 	else:
 		os.chdir(return_dir)
 
