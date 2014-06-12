@@ -19,7 +19,7 @@ if __name__ == "__main__":
 		server_port = argv[4]
 		server_use_ssl = argv[5]
 	else:
-		print "NO, these are not the right set of args."
+		print "NO, this is not the right set of args."
 		exit(1)
 	
 	local_config = os.path.join(base_dir, "conf", "local.config.yaml")
