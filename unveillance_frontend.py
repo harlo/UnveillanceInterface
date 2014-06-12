@@ -280,8 +280,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		return result_obj
 	
 	def startup(self, openurl=False):
-		p = Process(target=self.startTaskMan)
-		p.start()
+		#p = Process(target=self.startTaskMan)
+		#p.start()
 		
 		p = Process(target=self.startRESTAPI)
 		p.start()
@@ -293,7 +293,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 	def shutdown(self):
 		self.stopRESTAPI()
-		self.stopTaskMan()
+		#self.stopTaskMan()
 	
 	def startTaskMan(self):
 		if DEBUG : print "starting up TASK_MAN"
