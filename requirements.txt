@@ -1,3 +1,5 @@
 pycrypto
 mako
-crontab
+google-api-python-client
+oauth2client
+urllib3

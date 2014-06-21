@@ -4,74 +4,52 @@ import os
 from time import time
 from fabric.api import *
 
-from conf import DEBUG, getConfig
+from conf import DEBUG, SERVER_HOST, getSecrets
 
-uv = 'unveillance.local_remote'
-
-def test(h):
-	if DEBUG: print "TESTING FAB with arg: %s" % h
-			
-	x = local("pwd")
-	print "RES: %s" % x
-	
-	return True
-
-def netcat(file, password, save_as=None, remote_path=None):
+def netcat(file, save_as=None, remote_path=None):
 	if DEBUG: print "NETCATTING FILE"
-	
-	env.key_filename = [getConfig("%s.pub_key" % uv)]
-	env.password = password
-	
-	if remote_path is None:
-		remote_path = getConfig("%s.remote_path" % uv)
 	
 	if type(file) is str:
 		if save_as is None: save_as = os.path.basename(file)
 	else:
 		if save_as is None: save_as = "uv_document_%d" % time()
+		
+	cmd = ".git/hooks/post-receive \"%s\"" % save_as
+	print cmd
 	
-	print save_as
-	res = put(file, os.path.join(remote_path, save_as))
+	if SERVER_HOST != "127.0.0.1":
 	
-	with cd(remote_path):
-		cmd = ".git/hooks/post-receive \"%s\"" % save_as
-		res = run(cmd)
-
+		env.key_filename = [getSecrets('ssh_key_pub')]
+		env.password = getSecrets('ssh_key_pwd')
+		# TODO: port if not 22?
+	
+		annex_base = getSecrets('annex_remote')
+	
+		if len(remote_path) is not None:
+			remote_path = os.path.join(annex_base, remote_path)
+	
+		res = put(file, os.path.join(remote_path, save_as))
+	
+		with cd(annex_base):
+			res = run(cmd)
+	else:
+		annex_base = getSecrets('annex_local')
+		
+		if len(remote_path) is not None:
+			remote_path = os.path.join(annex_base, remote_path)
+		
+		with open(os.path.join(remote_path, save_as), 'wb+') as NEW_FILE:
+			NEW_FILE.write(file)
+		
+		this_dir = os.getcwd()
+		with settings(warn_only=True):
+			os.chdir(annex_base)
+			res = local(cmd)
+			os.chdir(this_dir)
+			
 	if DEBUG:
 		print "*************\n\n%s\n\n*************" % res
 		print "returning"
 	
 	return res
-
-def linkLocalRemote():
-	if DEBUG: print "linking local remote"
-	
-	remote_path = getConfig("%s.remote_path" % uv)
-	local_folder = getConfig("%s.folder" % uv)
-	
-	local("git clone ssh://%s%s %s" % (hosts[0], remote_path, local_folder))
-
-	os.chdir(local_folder)
-	local("mkdir .synctasks")
-	local("mkdir .synctasks/local")
-	local("echo .DS_Store > .gitignore")
-	local("echo *.pyc >> .gitignore")
-	local("echo *.exe >> .gitignore")
-	local("echo .synctasks/local/ >> .gitignore")
-	local("git annex init 'unveillance_remote'")
-	local("git remote add unveillance_remote ssh://%s%s" % (hosts[0],
-		remote_path, local_folder))
-	local("git annex status")
-	
-	return True
-
-def initLocalRemote():
-	if DEBUG: print "initing local remote"
-	
-	# TODO: this can be fabric rather than bash...	
-
-def autoSync():
-	if DEBUG: print "AUTO SYNC"
-	
-	return local("git annex sync")
 	

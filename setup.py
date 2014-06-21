@@ -1,126 +1,145 @@
-import os
+import os, re, json
+from time import time
 from sys import argv, exit
+from fabric.api import local, settings
+from fabric.operations import prompt
+
+from lib.Core.Utils.funcs import generateSecureNonce
+
+def locateLibrary(lib_rx):
+	base_dir = os.getcwd()
+	
+	for _, dir, _ in os.walk(os.path.join(base_dir, "lib")):
+		print dir
+		for d in dir:
+			if re.match(lib_rx, d) is not None:
+				return os.path.join(base_dir, "lib", d)
+
+		break
+	
+	return None
 
 if __name__ == "__main__":
 	base_dir = os.getcwd()
+	config = {}
 	
-	if len(argv) == 1:
-		return_dir = base_dir
-		launch_frontend = True
-		ssh_root = "~/.ssh"
-		server_host = "127.0.0.1"
-		server_port = 8888
-		server_use_ssl = False
-	elif len(argv) == 6:
-		return_dir = argv[1]
-		launch_frontend = False
-		ssh_root = argv[2]
-		server_host = argv[3]
-		server_port = argv[4]
-		server_use_ssl = argv[5]
-	else:
-		print "NO, this is not the right set of args."
-		exit(1)
-	
-	local_config = os.path.join(base_dir, "conf", "local.config.yaml")
-	secrets_config = os.path.join(return_dir, "conf", "unveillance.secrets.json")
-	
-	from fabric.api import local
-	from fabric.operations import prompt
-	from json import loads, dumps
-	
-	local("mkdir %s" % os.path.join(base_dir, ".monitor"))
-	local("mkdir %s" % os.path.join(base_dir, "tmp"))
-	
-	print "Unveillance will now generate a public/private key pair for communication with the server..."
-	
-	from time import time
-	lm_key_pwd = prompt("Please enter a good password for this key:")
-	lm_key = os.path.join(ssh_root, "unveillance.%d.key" % time())
-	local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (lm_key, lm_key_pwd))
-	
-	with open(local_config, "ab") as CONFIG:
-		CONFIG.write("ssh_root: %s\n" % ssh_root)
-		CONFIG.write("server.host: %s\n" % server_host)
-		CONFIG.write("server.port: %s\n" % server_port)
-		CONFIG.write("server.use_ssl: %s\n" % server_use_ssl)
-		
-		from lib.Core.Utils.funcs import generateSecureNonce
-		CONFIG.write("api.web.cookie_secret: %s\n" % generateSecureNonce())
-		
+	if len(argv[1]) > 3:		
 		try:
-			with open(secrets_config, "rb") as LM_S:
-				secrets = loads(LM_S.read())
-				lm_secrets = secrets['unveillance.local_remote']
-		except Exception as e: 
-			lm_secrets = {}
-			secrets = {}
-			
-		if len(lm_secrets.keys()) == 0:
-			print "No setup variables available.  Please set the following:"
-		
-		try:
-			lm_local_path = lm_secrets['local_path']
+			with open(argv[1], 'rb') as CONF:
+				config.update(json.loads(CONF.read()))
 		except Exception as e:
-			lm_local_path = prompt("Where do you want your Unveillance folder?  The folder should not exist, and type the full path please:")
-			lm_secrets['local_path'] = lm_local_path
-		
-		try:
-			lm_user = lm_secrets['user']
-		except Exception as e:
-			lm_user = prompt("What's the remote's username?")
-			lm_secrets['user'] = lm_user
-			
-		try:
-			lm_hostname = lm_secrets['hostname']
-		except Exception as e:
-			lm_hostname = prompt("What is the remote's hostname?")
-			lm_secrets['hostname'] = lm_hostname
-		
-		try:
-			lm_port = lm_secrets['port']
-		except Exception as e:
-			lm_port = prompt("What port will the app use to connect to the remote via SSH?")
-			lm_secrets['port'] = lm_port
-		
-		try:
-			lm_remote_path = lm_secrets['remote_path']
-		except Exception as e:
-			lm_remote_path = prompt("What is the full path to the remote's Unveillance folder?")
-			lm_secrets['remote_path'] = lm_remote_path
-		
-		try:
-			lm_uuid = lm_secrets['uv_uuid']
-		except Exception as e:
-			lm_uuid = prompt("What is the UUID for the remote?  (If you don't know, leave blank)")
-			if len(lm_uuid) == 0:
-				lm_uuid = generateSecureNonce()
-			
-			lm_secrets['uv_uuid'] = lm_uuid
-		
-		lm_secrets['pwd'] = lm_key_pwd
-		
-		secrets['unveillance.local_remote'].update(lm_secrets)
-		with open(secrets_config, "wb+") as LM_S: LM_S.write(dumps(secrets))
-		# TODO: AES encrypt secrets file, secure-delete the cruft
-		
-		CONFIG.write("unveillance.local_remote.local_path: %s\n" % lm_local_path)
-		CONFIG.write("unveillance.local_remote.port: %s\n" % lm_port)
-		CONFIG.write("unveillance.local_remote.hostname: %s\n" % lm_hostname)
-		CONFIG.write("unveillance.local_remote.user: %s\n" % lm_user)
-		CONFIG.write("unveillance.local_remote.remote_path: %s\n" % lm_remote_path)
-		CONFIG.write("unveillance.local_remote.pub_key: %s.pub\n" % lm_key)
-		CONFIG.write("unveillance.uv_uuid: %s\n" % lm_uuid)
+			print e
 	
-	os.chdir(os.path.join(base_dir, "lib", "Core"))
-	local("pip install --upgrade -r requirements.txt")
-	
-	os.chdir(base_dir)
-	local("pip install --upgrade -r requirements.txt")
-	
-	if launch_frontend:
-		local("python unveillance_frontend.py -start -webapp")
-	else:
-		os.chdir(return_dir)
+	git_annex_dir = locateLibrary(r'git-annex\.*')
+	if git_annex_dir is None:
+		with settings(warn_only=True):
+			local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/git-annex-standalone-amd64.tar.gz")
+			local("tar -xvzf lib/git-annex.tar.gz -C lib")
+			local("rm lib/git-annex.tar.gz")
+		
+		git_annex_dir = locateLibrary(r'git-annex\.*')
+		
+	print "****************************"
+	print "Hello.  Welcome to Unveillance Frontend setup."
+	admin_username = prompt("Choose a username:")
+	admin_pwd = prompt("Pick a good password:")
 
+	print "****************************"	
+	print "Google Drive Authentication:"
+	print "If you want to to use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
+	print "You will be shown an authentication code that you must paste into this terminal when prompted."
+	print "Authenticate Google Drive? y or n"
+	
+	gdrive_auth = False
+	if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
+	
+	if gdrive_auth:
+		import webbrowser
+	
+	if 'annex_local' not in config.keys():
+		print "Where do you want your Unveillance folder?  The folder should not exist."
+		config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
+	
+	if len(config['annex_local']) == 0:
+		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
+		
+	with settings(warn_only=True):	
+		local("mkdir %s" % os.path.join(base_dir, ".monitor"))
+		local("mkdir %s" % os.path.join(base_dir, ".users"))
+		local("mkdir %s" % config['annex_local'])
+	
+	if 'server_host' not in config.keys():
+		print "What is the Public IP/hostname of the Annex server?"
+		config['server_host'] = prompt("[DEFAULT: localhost] ")
+	
+	if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
+	
+	if 'server_port' not in config.keys():
+		print "What port is the Annex server on?"
+		config['server_port'] = prompt("[DEFAULT: 8888] ")
+	
+	if len(config['server_port']) == 0: config['server_port'] = 8888
+	
+	if config['server_host'] == "127.0.0.1": 
+		config['server_use_ssl'] = False
+	else:
+		if 'ssh_root' not in config.keys():
+		print "Where is your ssh folder?"
+		config['ssh_root'] = prompt("[DEFAULT: ~/.ssh] ")
+		
+		if len(config['ssh_root']) == 0:
+			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
+
+		if 'annex_remote' not in config.keys():
+			print "What is the path to the Annex's repository?"
+			config['annex_remote']  = prompt("[DEFAULT: ~/unveillance_remote]")
+		
+		if len(config['annex_remote']) == 0:
+			config['annex_remote'] = "~/unveillance_remote"
+
+		print "Unveillance will now generate a public/private key pair for communication with the server"
+		config['ssh_key_pwd'] = prompt("Please enter a good password for this key: ")
+		config['ssh_key_priv'] = os.path.join(config['ssh_root'],
+			"unveillance.%d.key" % time())
+		config['ssh_key_pub'] = "%s.pub" % config['ssh_key_priv']
+	
+		with settings(warn_only=True):
+			local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (config['ssh_key_priv'],
+				config['ssh_key_pwd']))
+		
+		config['server_user'] = prompt("What user name should SSH use? : ")
+		
+		if 'annex_remote_port' not in config.keys():
+			print "What port does the Annex server SSH to?"
+			config['annex_remote_port'] = prompt('[DEFAULT: 22]')
+			
+		if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
+		
+		if gdrive_auth and 'annex_admin_email' not in config.keys():
+			print "We will now attempt to send your public key to the Annex server admin."
+			print "You will not be able to add documents to the Annex until it has been"
+			print "received by the admin, and properly installed onto the server."
+			
+			config['annex_admin_email'] = prompt("Admin's email address:")
+	
+	if 'server_use_ssl' not in config.keys():
+		print "Does the Annex server use ssl? (y or n)"
+		config['server_use_ssl'] = prompt("[DEFAULT: n] ")
+	
+	if type(config['server_use_ssl']) is not bool:
+		if config['server_use_ssl'] == 'y':
+			config['server_use_ssl'] = True
+		else:
+			config['server_use_ssl'] = False
+	
+	if 'uv_uuid' not in config.keys():
+		config['uv_uuid'] = prompt("What is the Annex server's short name?")
+			
+	config['web_cookie_secret'] = generateSecureNonce()
+	
+	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")
+	
+	with open(secrets_config, "wb+") as CONFIG:
+		CONFIG.write(json.dumps(config))
+	
 	exit(0)
