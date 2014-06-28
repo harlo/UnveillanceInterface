@@ -2,13 +2,20 @@ from lib.Core.vars import *
 from collections import namedtuple
 
 PostBatchRequestStub = namedtuple("PostBatchRequestStub", "files uri")
-
 class PostBatchStub(object):
 	def __init__(self, files, uri):
 		self.request = PostBatchRequestStub(files, uri)
 
+unveillance_cookie = namedtuple("unveillance_cookie", "ADMIN USER PUBLIC")
+UnveillanceCookie = unveillance_cookie("un_admin", "uv_user", "uv_public")
+
 FILE_NON_OVERWRITES = []
-TASKS_ROOT = "lib.Frontend.SyncTasks"
+
+USER_CREDENTIAL_PACK = {
+	"username" : "",
+	"saved_searches" : [],
+	"session_log" : []
+}
 
 MIME_TYPES = {
 	'txt' : "text/plain",

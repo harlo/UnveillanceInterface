@@ -17,3 +17,7 @@ pip install --upgrade -r requirements.txt
 
 cd $THIS_DIR
 python setup.py $WITH_CONFIG
+
+if LAUNCH_FRONTEND; then
+	python unveillance_frontend.py -firstuse
+fi

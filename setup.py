@@ -1,10 +1,10 @@
 import os, re, json
-from time import time
+from time import time, sleep
 from sys import argv, exit
 from fabric.api import local, settings
 from fabric.operations import prompt
 
-from lib.Core.Utils.funcs import generateSecureNonce
+from lib.Core.Utils.funcs import generateSecureNonce, generateSecureRandom
 
 def locateLibrary(lib_rx):
 	base_dir = os.getcwd()
@@ -119,6 +119,7 @@ if __name__ == "__main__":
 	
 	if config['server_host'] == "127.0.0.1": 
 		config['server_use_ssl'] = False
+		config['annex_local'] = config['annex_remote']
 	else:
 		if 'ssh_root' not in config.keys():
 		print "Where is your ssh folder?"
@@ -169,11 +170,20 @@ if __name__ == "__main__":
 	config['web_cookie_secret'] = generateSecureNonce()
 	
 	with settings(warn_only=True):
-			local("mkdir %s" % os.path.join(base_dir, ".monitor"))
-			local("mkdir %s" % os.path.join(base_dir, ".users"))
+		local("mkdir %s" % os.path.join(base_dir, ".monitor"))
+		local("mkdir %s" % os.path.join(base_dir, ".users"))
 	
 	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")		
 	with open(secrets_config, "wb+") as CONFIG:
 		CONFIG.write(json.dumps(config))
 	
+	with open(os.path.join(base_dir, "conf", "local.config.yaml"), 'ab') as LC:
+		LC.write("encryption.iv: %s\n" % generateSecureRandom())
+		LC.write("encryption.salt: %s\n" % generateSecureRandom())
+		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())
+		LC.write("encryption.user_salt: \"%s\"\n" % generateNonce())
+	
+	sleep(3)
+	from Utils.funcs import createNewUser
+	createNewUser(admin_username, admin_pwd, as_admin=True)	
 	exit(0)

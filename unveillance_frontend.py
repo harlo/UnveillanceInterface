@@ -23,37 +23,18 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
-		self.taskman_pid_file = os.path.join(MONITOR_ROOT, "taskman.pid.txt")
-		self.taskman_log_file = os.path.join(MONITOR_ROOT, "taskman.log.txt")
-		
 		self.reserved_routes = ["frontend", "web", "files"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
+			(r"/auth/(drive|annex)", self.AuthHandler),
 			(r"/files/(.+)", self.FileHandler),
 			(r"/task/", self.TaskHandler)]
 		
 		self.on_loads = {
-			'setup' : [
-				"/web/js/lib/sammy.js",
-				"/web/js/lib/md5.js",
-				"/web/js/models/unveillance_annex.js",
-				"/web/js/handlers/uv_annex_listener.js",
-				"/web/js/modules/setup.js",
-				"/web/js/lib/dropzone.js",
-				"/web/js/models/unveillance_dropzone.js"
-			],
 			'collaboration' : [
 				"/web/js/lib/sammy.js",
 				"/web/js/modules/collaboration.js"
-			],
-			'sync' : [
-				"/web/js/lib/sammy.js",
-				"/web/js/lib/dropzone.js",
-				"/web/js/lib/md5.js",
-				"/web/js/models/unveillance_dropzone.js",
-				"/web/js/models/unveillance_synctask.js",
-				"/web/js/modules/sync.js",
 			]
 		}
 		
@@ -65,6 +46,67 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		}
 		
 		UnveillanceAPI.__init__(self)
+	
+	class AuthHandler(tornado.web.RequestHandler):
+		@tornado.web.asynchronous
+		def get(self, auth_type):
+			endpoint = "/"
+			
+			if auth_type == "drive":
+				if self.application.do_get_status(self) != 3:
+					self.redirect(endpoint)
+					return
+
+				try:
+					if self.application.drive_client.authenticate(
+						parseRequestEntity(self.request.query)['code']):
+							if self.application.initDriveClient(restart=True):
+								self.application.do_send_public_key(self)
+				except KeyError as e:
+					if DEBUG: print "no auth code. do step 1\n%s" % e
+					endpoint = self.application.drive_client.authenticate()
+				except AttributeError as e:
+					if DEBUG: print "no drive client even started! do that first\n%s" % e
+
+					if not self.application.initDriveClient():
+						if DEBUG: print "client has no auth. let's start that"
+						
+						from conf import getSecrets
+						endpoint = getSecrets(key="google_drive")['redirect_uri']
+					else:
+						if DEBUG: print "client has been authenticated already."
+			
+			elif auth_type == "annex":
+				if self.application.do_get_status(self) == 3:
+					from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
+					from lib.Frontend.Utils.fab_api import linkLocalRemote
+					
+					p = UnveillanceFabricProcess(linkLocalRemote)
+					p.join()
+					
+					try:
+						endpoint = "/#linked_remote_%s" % p.output
+					except AttributeError as e:
+						if DEBUG: print e
+					
+			self.redirect(endpoint)
+		
+		@tornado.web.asynchronous
+		def post(self, auth_type):
+			res = Result()
+			
+			if auth_type == "drive" and self.do_get_status in [3,4]:
+				status_check = "get_drive_status"
+			elif auth_type == "user":
+				status_check = "get_user_status"
+			
+			if status_check is not None:
+				res = self.application.routeRequest(res, status_check, self)
+			
+			if DEBUG: print res.emit()
+			
+			self.set_status(res.result)
+			self.finish(res.emit())
 	
 	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
 		@tornado.web.asynchronous
@@ -280,30 +322,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		return result_obj
 	
 	def startup(self, openurl=False):
-		#p = Process(target=self.startTaskMan)
-		#p.start()
-		
 		p = Process(target=self.startRESTAPI)
 		p.start()
 		
 		if openurl:
 			url = "http://localhost:%d/" % API_PORT
-			if argv[1] == "-firstuse": url += "setup/"
 			webbrowser.open(url)
 		
 	def shutdown(self):
 		self.stopRESTAPI()
-		#self.stopTaskMan()
-	
-	def startTaskMan(self):
-		if DEBUG : print "starting up TASK_MAN"
-		startDaemon(self.taskman_log_file, self.taskman_pid_file)
-		
-		while True: sleep(1)		
-	
-	def stopTaskMan(self):
-		if DEBUG : print "shutting down TASK_MAN"
-		stopDaemon(self.taskman_pid_file)
 	
 	def startRESTAPI(self):
 		startDaemon(self.api_log_file, self.api_pid_file)
