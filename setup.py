@@ -30,15 +30,6 @@ if __name__ == "__main__":
 		except Exception as e:
 			print e
 	
-	git_annex_dir = locateLibrary(r'git-annex\.*')
-	if git_annex_dir is None:
-		with settings(warn_only=True):
-			local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/git-annex-standalone-amd64.tar.gz")
-			local("tar -xvzf lib/git-annex.tar.gz -C lib")
-			local("rm lib/git-annex.tar.gz")
-		
-		git_annex_dir = locateLibrary(r'git-annex\.*')
-		
 	print "****************************"
 	print "Hello.  Welcome to Unveillance Frontend setup."
 	admin_username = prompt("Choose a username:")
@@ -54,31 +45,77 @@ if __name__ == "__main__":
 	if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
 	
 	if gdrive_auth:
-		import webbrowser
-	
-	if 'annex_local' not in config.keys():
-		print "Where do you want your Unveillance folder?  The folder should not exist."
-		config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
-	
-	if len(config['annex_local']) == 0:
-		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
+		from oauth2client.client import OAuth2WebServerFlow
+		from oauth2client.file import Storage
 		
-	with settings(warn_only=True):	
-		local("mkdir %s" % os.path.join(base_dir, ".monitor"))
-		local("mkdir %s" % os.path.join(base_dir, ".users"))
-		local("mkdir %s" % config['annex_local'])
+		config.update({
+			'auth_storage' : os.path.join(base_dir, "conf", "drive.secrets.json"),
+			'scopes' : ["https://www.googleapis.com/auth/drive",
+				"https://www.googleapis.com/auth/drive.file",
+				"https://www.googleapis.com/auth/drive.install",
+				"https://www.googleapis.com/auth/userinfo.profile"
+			],
+			'account_type' : "user",
+			'redirect_url' : "urn:ietf:wg:oauth:2.0:oob"
+		})
+		
+		if 'client_id' not in config.keys():
+			config['client_id'] = prompt("Client ID: ")
+		
+		if 'client_secret' not in config.keys():
+			config['client_secret'] = prompt("Client Secret: ")
+			
+		flow = OAuth2WebServerFlow(config['client_id'], config['client_secret'],
+			config['scopes'], config['redirect_url'])
+		
+		print "To use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
+		print "You will be shown an authentication code that you must paste into this terminal when prompted."
+		print "URL: %s" % flow.step1_get_authorize_url()
+		credentials = flow.step2_exchange(prompt("Code: "))
+		Storage(config['auth_storage']).put(credentials)
 	
 	if 'server_host' not in config.keys():
 		print "What is the Public IP/hostname of the Annex server?"
 		config['server_host'] = prompt("[DEFAULT: localhost] ")
+		
+		if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
 	
-	if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
+	if config['server_host'] != "127.0.0.1":
+		if 'annex_local' not in config.keys():
+			print "Where do you want your Unveillance folder?  The folder should not exist."
+			config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
+	
+		if len(config['annex_local']) == 0:
+			config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
+
+		with settings(warn_only=True):
+			local("mkdir %s" % config['annex_local'])
+		
+		git_annex_dir = locateLibrary(r'git-annex\.*')
+		if git_annex_dir is None:
+			with settings(warn_only=True):
+				local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/git-annex-standalone-amd64.tar.gz")
+				local("tar -xvzf lib/git-annex.tar.gz -C lib")
+				local("rm lib/git-annex.tar.gz")
+		
+			git_annex_dir = locateLibrary(r'git-annex\.*')			
 	
 	if 'server_port' not in config.keys():
 		print "What port is the Annex server on?"
 		config['server_port'] = prompt("[DEFAULT: 8888] ")
 	
 	if len(config['server_port']) == 0: config['server_port'] = 8888
+	
+	if 'annex_remote' not in config.keys():
+		print "What is the path to the Annex's repository?"
+		config['annex_remote']  = prompt("[DEFAULT: ~/unveillance_remote]")
+	
+	if len(config['annex_remote']) == 0:
+		if config['server_host'] == "127.0.0.1":
+			config['annex_remote'] = os.path.join(os.path.expanduser("~"),
+				"unveillance_remote")
+		else:
+			config['annex_remote'] = "~/unveillance_remote"
 	
 	if config['server_host'] == "127.0.0.1": 
 		config['server_use_ssl'] = False
@@ -90,13 +127,6 @@ if __name__ == "__main__":
 		if len(config['ssh_root']) == 0:
 			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
 
-		if 'annex_remote' not in config.keys():
-			print "What is the path to the Annex's repository?"
-			config['annex_remote']  = prompt("[DEFAULT: ~/unveillance_remote]")
-		
-		if len(config['annex_remote']) == 0:
-			config['annex_remote'] = "~/unveillance_remote"
-
 		print "Unveillance will now generate a public/private key pair for communication with the server"
 		config['ssh_key_pwd'] = prompt("Please enter a good password for this key: ")
 		config['ssh_key_priv'] = os.path.join(config['ssh_root'],
@@ -107,7 +137,8 @@ if __name__ == "__main__":
 			local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (config['ssh_key_priv'],
 				config['ssh_key_pwd']))
 		
-		config['server_user'] = prompt("What user name should SSH use? : ")
+		if 'server_user' not in config.keys():
+			config['server_user'] = prompt("What user name should SSH use? : ")
 		
 		if 'annex_remote_port' not in config.keys():
 			print "What port does the Annex server SSH to?"
@@ -137,8 +168,11 @@ if __name__ == "__main__":
 			
 	config['web_cookie_secret'] = generateSecureNonce()
 	
-	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")
+	with settings(warn_only=True):
+			local("mkdir %s" % os.path.join(base_dir, ".monitor"))
+			local("mkdir %s" % os.path.join(base_dir, ".users"))
 	
+	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")		
 	with open(secrets_config, "wb+") as CONFIG:
 		CONFIG.write(json.dumps(config))
 	
