@@ -186,7 +186,7 @@ class UnveillanceAPI():
 			if DEBUG: print "CANNOT LOG IN USER: %s missing" % e
 			return None
 			
-	def initDriveClient(self, restart=True):
+	def initDriveClient(self, restart=False):
 		if DEBUG: print "INITING DRIVE CLIENT"		
 		if not hasattr(self, "drive_client") or restart:
 			self.drive_client = UnveillanceAnnexClient()

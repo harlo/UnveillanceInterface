@@ -3,7 +3,7 @@ from apiclient import errors
 from apiclient.discovery import build
 
 from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
-from conf import DEBUG, getConfig, ANNEX_DIR
+from conf import DEBUG, getConfig, getSecrets, ANNEX_DIR
 
 class UnveillanceAnnexClient(object):
 	def __init__(self):
@@ -11,27 +11,26 @@ class UnveillanceAnnexClient(object):
 		
 		# get the conf settings
 		try:
-			self.hostname = getConfig('unveillance.local_remote.hostname')
+			self.hostname = getSecrets('server_host')
 		except KeyError as e: pass
 		
 		try:
-			self.port = getConfig('unveillance.local_remote.port')
+			self.port = getSecrets('server_port')
 		except KeyError as e: pass
 		
 		try:
-			self.user = getConfig('unveillance.local_remote.user')
+			self.user = getSecrets('server_user')
 		except KeyError as e: pass
 		
 		try:
-			self.remote_path = getConfig('unveillance.local_remote.remote_path')
+			self.remote_path = getSecrets('annex_remote')
 		except KeyError as e: pass
 	
 		credentials = None
 		
 		try:
-			self.config = getSecrets(key="google_drive")
 			from oauth2client.file import Storage	
-			credentials = Storage(self.config['auth_storage']).get()			
+			credentials = Storage(getSecrets('auth_storage')).get()			
 		except KeyError as e:
 			if DEBUG: print "NO AUTH YET!"
 		
@@ -43,7 +42,9 @@ class UnveillanceAnnexClient(object):
 
 	def share(self, fileId, email=None):
 		if not hasattr(self, "service"): return None
-		if email is None: email = self.config['client_email']
+		if email is None: email = getSecrets('client_email')
+		
+		if email is None: return None
 		
 		body = {
 			'role' : "writer",
@@ -147,29 +148,24 @@ class UnveillanceAnnexClient(object):
 			from oauth2client.client import OAuth2WebServerFlow
 			
 			self.flow = OAuth2WebServerFlow(
-				self.config['client_id'], self.config['client_secret'],
-				self.config['scopes'], 
-				"http://localhost:%d%s" % (API_PORT, self.config['redirect_uri']))
+				getSecrets('client_id'), getSecrets('client_secret'),
+				getSecrets('scopes'), getSecrets('redirect_uri'))
 
 			return self.flow.step1_get_authorize_url()
 		else:
 			credentials = self.flow.step2_exchange(auth_token)
 
-			auth_storage = os.path.join(INFORMA_CONF_ROOT, "drive.secrets.json")
+			auth_storage = os.path.join(CONF_ROOT, "drive.secrets.json")
 			
 			from oauth2client.file import Storage
 			Storage(auth_storage).put(credentials)
 			
-			self.config.update({
+			del self.flow
+			
+			from conf import setSecrets
+			return setSecrets({
 				'auth_storage' : auth_storage,
 				'account_type' : "user"
 			})
-			
-			sync_config = getSecrets(key="informacam.sync")
-			sync_config['google_drive'].update(self.config)
-			saveSecret("informacam.sync", sync_config)
-			
-			del self.flow
-			return True
 		
 		return False

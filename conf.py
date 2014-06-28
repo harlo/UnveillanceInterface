@@ -4,7 +4,7 @@ from lib.Core.conf import *
 BASE_DIR = os.path.abspath(os.path.join(__file__, os.pardir))
 CONF_ROOT = os.path.join(BASE_DIR, "conf")
 MONITOR_ROOT = os.path.join(BASE_DIR, ".monitor")
-USERS_ROOT = os.path.join(BASE_DIR, ".users")
+USER_ROOT = os.path.join(BASE_DIR, ".users")
 
 def buildServerURL(port=None):
 	protocol = "http"
@@ -40,6 +40,22 @@ def getSecrets(key, password=None):
 	
 	del config
 	return val	
+
+def setSecrets(secrets, password=None):	
+	try:
+		with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
+			secrets.update(json.loads(C.read()))
+	except Exception as e: return False
+	
+	try:
+		with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'wb+') as C:
+			C.write(json.dumps(secrets))
+		
+		del secrets
+		return True
+	except Exception as e: pass
+	
+	return False
 
 with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	config = yaml.load(C.read())

@@ -60,8 +60,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 				try:
 					if self.application.drive_client.authenticate(
 						parseRequestEntity(self.request.query)['code']):
-							if self.application.initDriveClient(restart=True):
-								self.application.do_send_public_key(self)
+							self.application.initDriveClient(restart=True)
+
 				except KeyError as e:
 					if DEBUG: print "no auth code. do step 1\n%s" % e
 					endpoint = self.application.drive_client.authenticate()
@@ -72,7 +72,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 						if DEBUG: print "client has no auth. let's start that"
 						
 						from conf import getSecrets
-						endpoint = getSecrets(key="google_drive")['redirect_uri']
+						endpoint = "/auth/drive"
 					else:
 						if DEBUG: print "client has been authenticated already."
 			

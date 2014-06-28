@@ -59,6 +59,13 @@ if __name__ == "__main__":
 			'redirect_url' : "urn:ietf:wg:oauth:2.0:oob"
 		})
 		
+		if 'client_email' not in config.keys():
+			print "Admin's email address?"
+			config['client_email'] = prompt("[DEFAULT: none] ")
+		
+			if len(config['client_email']) == 0:
+				config['client_email'] = None
+		
 		if 'client_id' not in config.keys():
 			config['client_id'] = prompt("Client ID: ")
 		
