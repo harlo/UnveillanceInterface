@@ -36,20 +36,21 @@ if __name__ == "__main__":
 	admin_pwd = prompt("Pick a good password:")
 
 	print "****************************"	
-	print "Google Drive Authentication:"
-	print "If you want to to use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
-	print "You will be shown an authentication code that you must paste into this terminal when prompted."
-	print "Authenticate Google Drive? y or n"
+	
 	
 	gdrive_auth = False
-	if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
+	if 'auth_storage' in config.keys():
+		gdrive_auth = True
+	else:
+		print "Google Drive Authentication:"
+		print "If you want to to use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
+		print "You will be shown an authentication code that you must paste into this terminal when prompted."
+		print "Authenticate Google Drive? y or n"
+		
+		if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
 	
 	if gdrive_auth:
-		from oauth2client.client import OAuth2WebServerFlow
-		from oauth2client.file import Storage
-		
 		config.update({
-			'auth_storage' : os.path.join(base_dir, "conf", "drive.secrets.json"),
 			'scopes' : ["https://www.googleapis.com/auth/drive",
 				"https://www.googleapis.com/auth/drive.file",
 				"https://www.googleapis.com/auth/drive.install",
@@ -71,15 +72,20 @@ if __name__ == "__main__":
 		
 		if 'client_secret' not in config.keys():
 			config['client_secret'] = prompt("Client Secret: ")
-			
-		flow = OAuth2WebServerFlow(config['client_id'], config['client_secret'],
-			config['scopes'], config['redirect_url'])
 		
-		print "To use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
-		print "You will be shown an authentication code that you must paste into this terminal when prompted."
-		print "URL: %s" % flow.step1_get_authorize_url()
-		credentials = flow.step2_exchange(prompt("Code: "))
-		Storage(config['auth_storage']).put(credentials)
+		if 'auth_storage' not in config.keys():
+			from oauth2client.client import OAuth2WebServerFlow
+			from oauth2client.file import Storage
+		
+			config['auth_storage'] = os.path.join(base_dir, "conf", "drive.secrets.json")
+			flow = OAuth2WebServerFlow(config['client_id'], config['client_secret'],
+				config['scopes'], config['redirect_url'])
+		
+			print "To use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
+			print "You will be shown an authentication code that you must paste into this terminal when prompted."
+			print "URL: %s" % flow.step1_get_authorize_url()
+			credentials = flow.step2_exchange(prompt("Code: "))
+			Storage(config['auth_storage']).put(credentials)
 	
 	if 'server_host' not in config.keys():
 		print "What is the Public IP/hostname of the Annex server?"

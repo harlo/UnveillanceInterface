@@ -3,7 +3,6 @@ from subprocess import Popen, PIPE
 from time import sleep
 
 from Models.uv_annex_client import UnveillanceAnnexClient
-from lib.Core.Models.uv_synctask import UnveillanceSyncTask
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 

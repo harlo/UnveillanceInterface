@@ -13,6 +13,9 @@ def buildServerURL(port=None):
 	
 	return "%s://%s:%d" % (protocol, SERVER_HOST, port)
 
+def buildRemoteURL():
+	return None
+
 def getConfig(key):
 	val = None
 	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
@@ -64,13 +67,16 @@ with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	DEBUG = config['flags.debug']
 	WEB_TITLE = config['api.web.title']
 
-with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
-	config = json.loads(C.read())
+try:
+	with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
+		config = json.loads(C.read())
 	
-	SERVER_HOST = config['server_host']
-	SERVER_PORT = config['server_port']
-	SERVER_USE_SSL = config['server_use_ssl']
-	UV_COOKIE_SECRET = config['web_cookie_secret']
-	ANNEX_DIR = config['annex_local']
+		SERVER_HOST = config['server_host']
+		SERVER_PORT = config['server_port']
+		SERVER_USE_SSL = config['server_use_ssl']
+		UV_COOKIE_SECRET = config['web_cookie_secret']
+		ANNEX_DIR = config['annex_local']
+		SSH_ROOT = config['ssh_root']
 	
-	del config
+		del config
+except IOError as e: pass
