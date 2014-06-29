@@ -1,8 +1,8 @@
-import yaml, os, json
+import yaml, os, json, copy
 from base64 import b64encode, b64decode
 from Crypto.Cipher import AES
 
-from conf import CONF_ROOT, USER_ROOT, getConfig
+from conf import CONF_ROOT, USER_ROOT, getConfig, DEBUG
 from vars import USER_CREDENTIAL_PACK, UnveillanceCookie
 from lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
 
@@ -90,7 +90,7 @@ def createNewUser(username, password, as_admin=False):
 		print user_data
 		
 		with open(user_root, 'wb+') as user:
-			user.write(self.encryptUserData(user_data, password, p_salt=SALT, iv=IV))
+			user.write(encryptUserData(user_data, password, p_salt=SALT, iv=IV))
 			try:
 				if user_data['admin']: del user_data['admin']
 			except KeyError as e: pass

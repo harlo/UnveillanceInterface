@@ -22,6 +22,7 @@ def locateLibrary(lib_rx):
 if __name__ == "__main__":
 	base_dir = os.getcwd()
 	config = {}
+	print argv[1]
 	
 	if len(argv[1]) > 3:		
 		try:
@@ -193,7 +194,10 @@ if __name__ == "__main__":
 		CONFIG.write(json.dumps(config))
 	
 	with open(os.path.join(base_dir, "conf", "local.config.yaml"), 'ab') as LC:
-		LC.write("git_annex_dir: %s\n" % git_annex_dir)
+		try:
+			LC.write("git_annex_dir: %s\n" % git_annex_dir)
+		except NameError as e: pass
+
 		LC.write("encryption.iv: %s\n" % generateSecureRandom())
 		LC.write("encryption.salt: %s\n" % generateSecureRandom())
 		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())
