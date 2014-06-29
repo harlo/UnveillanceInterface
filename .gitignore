@@ -6,9 +6,8 @@
 conf/*
 !conf/*.settings.yaml
 
-tmp/
-.synctasks/local/
 web/extras/*
 web/extras
-SyncTasks/*
-!SyncTasks/__init__.py
+
+lib/*
+!lib/Frontend

@@ -59,12 +59,12 @@ if __name__ == "__main__":
 			'redirect_url' : "urn:ietf:wg:oauth:2.0:oob"
 		})
 		
-		if 'client_email' not in config.keys():
+		if 'annex_admin_email' not in config.keys():
 			print "Admin's email address?"
-			config['client_email'] = prompt("[DEFAULT: none] ")
+			config['annex_admin_email'] = prompt("[DEFAULT: none] ")
 		
-			if len(config['client_email']) == 0:
-				config['client_email'] = None
+			if len(config['annex_admin_email']) == 0:
+				config['annex_admin_email'] = None
 		
 		if 'client_id' not in config.keys():
 			config['client_id'] = prompt("Client ID: ")
@@ -109,9 +109,10 @@ if __name__ == "__main__":
 	
 	if 'server_port' not in config.keys():
 		print "What port is the Annex server on?"
-		config['server_port'] = prompt("[DEFAULT: 8888] ")
+		config['server_port'] = prompt("[DEFAULT: 8889] ")
 	
-	if len(config['server_port']) == 0: config['server_port'] = 8888
+	if type(config['server_port']) is not int:
+		if len(config['server_port']) == 0: config['server_port'] = 8889
 	
 	if 'annex_remote' not in config.keys():
 		print "What is the path to the Annex's repository?"
@@ -129,8 +130,8 @@ if __name__ == "__main__":
 		config['annex_local'] = config['annex_remote']
 	else:
 		if 'ssh_root' not in config.keys():
-		print "Where is your ssh folder?"
-		config['ssh_root'] = prompt("[DEFAULT: ~/.ssh] ")
+			print "Where is your ssh folder?"
+			config['ssh_root'] = prompt("[DEFAULT: ~/.ssh] ")
 		
 		if len(config['ssh_root']) == 0:
 			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
@@ -151,8 +152,9 @@ if __name__ == "__main__":
 		if 'annex_remote_port' not in config.keys():
 			print "What port does the Annex server SSH to?"
 			config['annex_remote_port'] = prompt('[DEFAULT: 22]')
-			
-		if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
+		
+		if type(config['annex_remote_port']) is not int:
+			if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
 		
 		if gdrive_auth and 'annex_admin_email' not in config.keys():
 			print "We will now attempt to send your public key to the Annex server admin."
@@ -185,6 +187,7 @@ if __name__ == "__main__":
 		CONFIG.write(json.dumps(config))
 	
 	with open(os.path.join(base_dir, "conf", "local.config.yaml"), 'ab') as LC:
+		LC.write("git_annex_dir: %s\n" % git_annex_dir)
 		LC.write("encryption.iv: %s\n" % generateSecureRandom())
 		LC.write("encryption.salt: %s\n" % generateSecureRandom())
 		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())

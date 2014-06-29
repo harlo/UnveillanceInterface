@@ -4,9 +4,9 @@ from Crypto.Cipher import AES
 
 from conf import CONF_ROOT, USER_ROOT, getConfig
 from vars import USER_CREDENTIAL_PACK, UnveillanceCookie
-from lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom()
+from lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
 
-def encryptUserData(self, plaintext, password, iv=None, p_salt=None):
+def encryptUserData(plaintext, password, iv=None, p_salt=None):
 	if p_salt is not None:
 		password = password + p_salt
 	
@@ -16,13 +16,13 @@ def encryptUserData(self, plaintext, password, iv=None, p_salt=None):
 	aes = AES.new(generateMD5Hash(content=password), AES.MODE_CBC, iv)
 	ciphertext = {
 		'iv' : iv.encode('hex'), 
-		'data' : aes.encrypt(self.pad(json.dumps(plaintext))).encode('hex')
+		'data' : aes.encrypt(pad(json.dumps(plaintext))).encode('hex')
 	}
 	
 	print ciphertext
 	return b64encode(json.dumps(ciphertext))
 
-def decyptUserData(self, ciphertext, password, iv=None, p_salt=None):
+def decyptUserData(ciphertext, password, iv=None, p_salt=None):
 	try:
 		ciphertext_json = json.loads(b64decode(ciphertext))
 		ciphertext = ciphertext_json['data'].decode('hex')
@@ -48,15 +48,15 @@ def decyptUserData(self, ciphertext, password, iv=None, p_salt=None):
 		return None
 	
 	aes = AES.new(generateMD5Hash(content=password), AES.MODE_CBC, iv)
-	user_data = json.loads(self.unpad(aes.decrypt(ciphertext)))
+	user_data = json.loads(unpad(aes.decrypt(ciphertext)))
 	
 	if user_data['username']: return user_data
 	return None
 
-def unpad(self, plaintext): 
+def unpad(plaintext): 
 	return plaintext[plaintext.index("{"):]
 
-def pad(self, plaintext):
+def pad(plaintext):
 	pad = len(plaintext) % AES.block_size
 	
 	if pad != 0:
@@ -66,7 +66,7 @@ def pad(self, plaintext):
 	
 	return plaintext
 
-def createNewUser(self, username, password, as_admin=False):
+def createNewUser(username, password, as_admin=False):
 	try:
 		IV = getConfig('encryption.iv')
 		SALT = getConfig('encryption.salt')
