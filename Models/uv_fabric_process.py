@@ -2,7 +2,7 @@ import threading, os
 from subprocess import Popen, PIPE
 from fabric.api import execute
 
-from conf import BASE_DIR, DEBUG, getConfig
+from conf import BASE_DIR, DEBUG, getSecrets
 
 class UnveillanceFabricProcess(threading.Thread):
 	def __init__(self, func, args=None, op_dir=None):
@@ -14,10 +14,9 @@ class UnveillanceFabricProcess(threading.Thread):
 		self.output = None
 		self.error = None
 		
-		uv = "unveillance.local_remote"
-		uv_user = getConfig("%s.user" % uv)
-		hostname = getConfig("%s.hostname" % uv)
-		port = getConfig("%s.port" % uv)
+		uv_user = getSecrets("server_user")
+		hostname = getSecrets("server_host")
+		port = getSecrets("annex_remote_port")
 		
 		port_prefix = ""
 		if port != 22:

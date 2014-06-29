@@ -4,7 +4,7 @@ from sys import argv, exit
 from fabric.api import local, settings
 from fabric.operations import prompt
 
-from lib.Core.Utils.funcs import generateSecureNonce, generateSecureRandom
+from lib.Core.Utils.funcs import generateSecureNonce, generateSecureRandom, generateNonce
 
 def locateLibrary(lib_rx):
 	base_dir = os.getcwd()
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
 
 		print "Unveillance will now generate a public/private key pair for communication with the server"
-		config['ssh_key_pwd'] = prompt("Please enter a good password for this key: ")
+		config['ssh_key_pwd'] = generateNonce(top_range=59, bottom_range=29)
 		config['ssh_key_priv'] = os.path.join(config['ssh_root'],
 			"unveillance.%d.key" % time())
 		config['ssh_key_pub'] = "%s.pub" % config['ssh_key_priv']

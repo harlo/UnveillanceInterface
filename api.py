@@ -93,18 +93,17 @@ class UnveillanceAPI():
 					return None
 						
 				entry = self.drive_client.download(_id, save=False)
-				if entry is not None:						
+				if entry is not None:
 					p = UnveillanceFabricProcess(netcat, {
 						'file' : entry[0],
-						'save_as' : entry[1],
-						'password' : getSecrets(key="unveillance.local_remote")['pwd']
+						'save_as' : entry[1]
 					})
 					p.join()
-			
+		
 					if p.output is not None:
 						if DEBUG: print p.output
 						handled_file = { 'file_name' : entry[1] }
-					
+				
 					if DEBUG and p.error is not None: print p.error
 			
 			if handled_file is not None:

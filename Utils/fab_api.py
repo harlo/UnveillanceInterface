@@ -32,18 +32,10 @@ def netcat(file, save_as=None, remote_path=None):
 	
 		with cd(annex_base):
 			res = run(cmd)
-	else:
-		annex_base = getSecrets('annex_local')
-		
-		if len(remote_path) is not None:
-			remote_path = os.path.join(annex_base, remote_path)
-		
-		with open(os.path.join(remote_path, save_as), 'wb+') as NEW_FILE:
-			NEW_FILE.write(file)
-		
+	else:				
 		this_dir = os.getcwd()
 		with settings(warn_only=True):
-			os.chdir(annex_base)
+			os.chdir(getSecrets('annex_local'))
 			res = local(cmd)
 			os.chdir(this_dir)
 			
