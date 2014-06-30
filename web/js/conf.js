@@ -30,6 +30,11 @@ $.ajax({
 					})
 				}
 			];
+			UV.SPLAT_PARAM_IGNORE = [
+				"splat", "escapeHTML", 
+				"h", "toHash", "toHTML", 
+				"keys", "has", "join", "log", "toString"
+			];
 		
 			try {
 				
