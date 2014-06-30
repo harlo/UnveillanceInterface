@@ -98,10 +98,33 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 }
 
 function translate(obj) {
-	var new_html = $(obj).html();
+	new_html = $(obj).html();
 	
 	if($(obj).hasClass("uv_date")) {
 		new_html = moment(Number(new_html)).format("MM-DD-YYYY HH:mm");
+	}
+	
+	if($(obj).hasClass("uv_none_if_null")) {
+		if(new_html.length == 0) {
+			new_html = "none";
+		}
+	}
+	
+	if($(obj).hasClass("uv_unknown_if_null")) {
+		if(new_html.length == 0) {
+			new_html = "unknown";
+		}
+	}
+	
+	if($(obj).hasClass("uv_false_if_null")) {
+		if(new_html.length == 0) {
+			new_html = "false";
+		}
+	}
+	
+	if($(obj).attr('repl')) {
+		console.info("OMG " + $(obj).attr('repl'));
+		new_html = $(obj).attr('repl') + new_html;
 	}
 	
 	return new_html;
@@ -117,8 +140,12 @@ function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
 		dataType: "html",
 		success: function(html) {
 			$(append_root).html(Mustache.to_html(html, data));
-			$.each($(append_root).find(".uv_translate"), function(idx, item) { 
-				$(item).html(translate(item)); 
+			$.each($(append_root).find(".uv_translate"), function(idx, item) {
+				if(item.tagName.toLowerCase() == "img" && $(item).attr('repl')) {
+					$(item).prop('src', $(item).prop('src').replace($(item).attr('repl'), translate(item)));
+				} else {
+					$(item).html(translate(item));
+				}
 			});
 		}
 	};
