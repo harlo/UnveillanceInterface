@@ -8,6 +8,7 @@ $.ajax({
 			UV.SEARCH_FACETS = [
 				"Mime Type",
 				"With Asset",
+				"Alias"
 			];
 			UV.FACET_VALUES = [
 				{
