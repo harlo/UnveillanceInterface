@@ -8,7 +8,6 @@ $.ajax({
 			UV.SEARCH_FACETS = [
 				"Mime Type",
 				"With Asset",
-				"Date Created"
 			];
 			UV.FACET_VALUES = [
 				{
