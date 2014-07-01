@@ -1,5 +1,9 @@
 var UV;
 
+function randomString() {
+	return Math.random().toString(36).replace(/[^a-z]+/g, '');
+}
+
 function getFileContent(ctx, path, callback) {
 	$.ajax({
 		url: "/files/" + path,

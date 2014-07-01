@@ -9,7 +9,7 @@ var UnveillanceViz = Backbone.Model.extend({
 		if(!this.has('data') || !this.get('data') || this.get('data').length == 0) {
 			$(this.root_el)
 				.css('height','auto')
-				.html("No data available");
+				.append($(document.createElement('p')).html("No data available"));
 			
 			this.invalid = true;
 			return;
