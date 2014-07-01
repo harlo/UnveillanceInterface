@@ -1,7 +1,7 @@
 import json, signal, os, logging, re, webbrowser, requests
 from sys import exit, argv
 from multiprocessing import Process
-from time import sleep
+from time import sleep, time
 
 import tornado.ioloop
 import tornado.web
@@ -31,6 +31,10 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			(r"/files/(.+)", self.FileHandler),
 			(r"/task/", self.TaskHandler)]
 		
+		self.default_on_loads = [
+			"/web/js/unveillance.js",
+			"/web/js/models/unveillance_document.js"
+		]
 		self.on_loads = {
 			'collaboration' : [
 				"/web/js/lib/sammy.js",
@@ -262,11 +266,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if hasattr(self.application, "default_on_loads"):
 				on_loads.extend(self.application.default_on_loads)
 				
-			js = '<script type="text/javascript" src="%s"></script>'
+			js = '<script type="text/javascript" src="%s?t=%d"></script>'
 			if module in [k for k,v in self.application.on_loads.iteritems()]:
 				on_loads.extend(self.application.on_loads[module])
 			
-			return "".join([js % v for v in on_loads])
+			return "".join([js % (v, time() * 1000) for v in on_loads])
 
 		@tornado.web.asynchronous
 		def post(self, route):

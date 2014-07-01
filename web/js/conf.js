@@ -3,7 +3,7 @@ $.ajax({
 	dataType: "json",
 	method: "get",
 	complete: function(res) {	
-		if(res.status == 200) {			
+		if(res.status == 200) {		
 			UV = JSON.parse(res.responseText);
 			UV.SEARCH_FACETS = [
 				"Mime Type",
@@ -37,8 +37,8 @@ $.ajax({
 			];
 		
 			try {
-				
-				$(document).trigger("onConfLoadedEvent");
+				onConfLoaded();
+				//$(document).trigger("onConfLoadedEvent");
 			} catch(err) {
 				console.info(err);
 			}
