@@ -27,7 +27,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
-			(r"/auth/(drive|annex)", self.AuthHandler),
+			(r"/auth/(user|annex|drive)/", self.AuthHandler),
 			(r"/files/(.+)", self.FileHandler),
 			(r"/task/", self.TaskHandler)]
 		
@@ -35,6 +35,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			"/web/js/unveillance.js",
 			"/web/js/models/unveillance_document.js"
 		]
+		self.on_loads_by_status = [[] for i in range(4)]
 		self.on_loads = {
 			'collaboration' : [
 				"/web/js/lib/sammy.js",
@@ -56,31 +57,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		def get(self, auth_type):
 			endpoint = "/"
 			
-			if auth_type == "drive":
-				if self.application.do_get_status(self) != 3:
-					self.redirect(endpoint)
-					return
-
-				try:
-					if self.application.drive_client.authenticate(
-						parseRequestEntity(self.request.query)['code']):
-							self.application.initDriveClient(restart=True)
-
-				except KeyError as e:
-					if DEBUG: print "no auth code. do step 1\n%s" % e
-					endpoint = self.application.drive_client.authenticate()
-				except AttributeError as e:
-					if DEBUG: print "no drive client even started! do that first\n%s" % e
-
-					if not self.application.initDriveClient():
-						if DEBUG: print "client has no auth. let's start that"
-						
-						from conf import getSecrets
-						endpoint = "/auth/drive"
-					else:
-						if DEBUG: print "client has been authenticated already."
-			
-			elif auth_type == "annex":
+			if auth_type == "annex":
 				if self.application.do_get_status(self) == 3:
 					from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
 					from lib.Frontend.Utils.fab_api import linkLocalRemote
@@ -158,7 +135,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	class FileHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self, file):
-			url = "%s%s" % (buildRemoteURL(), self.request.uri)
+			url = "%s%s" % (buildServerURL(), self.request.uri)
 			if DEBUG: print url
 			
 			r = requests.get(url, verify=False)
@@ -258,13 +235,21 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if footer is not None: footer = Template(filename=footer).render()
 			else: footer = ""
 			
-			self.finish(idx.render(web_title=web_title, on_loader=self.getOnLoad(module),
+			self.finish(idx.render(web_title=web_title, 
+				on_loader=self.getOnLoad(module, self.application.do_get_status(self)),
 				content=content, header=header, footer=footer))
 	
-		def getOnLoad(self, module):
+		def getOnLoad(self, module, with_status=0):
 			on_loads = []
 			if hasattr(self.application, "default_on_loads"):
 				on_loads.extend(self.application.default_on_loads)
+			
+			if hasattr(self.application, "on_loads_by_status"):
+				try:
+					on_loads.extend(self.application.on_loads_by_status[with_status])
+				except Exception as e:
+					if DEBUG: print e
+					pass
 				
 			js = '<script type="text/javascript" src="%s?t=%d"></script>'
 			if module in [k for k,v in self.application.on_loads.iteritems()]:
@@ -296,6 +281,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		if uri is None: uri = handler.request.uri
 		url = "%s%s%s" % (buildServerURL(), uri, query)
 
+		# TODO: verify=False ... hmm.... no.
+		# TODO: also, some other xsrf stuff
 		if DEBUG: print "SENDING REQUEST TO %s" % url
 		r = requests.get(url, verify=False)
 		

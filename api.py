@@ -222,6 +222,10 @@ class UnveillanceAPI():
 			
 			new_data = copy.deepcopy(user_data)
 			new_data['saved_searches'] = credentials['save_data']['saved_searches']
+			try:
+				new_data['annex_key_sent'] = credentials['save_data']['annex_key_sent']
+			except KeyError as e:
+				pass
 		
 		with open(os.path.join(USER_ROOT, user_root), 'wb+') as UD:
 			UD.write(self.encrypt(new_data, password, iv=IV, p_salt=SALT))
@@ -244,13 +248,16 @@ class UnveillanceAPI():
 				if user_data is None: return None
 				
 				try:
-					if user_data['admin']: 
+					if user_data['admin']:
 						del user_data['admin']
 						handler.set_secure_cookie(UnveillanceCookie.ADMIN, 
 							"true", path="/", expires_days=1)
 							
 						if not self.do_get_drive_status():
 							self.initDriveClient()
+							if "annex_key_sent" not in user_data.keys() or not user_data['annex_key_sent']:							
+								if self.drive_client.checkAnnexKeyStatus():
+									user_data['annex_key_sent'] = True
 
 				except KeyError as e: pass
 				

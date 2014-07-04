@@ -39,10 +39,23 @@ class UnveillanceAnnexClient(object):
 			http = credentials.authorize(http)
 		
 			self.service = build('drive', 'v2', http=http)
+	
+	def checkAnnexKeyStatus(self, send_key=True):
+		if getSecrets('server_host') == "127.0.0.1":
+			return True
+			
+		if send_key and getSecrets('annex_admin_email') is not None:
+			pub_key = self.upload(getSecrets('ssh_key_pub'), title="annex public key")
+			if DEBUG: print "UPLOADED FILE TO DRIVE:\n%s" % pub_key
+				
+			if pub_key is not None and self.share(pub_key['id']) is not None:
+				return True
+		
+		return False
 
 	def share(self, fileId, email=None):
 		if not hasattr(self, "service"): return None
-		if email is None: email = getSecrets('client_email')
+		if email is None: email = getSecrets('annex_admin_email')
 		
 		if email is None: return None
 		

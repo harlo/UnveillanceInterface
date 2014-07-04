@@ -80,6 +80,7 @@ def createNewUser(username, password, as_admin=False):
 		user_data['username'] = username
 		if as_admin:
 			user_data['admin'] = True
+			user_data['annex_key_sent'] = False
 			if DEBUG: print "creating %s as admin!" % username
 		
 		user_root = "%s.txt" % generateMD5Hash(content=username, salt=USER_SALT)
@@ -91,20 +92,7 @@ def createNewUser(username, password, as_admin=False):
 		
 		with open(os.path.join(USER_ROOT, user_root), 'wb+') as user:
 			user.write(encryptUserData(user_data, password, p_salt=SALT, iv=IV))
-			try:
-				if user_data['admin']: del user_data['admin']
-			except KeyError as e: pass
-			
 			return True
 
 	except Exception as e: print e		
 	return False
-
-def updateConfig(new_values):
-	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
-		config = yaml.load(C.read())
-	
-	config.update(new_values)
-
-	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'wb+') as C:
-		C.write(yaml.dump(config))
