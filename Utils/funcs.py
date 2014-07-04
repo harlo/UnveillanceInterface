@@ -4,7 +4,12 @@ from Crypto.Cipher import AES
 
 from conf import CONF_ROOT, USER_ROOT, getConfig, DEBUG
 from vars import USER_CREDENTIAL_PACK, UnveillanceCookie
-from lib.Frontend.lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
+
+try:
+	from lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
+except Exception as e:
+	if DEBUG: print e
+	from lib.Frontend.lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
 
 def encryptUserData(plaintext, password, iv=None, p_salt=None):
 	if p_salt is not None:

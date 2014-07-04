@@ -1,3 +1,4 @@
+import re, os
 from multiprocessing import Process
 from apiclient import errors
 from apiclient.discovery import build
@@ -117,12 +118,21 @@ class UnveillanceAnnexClient(object):
 		
 		return None
 	
+	def getFileName(self, file):
+		if type(file) is str or type(file) is unicode:
+			return self.getFileName(self.getFile(file))
+					
+		return str(file['title'])
+	
 	def download(self, file, save_as=None, save=True, return_content=False):
-		# don't waste my time.
-		if DEBUG: print "HAAAAAAAY DOWNLOAD FIRST!"
-		
-		if not hasattr(self, "service"): return None
-		if not save and not return_content: return None
+		# don't waste my time.		
+		if not hasattr(self, "service"):
+			if DEBUG: print "NO SERVICE."
+			return None
+			
+		if not save and not return_content:
+			print "BAD PARAMS FOR SAVE (%s) and RETURN CONTENT (%s)" % (save, return_content)
+			return None
 		
 		if type(file) is str or type(file) is unicode:
 			return self.download(self.getFile(file))
@@ -145,11 +155,22 @@ class UnveillanceAnnexClient(object):
 			response, content = self.service._http.request(url)
 			if response.status != 200: return None
 			
-			try:
-				with open(destination_path, 'wb+') as C: C.write(content)
-			except IOError as e:
-				if DEBUG: print e
-				return None
+			if save:
+				try:
+					with open(destination_path, 'wb+') as C: C.write(content)
+				except IOError as e:
+					if DEBUG: print e
+					return None
+			else:
+				from cStringIO import StringIO
+				try:
+					container = StringIO()
+					container.write(content)
+					
+					return (container, save_as)
+				except Exception as e:
+					if DEBUG: print e
+					return None
 					
 			if return_content: return content
 			else: return destination_path

@@ -3,6 +3,8 @@ from subprocess import Popen, PIPE
 from time import sleep
 
 from Models.uv_annex_client import UnveillanceAnnexClient
+from Models.uv_fabric_process import UnveillanceFabricProcess
+from Utils.fab_api import netcat
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 
@@ -60,7 +62,7 @@ class UnveillanceAPI():
 		
 		files = None
 		
-		
+		print "DRIVE:CLIENT: %s\n" % self.initDriveClient(handler)
 			
 		for _id in parseRequestEntity(handler.request.query)['_ids']:
 			_id = urllib.unquote(_id).replace("'", "")[1:]
@@ -93,7 +95,7 @@ class UnveillanceAPI():
 					
 					return None
 						
-				entry = self.drive_client.download(_id, save=False)
+				entry = self.drive_client.download(_id, save=False, return_content=True)
 				if entry is not None:
 					p = UnveillanceFabricProcess(netcat, {
 						'file' : entry[0],
