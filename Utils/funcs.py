@@ -89,7 +89,7 @@ def createNewUser(username, password, as_admin=False):
 		
 		print user_data
 		
-		with open(user_root, 'wb+') as user:
+		with open(os.path.join(USER_ROOT, user_root), 'wb+') as user:
 			user.write(encryptUserData(user_data, password, p_salt=SALT, iv=IV))
 			try:
 				if user_data['admin']: del user_data['admin']

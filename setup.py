@@ -84,7 +84,7 @@ if __name__ == "__main__":
 		
 			print "To use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
 			print "You will be shown an authentication code that you must paste into this terminal when prompted."
-			print "URL: %s" % flow.step1_get_authorize_url()
+			print "URL:\n\n%s\n" % flow.step1_get_authorize_url()
 			credentials = flow.step2_exchange(prompt("Code: "))
 			Storage(config['auth_storage']).put(credentials)
 	
@@ -119,7 +119,14 @@ if __name__ == "__main__":
 		config['server_port'] = prompt("[DEFAULT: 8889] ")
 	
 	if type(config['server_port']) is not int:
-		if len(config['server_port']) == 0: config['server_port'] = 8889
+		if len(config['server_port']) == 0: 
+			config['server_port'] = 8889
+		else:
+			try:
+				config['server_port'] = int(config['server_port'])
+			except ValueError as e:
+				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['server_port']
+				config['server_port'] = 8889
 	
 	if 'annex_remote' not in config.keys():
 		print "What is the path to the Annex's repository?"

@@ -35,13 +35,6 @@ $.ajax({
 				"h", "toHash", "toHTML", 
 				"keys", "has", "join", "log", "toString"
 			];
-		
-			try {
-				onConfLoaded();
-				//$(document).trigger("onConfLoadedEvent");
-			} catch(err) {
-				console.info(err);
-			}
 		}
 	}
 });

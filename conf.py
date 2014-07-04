@@ -71,12 +71,29 @@ try:
 	with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
 		config = json.loads(C.read())
 	
-		SERVER_HOST = config['server_host']
-		SERVER_PORT = config['server_port']
-		SERVER_USE_SSL = config['server_use_ssl']
-		UV_COOKIE_SECRET = config['web_cookie_secret']
-		ANNEX_DIR = config['annex_local']
-		SSH_ROOT = config['ssh_root']
+		try:
+			SERVER_HOST = config['server_host']
+		except KeyError as e: pass
+		
+		try:
+			SERVER_PORT = config['server_port']
+		except KeyError as e: pass
+		
+		try:
+			SERVER_USE_SSL = config['server_use_ssl']
+		except KeyError as e: pass
+		
+		try:
+			UV_COOKIE_SECRET = config['web_cookie_secret']
+		except KeyError as e: pass
+		
+		try:
+			ANNEX_DIR = config['annex_local']
+		except KeyError as e: pass
+		
+		try:
+			SSH_ROOT = config['ssh_root']
+		except KeyError as e: pass
 	
 		del config
 except IOError as e: pass

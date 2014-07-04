@@ -3,6 +3,7 @@
 *test*
 
 .monitor/*
+.users/*
 conf/*
 !conf/*.settings.yaml
 

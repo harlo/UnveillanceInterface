@@ -14,7 +14,7 @@ def netcat(file, save_as=None, remote_path=None):
 	else:
 		if save_as is None: save_as = "uv_document_%d" % time()
 		
-	cmd = ".git/hooks/post-receive \"%s\"" % save_as
+	cmd = ".git/hooks/sync_file.py \"%s\"" % save_as
 	print cmd
 	
 	if SERVER_HOST != "127.0.0.1":
