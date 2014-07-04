@@ -12,10 +12,10 @@ else
 	WITH_CONFIG=$1
 fi
 
-#pip install --upgrade -r requirements.txt
+pip install --upgrade -r requirements.txt
 
 cd $THIS_DIR/lib/Core
-#pip install --upgrade -r requirements.txt
+pip install --upgrade -r requirements.txt
 
 cd $THIS_DIR
 python setup.py $WITH_CONFIG
