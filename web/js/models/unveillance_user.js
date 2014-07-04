@@ -35,7 +35,7 @@ var UnveillanceUser = Backbone.Model.extend({
 	},
 	
 	logOut: function() {
-		var user = {};
+		var user = { username : this.get('username') };
 		
 		if($("#uv_logout_with_data").css('display') != "none") {
 			user = this.toJSON();
