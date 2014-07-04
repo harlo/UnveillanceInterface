@@ -35,6 +35,8 @@ class UnveillanceAnnexClient(object):
 			if DEBUG: print "NO AUTH YET!"
 		
 		if credentials is not None:
+			import httplib2
+			
 			http = httplib2.Http()
 			http = credentials.authorize(http)
 		
@@ -45,9 +47,7 @@ class UnveillanceAnnexClient(object):
 			return True
 			
 		if send_key and getSecrets('annex_admin_email') is not None:
-			pub_key = self.upload(getSecrets('ssh_key_pub'), title="annex public key")
-			if DEBUG: print "UPLOADED FILE TO DRIVE:\n%s" % pub_key
-				
+			pub_key = self.upload(getSecrets('ssh_key_pub'), title="annex public key")				
 			if pub_key is not None and self.share(pub_key['id']) is not None:
 				return True
 		

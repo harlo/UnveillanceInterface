@@ -21,6 +21,7 @@ cd $THIS_DIR
 python setup.py $WITH_CONFIG
 
 if $LAUNCH_FRONTEND; then
-	chmod 0400 conf/*
+	chmod 0400 conf/unveillance.secrets.json
+	chmod 0400 conf/local.config.yaml
 	python unveillance_frontend.py -firstuse
 fi

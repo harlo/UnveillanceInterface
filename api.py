@@ -213,10 +213,12 @@ class UnveillanceAPI():
 		except Exception as e:
 			if DEBUG: print e
 			return None		
+		
+		from Utils.funcs import decryptUserData, encryptUserData
 				
 		user_root = "%s.txt" % generateMD5Hash(content=username,salt=USER_SALT)
 		with open(os.path.join(USER_ROOT, user_root), 'rb') as UD:
-			user_data = self.decrypt(UD.read, password, p_salt=SALT)
+			user_data = decryptUserData(UD.read, password, p_salt=SALT)
 			
 			if user_data is None: return None
 			
@@ -228,7 +230,7 @@ class UnveillanceAPI():
 				pass
 		
 		with open(os.path.join(USER_ROOT, user_root), 'wb+') as UD:
-			UD.write(self.encrypt(new_data, password, iv=IV, p_salt=SALT))
+			UD.write(encryptUserData(new_data, password, iv=IV, p_salt=SALT))
 			return True
 		
 		return None
@@ -241,10 +243,12 @@ class UnveillanceAPI():
 			if DEBUG: print e
 			return None		
 		
+		from base64 import b64encode
+		from Utils.funcs import decryptUserData
 		try:
 			user_root = "%s.txt" % generateMD5Hash(content=username, salt=USER_SALT)
 			with open(os.path.join(USER_ROOT, user_root), 'rb') as UD:
-				user_data = self.decryptUserData(UD.read(), password, p_salt=SALT)
+				user_data = decryptUserData(UD.read(), password, p_salt=SALT)
 				if user_data is None: return None
 				
 				try:
@@ -259,7 +263,9 @@ class UnveillanceAPI():
 								if self.drive_client.checkAnnexKeyStatus():
 									user_data['annex_key_sent'] = True
 
-				except KeyError as e: pass
+				except KeyError as e: 
+					if DEBUG: print e
+					pass
 				
 				handler.set_secure_cookie(UnveillanceCookie.USER, 
 					b64encode(json.dumps(user_data)), path="/", expires_days=1)

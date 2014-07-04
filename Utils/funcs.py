@@ -4,7 +4,7 @@ from Crypto.Cipher import AES
 
 from conf import CONF_ROOT, USER_ROOT, getConfig, DEBUG
 from vars import USER_CREDENTIAL_PACK, UnveillanceCookie
-from lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
+from lib.Frontend.lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
 
 def encryptUserData(plaintext, password, iv=None, p_salt=None):
 	if p_salt is not None:
@@ -22,7 +22,7 @@ def encryptUserData(plaintext, password, iv=None, p_salt=None):
 	print ciphertext
 	return b64encode(json.dumps(ciphertext))
 
-def decyptUserData(ciphertext, password, iv=None, p_salt=None):
+def decryptUserData(ciphertext, password, iv=None, p_salt=None):
 	try:
 		ciphertext_json = json.loads(b64decode(ciphertext))
 		ciphertext = ciphertext_json['data'].decode('hex')
