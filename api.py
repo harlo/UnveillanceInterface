@@ -62,7 +62,7 @@ class UnveillanceAPI():
 		
 		files = None
 		
-		print "DRIVE:CLIENT: %s\n" % self.initDriveClient(handler)
+		self.initDriveClient(handler)
 			
 		for _id in parseRequestEntity(handler.request.query)['_ids']:
 			_id = urllib.unquote(_id).replace("'", "")[1:]
@@ -95,7 +95,9 @@ class UnveillanceAPI():
 					
 					return None
 						
-				entry = self.drive_client.download(_id, save=False, return_content=True)
+				entry = self.drive_client.download(_id, 
+					save_as=file_name, save=False, return_content=True)
+
 				if entry is not None:
 					p = UnveillanceFabricProcess(netcat, {
 						'file' : entry[0],
@@ -169,7 +171,7 @@ class UnveillanceAPI():
 		if credentials is None: return None
 		if DEBUG: print credentials
 		
-		return self.logoutUser(self, credentials, handler)
+		return self.logoutUser(credentials, handler)
 	
 	def do_login(self, handler):
 		status = self.do_get_status(handler)
@@ -197,7 +199,7 @@ class UnveillanceAPI():
 		return self.do_get_drive_status()
 	
 	def logoutUser(self, credentials, handler):
-		handler.clear_cokie(UnveillanceCookie.USER)
+		handler.clear_cookie(UnveillanceCookie.USER)
 		handler.clear_cookie(UnveillanceCookie.ADMIN)
 		
 		try:
