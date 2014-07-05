@@ -122,8 +122,9 @@ class UnveillanceAnnexClient(object):
 		if type(file) is str or type(file) is unicode:
 			return self.getFileName(self.getFile(file))
 
-		if DEBUG:  print file
-		return str(file['title'])
+		try:
+			return str(file['title'])
+		except TypeError as e: return None
 	
 	def download(self, file, save_as=None, save=True, return_content=False):
 		# don't waste my time.		
@@ -148,6 +149,7 @@ class UnveillanceAnnexClient(object):
 				save_as = self.getFileName(file)
 			
 			# fuck you. (path traversal)
+			if save_as is None: return None
 			if len(re.findall(r'\.\.', save_as)) > 0:
 				return None
 			
