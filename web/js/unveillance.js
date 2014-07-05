@@ -77,9 +77,7 @@ function validateFormField(field, form_root) {
 }
 
 function doInnerAjax(url, method, data, callback, async) {
-	console.info(async);
 	if(async === undefined) { async = true; }
-	console.info(async);
 	var a = $.ajax({
 		url: "/" + url + "/",
 		dataType: "json",
@@ -90,8 +88,12 @@ function doInnerAjax(url, method, data, callback, async) {
 	});
 	
 	if(!async) {
-		console.info(a.success());
-		return a.success();
+		try {
+			return JSON.parse(a.success().responseText);
+		} catch(err) {
+			console.error(err);
+			return null;
+		}
 	}
 }
 
