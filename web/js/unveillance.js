@@ -76,14 +76,23 @@ function validateFormField(field, form_root) {
 	return true;
 }
 
-function doInnerAjax(url, method, data, callback) {
-	$.ajax({
+function doInnerAjax(url, method, data, callback, async) {
+	console.info(async);
+	if(async === undefined) { async = true; }
+	console.info(async);
+	var a = $.ajax({
 		url: "/" + url + "/",
 		dataType: "json",
 		data: data,
 		method: method,
-		complete: callback
+		complete: callback,
+		async: async
 	});
+	
+	if(!async) {
+		console.info(a.success());
+		return a.success();
+	}
 }
 
 function getTemplate(tmpl, on_complete, static_root, ctx) {
