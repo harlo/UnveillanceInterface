@@ -122,6 +122,7 @@ class UnveillanceAnnexClient(object):
 		if type(file) is str or type(file) is unicode:
 			return self.getFileName(self.getFile(file))
 
+		if DEBUG:  print file
 		return str(file['title'])
 	
 	def download(self, file, save_as=None, save=True, return_content=False):
@@ -135,7 +136,8 @@ class UnveillanceAnnexClient(object):
 			return None
 		
 		if type(file) is str or type(file) is unicode:
-			return self.download(self.getFile(file))
+			return self.download(self.getFile(file), 
+				save_as=save_as, save=save, return_content=return_content)
 		
 		url = file.get('downloadUrl')
 		if url:
