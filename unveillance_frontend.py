@@ -12,7 +12,7 @@ from api import UnveillanceAPI
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL, buildRemoteURL
+from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)

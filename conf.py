@@ -13,9 +13,6 @@ def buildServerURL(port=None):
 	
 	return "%s://%s:%d" % (protocol, SERVER_HOST, port)
 
-def buildRemoteURL():
-	return None
-
 def getConfig(key):
 	val = None
 	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
