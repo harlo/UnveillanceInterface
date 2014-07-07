@@ -5,6 +5,16 @@ var UnveillanceUser = Backbone.Model.extend({
 		try {
 			this.set(JSON.parse(localStorage.getItem('user')));
 		} catch(err) {
+			console.warn("COULD NOT LOAD USER DATA");
+			console.warn(err);
+		}
+	},
+	
+	save: function() {
+		try {
+			localStorage.setItem('user', JSON.stringify(this.toJSON()));
+		} catch(err) {
+			console.warn("COULD NOT SAVE USER DATA");
 			console.warn(err);
 		}
 	},
