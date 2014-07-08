@@ -2,9 +2,7 @@
 THIS_DIR=`pwd`
 
 if [ $# -eq 0 ]
-then
-	pip install --upgrade fabric
-	
+then	
 	LAUNCH_FRONTEND=true
 	WITH_CONFIG=0
 else
@@ -23,5 +21,5 @@ python setup.py $WITH_CONFIG
 if $LAUNCH_FRONTEND; then
 	chmod 0400 conf/unveillance.secrets.json
 	chmod 0400 conf/local.config.yaml
-	python unveillance_frontend.py -firstuse
+	python unveillance_frontend.py -firstuse -webapp
 fi

@@ -35,6 +35,20 @@ $.ajax({
 				"h", "toHash", "toHTML", 
 				"keys", "has", "join", "log", "toString"
 			];
+			
+			try {
+				updateConf();
+			} catch(err) {
+				console.warn(err);
+				console.warn("no updateConf()");
+			}
+			
+			try {
+				onConfLoaded();
+			} catch(err) {
+				console.warn(err);
+				console.warn("no onConfLoaded()");
+			}
 		}
 	}
 });
