@@ -36,6 +36,48 @@ $.ajax({
 				"keys", "has", "join", "log", "toString"
 			];
 			
+			UV.TRANSLATE_VALUES = [
+				{
+					keys: ["uv_date"],
+					enc: function(val) {
+						return moment(Number(val)).format("MM-DD-YYYY HH:mm");
+					},
+					dec: function(val) {
+						return moment(val, "MM-DD-YYYY HH:mm").unix() * 1000;
+					}
+				},
+				{
+					keys: ["uv_none_if_null"],
+					enc: function(val) {
+						if(val.length == 0) {
+							return "none";
+						}
+						
+						return val;
+					}
+				},
+				{
+					keys: ["uv_unknown_if_null"],
+					enc: function(val) {
+						if(val.length == 0) {
+							return "unknown";
+						}
+						
+						return val;
+					}
+				},
+				{
+					keys: ["uv_false_if_null"],
+					enc: function(val) {
+						if(val.length == 0) {
+							return "false";
+						}
+						
+						return val;
+					}
+				}
+			];
+			
 			try {
 				updateConf();
 			} catch(err) {

@@ -115,34 +115,21 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 }
 
 function translate(obj) {
-	new_html = $(obj).html();
+	var new_html = $(obj).html();
 	
-	if($(obj).hasClass("uv_date")) {
-		new_html = moment(Number(new_html)).format("MM-DD-YYYY HH:mm");
-	}
+	var trans = _.find(UV.TRANSLATE_VALUES, function(t_val) {
+		return _.find($(obj).attr('class').split(' '), function(cn) {
+			return _.contains(t_val.keys, cn);
+		});
+	});
 	
-	if($(obj).hasClass("uv_none_if_null")) {
-		if(new_html.length == 0) {
-			new_html = "none";
-		}
-	}
-	
-	if($(obj).hasClass("uv_unknown_if_null")) {
-		if(new_html.length == 0) {
-			new_html = "unknown";
-		}
-	}
-	
-	if($(obj).hasClass("uv_false_if_null")) {
-		if(new_html.length == 0) {
-			new_html = "false";
-		}
-	}
+	if(trans) { new_html = trans.enc(new_html); }
 	
 	if($(obj).attr('repl')) {
 		console.info("OMG " + $(obj).attr('repl'));
 		new_html = $(obj).attr('repl') + new_html;
 	}
+
 	
 	return new_html;
 }
