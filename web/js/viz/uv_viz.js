@@ -26,14 +26,13 @@ var UnveillanceViz = Backbone.Model.extend({
 			}
 		};
 
-		
 		this.svg = d3.select(this.root_el)
 			.append("svg:svg")
 				.attr({
 					"width" : this.dims.width,
 					"height" : this.dims.height,
 					"class" : "uv_viz"
-				});
+				});		
 	},
 	buildLegend: function(legend_to_use) {
 		if(!legend_to_use) { legend_to_use = this.get('legend'); }

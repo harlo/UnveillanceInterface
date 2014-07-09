@@ -1,7 +1,11 @@
 var UVIndentedTree = UnveillanceViz.extend({
 	constructor: function() {		
 		UnveillanceViz.prototype.constructor.apply(this, arguments);
+		console.info(this);
+		
 		if(this.invalid) { return; }
+		
+		
 
 		if(!this.has('dims')) {
 			this.dims.margin = {
