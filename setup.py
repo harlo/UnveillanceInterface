@@ -116,17 +116,17 @@ if __name__ == "__main__":
 	
 	if 'server_port' not in config.keys():
 		print "What port is the Annex server on?"
-		config['server_port'] = prompt("[DEFAULT: 8889] ")
+		config['server_port'] = prompt("[DEFAULT: 8888] ")
 	
 	if type(config['server_port']) is not int:
 		if len(config['server_port']) == 0: 
-			config['server_port'] = 8889
+			config['server_port'] = 8888
 		else:
 			try:
 				config['server_port'] = int(config['server_port'])
 			except ValueError as e:
-				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['server_port']
-				config['server_port'] = 8889
+				print "WARN: could not be sure %s is a number.  Using 8888 instead." % config['server_port']
+				config['server_port'] = 8888
 	
 	if 'annex_remote' not in config.keys():
 		print "What is the path to the Annex's repository?"
