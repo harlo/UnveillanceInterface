@@ -83,7 +83,10 @@ function doInnerAjax(url, method, data, callback, async) {
 		data: data,
 		method: method,
 		complete: callback,
-		async: async
+		async: async,
+		error: function(XMLHttpRequest, textStatus, err) {
+			console.warn(err);
+		}
 	});
 	
 	if(!async) {
