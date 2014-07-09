@@ -326,6 +326,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		self.stopRESTAPI()
 	
 	def startRESTAPI(self):
+		if DEBUG: print "Starting REST API on port %d" % API_PORT
 		startDaemon(self.api_log_file, self.api_pid_file)
 		
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
