@@ -42,10 +42,13 @@ var UnveillanceViz = Backbone.Model.extend({
 			.css("top", -(this.dims.height));
 		
 		_.each(legend_to_use, function(l) {
-			var legend_key = $(document.createElement('p'));
 			if(!l.color) { l.color = getRandomColor(); }
-			insertTemplate("legend_key.html", l, legend_key, 
-				null, "/web/layout/viz/");
+			
+			var tmpl = _.template(
+				'<span class="uv_legend_colorblock" style="background-color:<%= color %>">&nbsp;&nbsp;&nbsp;</span> <%= label %>', l);
+			var legend_key = $(document.createElement('p'))
+				.html(tmpl);
+			
 			$(legend).append(legend_key);
 		});
 		
