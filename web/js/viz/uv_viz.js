@@ -15,7 +15,6 @@ var UnveillanceViz = Backbone.Model.extend({
 			return;
 		}
 
-		console.info($(this.root_el).width());
 		this.dims = {
 			width: $(this.root_el).width(),
 			height: $(this.root_el).height(),
