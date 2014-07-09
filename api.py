@@ -203,12 +203,12 @@ class UnveillanceAPI():
 		handler.clear_cookie(UnveillanceCookie.ADMIN)
 		
 		try:
-			password = credentials['password']
-		except KeyError as e: return True
-		
-		try:
 			username = credentials['username']
 		except KeyError as e: return None
+		
+		try:
+			password = credentials['password']
+		except KeyError as e: return True
 		
 		try:
 			IV = getConfig('encryption.iv')
@@ -218,7 +218,11 @@ class UnveillanceAPI():
 			if DEBUG: print e
 			return None		
 		
-		from Utils.funcs import decryptUserData, encryptUserData
+		try:
+			from Utils.funcs import decryptUserData, encryptUserData
+		except Exception as e:
+			if DEBUG: print e
+			from lib.Frontend.Utils.funcs import decryptUserData, encryptUserData
 				
 		user_root = "%s.txt" % generateMD5Hash(content=username,salt=USER_SALT)
 		with open(os.path.join(USER_ROOT, user_root), 'rb') as UD:
@@ -248,7 +252,12 @@ class UnveillanceAPI():
 			return None		
 		
 		from base64 import b64encode
-		from Utils.funcs import decryptUserData
+		try:
+			from Utils.funcs import decryptUserData
+		except Exception as e:
+			if DEBUG: print e
+			from lib.Frontend.Utils.funcs import decryptUserData
+
 		try:
 			user_root = "%s.txt" % generateMD5Hash(content=username, salt=USER_SALT)
 			with open(os.path.join(USER_ROOT, user_root), 'rb') as UD:

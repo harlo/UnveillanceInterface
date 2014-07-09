@@ -19,6 +19,28 @@ var UnveillanceUser = Backbone.Model.extend({
 		}
 	},
 	
+	getDirective: function(d_name, create_if_none) {
+		var directive;
+		if(create_if_none == undefined) {
+			create_if_none = true;
+		}
+		
+		try {
+			directive = _.pluck(this.get('session_log'), d_name)[0];
+		} catch(err) {
+			console.warn(err);
+		}
+
+		if(!directive) {
+			if(create_if_none) {
+				this.get('session_log').push(_.object([d_name],[0]));
+				directive = _.pluck(this.get('session_log'), d_name)[0];
+			}
+		}
+		
+		return directive;
+	},
+	
 	logIn: function(el) {
 		var user = {
 			username: $($(el).find("input[name=username]")[0]).val(),
@@ -65,7 +87,8 @@ var UnveillanceUser = Backbone.Model.extend({
 		
 			if(json.result == 200) {
 				localStorage.clear();
-				window.location = "/";
+				window.history.back();
+				window.location.reload();
 			} else {
 				alert("Could not log you out!");
 			}
