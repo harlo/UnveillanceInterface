@@ -244,6 +244,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			if hasattr(self.application, "default_on_loads"):
 				on_loads.extend(self.application.default_on_loads)
 			
+			if DEBUG: print "GETTING ONLOADS FOR STATUS %d" % with_status
+			
 			if hasattr(self.application, "on_loads_by_status"):
 				try:
 					on_loads.extend(self.application.on_loads_by_status[with_status])
