@@ -75,7 +75,7 @@ function validateFormField(field, form_root) {
 	return true;
 }
 
-function doInnerAjax(url, method, data, callback, async) {
+function doInnerAjax(url, method, data, callback, async) {	
 	if(async === undefined) { async = true; }
 	var a = $.ajax({
 		url: "/" + url + "/",

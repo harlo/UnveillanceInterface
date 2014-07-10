@@ -32,7 +32,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 			(r"/task/", self.TaskHandler)]
 		
 		self.default_on_loads = [
-			"/web/js/unveillance.js",
 			"/web/js/models/unveillance_document.js"
 		]
 		self.on_loads_by_status = [[] for i in range(4)]

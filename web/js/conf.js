@@ -77,20 +77,6 @@ $.ajax({
 					}
 				}
 			];
-			
-			try {
-				updateConf();
-			} catch(err) {
-				console.warn(err);
-				console.warn("no updateConf()");
-			}
-			
-			try {
-				onConfLoaded();
-			} catch(err) {
-				console.warn(err);
-				console.warn("no onConfLoaded()");
-			}
 		}
 	}
 });
