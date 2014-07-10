@@ -36,3 +36,5 @@ MIME_TYPE_MAP = {
 	'application/x-gzip' : "gzip",
 	'application/json' : "json"
 }
+
+MIME_TYPE_TASK_REQUIREMENTS = []

@@ -15,5 +15,9 @@ var UnveillanceDocument = Backbone.Model.extend({
 		}
 		
 		return tagged_assets;
+	},
+	requestReindex: function(callback, req, task_path) {
+		if(task_path) { _.extend(req, { task_path : task_path }); }				
+		doInnerAjax("reindex", "post", req, callback);
 	}
 });

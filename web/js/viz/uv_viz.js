@@ -15,6 +15,11 @@ var UnveillanceViz = Backbone.Model.extend({
 			return;
 		}
 
+		if($(document).find(this.root_el).length == 1) {
+			this.setDOMElement();
+		}
+	},
+	setDOMElement: function() {
 		this.dims = {
 			width: $(this.root_el).width(),
 			height: $(this.root_el).height(),
@@ -28,12 +33,13 @@ var UnveillanceViz = Backbone.Model.extend({
 
 		this.svg = d3.select(this.root_el)
 			.append("svg:svg")
-				.attr({
-					"width" : this.dims.width,
-					"height" : this.dims.height,
-					"class" : "uv_viz"
-				});		
+			.attr({
+				"width" : this.dims.width,
+				"height" : this.dims.height,
+				"class" : "uv_viz"
+			});
 	},
+	
 	buildLegend: function(legend_to_use) {
 		if(!legend_to_use) { legend_to_use = this.get('legend'); }
 		

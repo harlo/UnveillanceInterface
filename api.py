@@ -1,6 +1,7 @@
 import os, requests, json, re, copy, urllib
 from subprocess import Popen, PIPE
 from time import sleep
+from itertools import chain
 
 from Models.uv_annex_client import UnveillanceAnnexClient
 from Models.uv_fabric_process import UnveillanceFabricProcess
@@ -8,9 +9,9 @@ from Utils.fab_api import netcat
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 
-from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT, getConfig, USER_ROOT
+from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
 
-from vars import FILE_NON_OVERWRITES, USER_CREDENTIAL_PACK, UnveillanceCookie
+from vars import FILE_NON_OVERWRITES, USER_CREDENTIAL_PACK, UnveillanceCookie, MIME_TYPE_TASK_REQUIREMENTS
 
 class UnveillanceAPI():
 	def __init__(self):
@@ -24,7 +25,31 @@ class UnveillanceAPI():
 
 	def do_cluster(self, handler): return self.passToAnnex(handler)
 	
-	def do_reindex(self, handler): return self.passToAnnex(handler)
+	def do_reindex(self, handler):
+		req = parseRequestEntity(handler.request.body)
+		if req is None: return None
+		
+		'''
+			we might have to replace parts of the request with
+			secret values.
+		'''
+		if 'task_path' in req.keys():
+			req_keys = list(chain.from_iterable(
+				[k.keys() for k in MIME_TYPE_TASK_REQUIREMENTS]))
+					
+			if req['task_path'] in req_keys:
+				try:
+					req_field = [k for k in MIME_TYPE_TASK_REQUIREMENTS if k.keys()[0] == req['task_path']][0][req['task_path']]
+					print req_field
+				except Exception as e:
+					if DEBUG: print "Could not resolve required task info. %s" % e
+				
+				for repl in req_field.iteritems():
+					if repl[0] in req.keys():				
+						handler.request.body = handler.request.body.replace(
+							repl[1], getSecrets(repl[1]))
+									
+		return self.passToAnnex(handler)
 	
 	def do_num_views(self, query):
 		views = 0
