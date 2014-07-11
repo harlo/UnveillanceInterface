@@ -115,7 +115,6 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 
 function translate(obj) {
 	var new_html = $(obj).html();
-	console.info(UV);
 	
 	var trans = _.find(UV.TRANSLATE_VALUES, function(t_val) {
 		return _.find($(obj).attr('class').split(' '), function(cn) {
