@@ -134,7 +134,7 @@ function translate(obj) {
 	return new_html;
 }
 
-function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
+function insertTemplate(tmpl, data, append_root, on_complete, static_root, ctx) {
 	if(data == null) { data = {}; }
 	if(!static_root) { static_root = "/web/layout/tmpl/"; }
 	
@@ -155,6 +155,7 @@ function insertTemplate(tmpl, data, append_root, on_complete, static_root) {
 	};
 	
 	if(on_complete) { a_obj.complete = on_complete; }
+	if(ctx) { a_obj.context = ctx; }
 	
 	$.ajax(a_obj);
 }
