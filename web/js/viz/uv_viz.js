@@ -5,7 +5,7 @@ var UnveillanceViz = Backbone.Model.extend({
 		this.root_el = this.get("root_el");
 		this.unset("root_el");
 		$(this.root_el).css("clear", "both");
-		
+				
 		if(!this.has('data') || !this.get('data') || this.get('data').length == 0) {
 			$(this.root_el)
 				.css('height','auto')
