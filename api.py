@@ -9,7 +9,7 @@ from Utils.fab_api import netcat
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 
-from conf import BASE_DIR, buildServerURL, DEBUG, SSH_ROOT, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
+from conf import BASE_DIR, buildServerURL, DEBUG, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
 
 from vars import FILE_NON_OVERWRITES, USER_CREDENTIAL_PACK, UnveillanceCookie, MIME_TYPE_TASK_REQUIREMENTS
 

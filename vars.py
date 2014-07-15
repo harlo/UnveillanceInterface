@@ -7,7 +7,7 @@ class PostBatchStub(object):
 		self.request = PostBatchRequestStub(files, uri)
 
 unveillance_cookie = namedtuple("unveillance_cookie", "ADMIN USER PUBLIC")
-UnveillanceCookie = unveillance_cookie("un_admin", "uv_user", "uv_public")
+UnveillanceCookie = unveillance_cookie("uv_admin", "uv_user", "uv_public")
 
 FILE_NON_OVERWRITES = []
 
