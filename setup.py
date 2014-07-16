@@ -219,9 +219,6 @@ if __name__ == "__main__":
 	with settings(hide('everything'), warn_only=True):
 		local("mkdir %s" % os.path.join(base_dir, ".users"))
 	
-	with settings(hide('everything'), warn_only=True):
-		local("rm %s" % os.path.join(base_dir, "conf", "unveillance.secrets.json"))
-	
 	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")		
 	with open(secrets_config, "wb+") as CONFIG:
 		CONFIG.write(json.dumps(config))

@@ -15,13 +15,15 @@ def buildServerURL(port=None):
 
 def getConfig(key):
 	val = None
-	with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
-		config = yaml.load(C.read())
-		try:
-			val = config[key]
-		except Exception as e: pass
+	try:
+		with open(os.path.join(CONF_ROOT, "local.config.yaml"), 'rb') as C:
+			config = yaml.load(C.read())
+			try:
+				val = config[key]
+			except Exception as e: pass
 	
-		del config
+			del config
+	except Exception as e: pass
 	return val
 
 def getSecrets(key, password=None):
