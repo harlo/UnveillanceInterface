@@ -3,6 +3,7 @@ from time import time, sleep
 from sys import argv, exit
 from fabric.api import local, settings
 from fabric.operations import prompt
+from fabric.context_managers import hide
 
 from lib.Core.Utils.funcs import generateSecureNonce, generateSecureRandom, generateNonce
 
@@ -30,14 +31,28 @@ if __name__ == "__main__":
 				config.update(json.loads(CONF.read()))
 		except Exception as e:
 			print e
-	
+		
 	print "****************************"
 	print "Hello.  Welcome to Unveillance Frontend setup."
 	admin_username = prompt("Choose a username:")
 	admin_pwd = prompt("Pick a good password:")
 
-	print "****************************"	
+	print "****************************"
 	
+	if 'api.port' not in config.keys():
+		print "What port should the frontend run on?"
+		config['api.port'] = prompt("[DEFAULT: 8889]")
+	
+	if type(config['api.port']) is not int:
+		if len(config['api.port']) == 0: 
+			config['api.port'] = 8889
+		else:
+			try:
+				config['api.port'] = int(config['api.port'])
+			except ValueError as e:
+				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['api.port']
+				config['api.port'] = 8889
+		
 	
 	gdrive_auth = False
 	if 'auth_storage' in config.keys():
@@ -192,8 +207,16 @@ if __name__ == "__main__":
 			
 	config['web_cookie_secret'] = generateSecureNonce()
 	
-	with settings(warn_only=True):
+	with settings(hide('everything'), warn_only=True):
+		local("rm -rf %s" % os.path.join(base_dir, ".users"))
+	
+	with settings(hide('everything'), warn_only=True):
+		local("rm -rf %s" % os.path.join(base_dir, ".monitor"))
+
+	with settings(hide('everything'), warn_only=True):		
 		local("mkdir %s" % os.path.join(base_dir, ".monitor"))
+	
+	with settings(hide('everything'), warn_only=True):
 		local("mkdir %s" % os.path.join(base_dir, ".users"))
 	
 	secrets_config = os.path.join(base_dir, "conf", "unveillance.secrets.json")		
@@ -209,6 +232,7 @@ if __name__ == "__main__":
 		LC.write("encryption.salt: %s\n" % generateSecureRandom())
 		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())
 		LC.write("encryption.user_salt: \"%s\"\n" % generateNonce())
+		LC.write("api.port: %d\n" % config['api.port'])		
 	
 	sleep(3)
 	from Utils.funcs import createNewUser

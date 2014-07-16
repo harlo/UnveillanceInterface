@@ -59,10 +59,11 @@ def setSecrets(secrets, password=None):
 
 with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	config = yaml.load(C.read())
-	API_PORT = config['api.port']
 	NUM_PROCESSES = config['api.num_processes']
 	DEBUG = config['flags.debug']
 	WEB_TITLE = config['api.web.title']
+
+API_PORT = getConfig('api.port')
 
 try:
 	with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:

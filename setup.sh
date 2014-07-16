@@ -18,8 +18,9 @@ pip install --upgrade -r requirements.txt
 cd $THIS_DIR
 python setup.py $WITH_CONFIG
 
+chmod 0400 conf/local.config.yaml
+
 if $LAUNCH_FRONTEND; then
 	chmod 0400 conf/unveillance.secrets.json
-	chmod 0400 conf/local.config.yaml
 	python unveillance_frontend.py -firstuse -webapp
 fi
