@@ -52,7 +52,6 @@ if __name__ == "__main__":
 			except ValueError as e:
 				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['api.port']
 				config['api.port'] = 8889
-		
 	
 	gdrive_auth = False
 	if 'auth_storage' in config.keys():
