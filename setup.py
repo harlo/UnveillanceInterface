@@ -41,17 +41,17 @@ if __name__ == "__main__":
 	
 	if 'api.port' not in config.keys():
 		print "What port should the frontend run on?"
-		config['api.port'] = prompt("[DEFAULT: 8889]")
+		config['api.port'] = prompt("[DEFAULT: 8888]")
 	
 	if type(config['api.port']) is not int:
 		if len(config['api.port']) == 0: 
-			config['api.port'] = 8889
+			config['api.port'] = 8888
 		else:
 			try:
 				config['api.port'] = int(config['api.port'])
 			except ValueError as e:
-				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['api.port']
-				config['api.port'] = 8889
+				print "WARN: could not be sure %s is a number.  Using 8888 instead." % config['api.port']
+				config['api.port'] = 8888
 	
 	gdrive_auth = False
 	if 'auth_storage' in config.keys():
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 		
 		if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
 	
-	if config['server_host'] != "127.0.0.1":
+	if config['server_host'] not in ["127.0.0.1", "localhost"]:
 		if 'annex_local' not in config.keys():
 			print "Where do you want your Unveillance folder?  The folder should not exist."
 			config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
@@ -130,30 +130,30 @@ if __name__ == "__main__":
 	
 	if 'server_port' not in config.keys():
 		print "What port is the Annex server on?"
-		config['server_port'] = prompt("[DEFAULT: 8888] ")
+		config['server_port'] = prompt("[DEFAULT: 8889] ")
 	
 	if type(config['server_port']) is not int:
 		if len(config['server_port']) == 0: 
-			config['server_port'] = 8888
+			config['server_port'] = 8889
 		else:
 			try:
 				config['server_port'] = int(config['server_port'])
 			except ValueError as e:
-				print "WARN: could not be sure %s is a number.  Using 8888 instead." % config['server_port']
-				config['server_port'] = 8888
+				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['server_port']
+				config['server_port'] = 8889
 	
 	if 'annex_remote' not in config.keys():
 		print "What is the path to the Annex's repository?"
 		config['annex_remote']  = prompt("[DEFAULT: ~/unveillance_remote]")
 	
 	if len(config['annex_remote']) == 0:
-		if config['server_host'] == "127.0.0.1":
+		if config['server_host'] in ["127.0.0.1", "localhost"]:
 			config['annex_remote'] = os.path.join(os.path.expanduser("~"),
 				"unveillance_remote")
 		else:
 			config['annex_remote'] = "~/unveillance_remote"
 	
-	if config['server_host'] == "127.0.0.1": 
+	if config['server_host'] in ["127.0.0.1", "localhost"]: 
 		config['server_use_ssl'] = False
 		config['annex_local'] = config['annex_remote']
 	else:
