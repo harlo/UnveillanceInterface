@@ -27,7 +27,9 @@ class UnveillanceAnnexClient(object):
 			self.remote_path = getSecrets('annex_remote')
 		except KeyError as e: pass
 	
-		credentials = None
+		if getSecrets('auth_storage') is None: return
+
+		credentials = None		
 		
 		try:
 			from oauth2client.file import Storage	

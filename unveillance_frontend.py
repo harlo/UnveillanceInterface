@@ -312,8 +312,33 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		except AttributeError as e: pass
 
 		return result_obj
+
+	def checkForAdminParty(self):
+		from conf import USER_ROOT
+
+		has_admin = False
+		for _, _, files in os.walk(USER_ROOT):
+			for f in files:
+				if DEBUG: print "userfile: %s" % f
+				has_admin = True
+				break
+
+		if not has_admin:
+			from fabric.operations import prompt
+			from Utils.funcs import createNewUser
+
+			print "WAIT: THERE IS NO ADMINISTRATOR.  LET'S FIX THIS NOW:"
+			admin_username = prompt("Enter your username: ")
+			admin_pwd = prompt("Enter your password: ")
+
+			if not createNewUser(admin_username, admin_pwd, as_admin=True):
+				print "SORRY, WE COULD NOT CREATE USER %s" % admin_username
+		
+			sleep(3)
 	
 	def startup(self, openurl=False):
+		self.checkForAdminParty()
+
 		p = Process(target=self.startRESTAPI)
 		p.start()
 		
@@ -326,8 +351,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	
 	def startRESTAPI(self):
 		if DEBUG: print "Starting REST API on port %d" % API_PORT
-		startDaemon(self.api_log_file, self.api_pid_file)
-		
+				
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
 		tornado.web.Application.__init__(self, self.routes,
@@ -337,6 +361,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		server.bind(API_PORT)
 		server.start(NUM_PROCESSES)
 		
+		startDaemon(self.api_log_file, self.api_pid_file)
 		tornado.ioloop.IOLoop.instance().start()
 	
 	def stopRESTAPI(self):
@@ -345,7 +370,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 
 if __name__ == "__main__":
 	unveillance_frontend = UnveillanceFrontend()
-	
 	openurl = False
 	
 	if len(argv) == 3 and argv[2] == "-webapp":
