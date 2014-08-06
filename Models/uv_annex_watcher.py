@@ -14,6 +14,12 @@ except ImportError as e:
 	if DEBUG: print e
 	from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
 
+try:
+	from Utils.fab_api import netcat
+except ImportError as e:
+	if DEBUG: print e
+	from lib.Frontend.Utils.fab_api import netcat
+
 class UnveillanceFSEHandler(FileSystemEventHandler):
 	def __init__(self, path):
 		self.path = path
@@ -50,7 +56,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			else:
 				if DEBUG: print p.error
 
-			local("%s metadata --tag uv_uploaded_%s %s" % (getConfig('git_annex_dir'), str(success_flag), filename))
+			local("%s metadata --tag uv_uploaded_%s %s" % (getConfig('git_annex_dir'), str(success_tag), filename))
 	
 		os.chdir(this_dir)
 
@@ -59,8 +65,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		print "STARTING OBSERVER on %s" % self.path
 		self.observer.start()
 
-		while True:
-			sleep(1)
+		while True: sleep(1)
 
 	def stop(self):
 		print "STOPPING OBSERVER"

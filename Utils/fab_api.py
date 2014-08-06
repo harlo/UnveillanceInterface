@@ -33,6 +33,7 @@ def netcat(file, save_as=None, remote_path=None):
 		
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", '')]
 		env.password = getSecrets('ssh_key_pwd')
+
 		# TODO: port if not 22?
 	
 		annex_base = getSecrets('annex_remote')
