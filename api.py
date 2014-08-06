@@ -151,6 +151,22 @@ class UnveillanceAPI():
 			for f in files: return False
 		
 		return True
+
+	def do_create_new_user(self, handler):
+		status = self.do_get_status(handler)
+
+		if status != 3: return None
+
+		new_user = parseRequestEntity(handler.request.body)
+		if new_user is None: return None
+		if DEBUG: print new_user
+
+		n_set = sorted(['nu_username', 'nu_password'])
+		if sorted(list(set(n_set) & set(new_user.keys()))) != n_set:
+			return None
+
+		from Utils.funcs import createNewUser
+		return createNewUser(new_user['nu_username'], new_user['nu_password'])
 	
 	def do_get_user_status(self, handler):
 		status = self.do_get_status(handler)
