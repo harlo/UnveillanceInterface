@@ -19,16 +19,16 @@ def netcat(file, save_as=None, remote_path=None):
 	
 	if SERVER_HOST != "127.0.0.1":
 		'''
-		from fabric.network import HostConnectionCache, ssh
-		
-		try:
-			connections = HostConnectionCache()
-			con = connections[env.host_string].get_transport().open_session()
-		except ssh.SSHException as e:
-			if DEBUG: print "ssh connection error: %s" % e
-			connections[env.host_string].close()
-			del connections[env.host_string]
-			con = connections[env.host_string].get_transport().open_session()
+			from fabric.network import HostConnectionCache, ssh
+			
+			try:
+				connections = HostConnectionCache()
+				con = connections[env.host_string].get_transport().open_session()
+			except ssh.SSHException as e:
+				if DEBUG: print "ssh connection error: %s" % e
+				connections[env.host_string].close()
+				del connections[env.host_string]
+				con = connections[env.host_string].get_transport().open_session()
 		'''
 		
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", '')]

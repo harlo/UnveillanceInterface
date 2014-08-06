@@ -9,10 +9,11 @@ import tornado.httpserver
 from mako.template import Template
 
 from api import UnveillanceAPI
+from Models.uv_annex_watcher import UnveillanceFSEHandler
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from conf import DEBUG
 
 def terminationHandler(signal, frame): exit(0)
@@ -22,6 +23,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 	def __init__(self):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
+		self.watcher_pid_file = os.path.join(MONITOR_ROOT, "watcher.pid.txt")
+		self.watcher_log_file = os.path.join(MONITOR_ROOT, "watcher.log.txt")
 		
 		self.reserved_routes = ["frontend", "web", "files"]
 		self.routes = [
@@ -341,6 +344,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 
 		p = Process(target=self.startRESTAPI)
 		p.start()
+
+		p = Process(target=self.startAnnexWatcher)
+		p.start()
 		
 		if openurl:
 			url = "http://localhost:%d/" % API_PORT
@@ -348,6 +354,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 	def shutdown(self):
 		self.stopRESTAPI()
+
+		if hasattr(self, "annex_watcher"):
+			self.stopAnnexWatcher()
 	
 	def startRESTAPI(self):
 		if DEBUG: print "Starting REST API on port %d" % API_PORT
@@ -363,10 +372,23 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI):
 		
 		startDaemon(self.api_log_file, self.api_pid_file)
 		tornado.ioloop.IOLoop.instance().start()
+
+	def startAnnexWatcher(self):
+		if DEBUG: print "Starting Annex Watcher on %s" % ANNEX_DIR
+		
+		startDaemon(self.watcher_log_file, self.watcher_pid_file)
+		
+		self.annex_watcher = UnveillanceFSEHandler(ANNEX_DIR)
+		self.annex_watcher.start()
 	
 	def stopRESTAPI(self):
 		if DEBUG : print "shutting down REST API"
 		stopDaemon(self.api_pid_file, extra_pids_port=API_PORT)
+
+	def stopAnnexWatcher(self):
+		if DEBUG: print "shutting down Annex Watcher"
+		self.annex_watcher.stop()
+		stopDaemon(self.watcher_pid_file)
 
 if __name__ == "__main__":
 	unveillance_frontend = UnveillanceFrontend()

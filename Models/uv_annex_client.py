@@ -26,7 +26,7 @@ class UnveillanceAnnexClient(object):
 		try:
 			self.remote_path = getSecrets('annex_remote')
 		except KeyError as e: pass
-	
+
 		if getSecrets('auth_storage') is None: return
 
 		credentials = None		

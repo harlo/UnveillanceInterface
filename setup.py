@@ -38,6 +38,9 @@ if __name__ == "__main__":
 	admin_pwd = prompt("Pick a good password:")
 
 	print "****************************"
+
+	with settings(warn_only=True):
+		SYS_ARCH = local("uname -m", capture=True)
 	
 	if 'api.port' not in config.keys():
 		print "What port should the frontend run on?"
@@ -108,25 +111,42 @@ if __name__ == "__main__":
 		
 		if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
 	
-	if config['server_host'] not in ["127.0.0.1", "localhost"]:
-		if 'annex_local' not in config.keys():
-			print "Where do you want your Unveillance folder?  The folder should not exist."
-			config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
-	
-		if len(config['annex_local']) == 0:
-			config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
+	if 'annex_local' not in config.keys():
+		print "Where do you want your Unveillance folder?  The folder should not exist."
+		config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
 
+	if len(config['annex_local']) == 0:
+		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
+	
+	git_annex_dir = locateLibrary(r'git-annex\.*')
+	if git_annex_dir is None:
 		with settings(warn_only=True):
-			local("mkdir %s" % config['annex_local'])
-		
+			if SYS_ARCH == "i686":
+				arch = "git-annex-standalone-i386.tar.gz"
+			else:
+				arch = "git-annex-standalone-amd64.tar.gz"
+
+			local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/%s" % arch)
+			local("tar -xvzf lib/git-annex.tar.gz -C lib")
+			local("rm lib/git-annex.tar.gz")
+	
 		git_annex_dir = locateLibrary(r'git-annex\.*')
-		if git_annex_dir is None:
-			with settings(warn_only=True):
-				local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/git-annex-standalone-amd64.tar.gz")
-				local("tar -xvzf lib/git-annex.tar.gz -C lib")
-				local("rm lib/git-annex.tar.gz")
-		
-			git_annex_dir = locateLibrary(r'git-annex\.*')			
+
+	# init local repo
+	with settings(warn_only=True):
+		local("mkdir %s" % config['annex_local'])
+	
+	this_dir = os.getcwd()
+	os.chdir(config['annex_local'])
+
+	with settings(warn_only=True):
+		local("git init")
+		local("git config annex.genmetadata true")
+		local("%s init unveillance_local" % git_annex_dir)
+		local("%s untrust web" % git_annex_dir)
+		local("%s direct" % git_annex_dir)
+
+	os.chdir(this_dir)
 	
 	if 'server_port' not in config.keys():
 		print "What port is the Annex server on?"
@@ -155,7 +175,6 @@ if __name__ == "__main__":
 	
 	if config['server_host'] in ["127.0.0.1", "localhost"]: 
 		config['server_use_ssl'] = False
-		config['annex_local'] = config['annex_remote']
 	else:
 		if 'ssh_root' not in config.keys():
 			print "Where is your ssh folder?"
@@ -224,14 +243,15 @@ if __name__ == "__main__":
 	
 	with open(os.path.join(base_dir, "conf", "local.config.yaml"), 'ab') as LC:
 		try:
-			LC.write("git_annex_dir: %s\n" % git_annex_dir)
+			LC.write("git_annex_dir: %s\n" % os.path.join(git_annex_dir, "git-annex"))
 		except NameError as e: pass
 
 		LC.write("encryption.iv: %s\n" % generateSecureRandom())
 		LC.write("encryption.salt: %s\n" % generateSecureRandom())
 		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())
 		LC.write("encryption.user_salt: \"%s\"\n" % generateNonce())
-		LC.write("api.port: %d\n" % config['api.port'])		
+		LC.write("api.port: %d\n" % config['api.port'])
+		LC.write("sys_arch: %s\n" % SYS_ARCH)	
 	
 	sleep(3)
 	from Utils.funcs import createNewUser

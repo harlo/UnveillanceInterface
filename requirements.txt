@@ -2,3 +2,4 @@ mako
 google-api-python-client
 oauth2client
 urllib3
+watchdog
