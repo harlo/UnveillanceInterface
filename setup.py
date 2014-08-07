@@ -190,8 +190,11 @@ if __name__ == "__main__":
 		config['ssh_key_pub'] = "%s.pub" % config['ssh_key_priv']
 	
 		with settings(warn_only=True):
+			'''
 			local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (config['ssh_key_priv'],
 				config['ssh_key_pwd']))
+			'''
+			local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
 		
 		if 'server_user' not in config.keys():
 			config['server_user'] = prompt("What user name should SSH use? : ")

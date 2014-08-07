@@ -7,7 +7,11 @@ from fabric.api import *
 from conf import DEBUG, SERVER_HOST, getSecrets
 
 def netcat(file, save_as=None, remote_path=None):
-	if DEBUG: print "NETCATTING FILE"
+	whoami = "unknown"
+	with settings(warn_only=True):
+		whoami = local("whoami", capture=True)
+
+	if DEBUG: print "NETCATTING FILE as user %s" % whoami
 	
 	if type(file) is str:
 		if save_as is None: save_as = os.path.basename(file)
@@ -32,7 +36,7 @@ def netcat(file, save_as=None, remote_path=None):
 		'''
 		
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", '')]
-		env.password = getSecrets('ssh_key_pwd')
+		#env.password = getSecrets('ssh_key_pwd')
 
 		# TODO: port if not 22?
 	
