@@ -133,18 +133,21 @@ if __name__ == "__main__":
 		git_annex_dir = locateLibrary(r'git-annex\.*')
 
 	# init local repo
-	with settings(warn_only=True):
-		local("mkdir %s" % config['annex_local'])
-	
-	this_dir = os.getcwd()
-	os.chdir(config['annex_local'])
+	if git_annex_dir is not None:
+		git_annex_dir = os.path.join(git_annex_dir, "git-annex")
+		
+		with settings(warn_only=True):
+			local("mkdir %s" % config['annex_local'])
+		
+		this_dir = os.getcwd()
+		os.chdir(config['annex_local'])
 
-	with settings(warn_only=True):
-		local("git init")
-		local("git config annex.genmetadata true")
-		local("%s init unveillance_local" % git_annex_dir)
-		local("%s untrust web" % git_annex_dir)
-		local("%s direct" % git_annex_dir)
+		with settings(warn_only=True):
+			local("git init")
+			local("git config annex.genmetadata true")
+			local("%s init unveillance_local" % git_annex_dir)
+			local("%s untrust web" % git_annex_dir)
+			local("%s direct" % git_annex_dir)
 
 	os.chdir(this_dir)
 	
