@@ -151,7 +151,8 @@ class UnveillanceAPI():
 				if entry is not None:
 					p = UnveillanceFabricProcess(netcat, {
 						'file' : entry[0],
-						'save_as' : entry[1]
+						'save_as' : entry[1],
+						'importer_source' : "google_drive"
 					})
 					p.join()
 		
