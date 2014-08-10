@@ -339,7 +339,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	
 	def startup(self, openurl=False):
 		self.checkForAdminParty()
-		UnveillanceFSEHandler.__init__(self, ANNEX_DIR)
+		UnveillanceFSEHandler.__init__(self)
 
 		p = Process(target=self.startRESTAPI)
 		p.start()

@@ -6,8 +6,10 @@ from fabric.api import *
 
 from conf import DEBUG, SERVER_HOST, getSecrets
 
-def netcat(file, save_as=None, for_local_use_only=False, importer_source="frontend"):
+def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 	whoami = "unknown"
+	if importer_source is None: importer_source = "unknown"
+
 	this_dir = os.getcwd()
 	op_dir = this_dir
 
@@ -24,12 +26,10 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source="fronte
 		"git annex metadata %s --set=imported_by=%s" % (save_as, whoami)
 	]
 	
-	if for_local_use_only: 
-		upload_restriction = UPLOAD_RESTRICTION['for_local_use_only']
-	else:
-		upload_restriction = UPLOAD_RESTRICTION['no_restriction']
+	if for_local_use_only:
+		cmd.append("git annex metadata %s --set=uv_local_only=True" % save_as)
 	
-	cmd.append(".git/hooks/uv-post-netcat \"%s\" %d" % (save_as, upload_restriction))
+	cmd.append(".git/hooks/uv-post-netcat \"%s\"" % save_as)
 	
 	if SERVER_HOST != "127.0.0.1":
 		with settings(warn_only=True):

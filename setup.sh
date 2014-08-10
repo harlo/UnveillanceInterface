@@ -22,5 +22,5 @@ chmod 0400 conf/local.config.yaml
 
 if $LAUNCH_FRONTEND; then
 	chmod 0400 conf/unveillance.secrets.json
-	python unveillance_frontend.py -firstuse -webapp
+	python unveillance_frontend.py -firstuse
 fi

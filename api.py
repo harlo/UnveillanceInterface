@@ -2,15 +2,13 @@ import os, requests, json, re, copy, urllib
 from subprocess import Popen, PIPE
 from time import sleep
 from itertools import chain
+from cStringIO import StringIO
 
 from Models.uv_annex_client import UnveillanceAnnexClient
-from Models.uv_fabric_process import UnveillanceFabricProcess
-from Utils.fab_api import netcat
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 
 from conf import BASE_DIR, buildServerURL, DEBUG, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
-
 from vars import FILE_NON_OVERWRITES, USER_CREDENTIAL_PACK, UnveillanceCookie, MIME_TYPE_TASK_REQUIREMENTS
 
 class UnveillanceAPI():
@@ -67,41 +65,37 @@ class UnveillanceAPI():
 				
 		if views != 0: return views
 		else: return None
-	
-	def do_link_annex(self, handler):
-		status = self.do_get_status(handler)
-		if status != 3: return None
-		
-		if DEBUG:
-			print "LINKING ANNEX (stock context)"
-			print handler.request
-		
-		return None
 
 	def do_web_upload(self, handler):
 		if DEBUG: print "uploading a file from the web interface!"
 		status = self.do_get_status(handler)
 
 		if status not in PERMISSIONS['upload_local']: return None
-		
+
 		save_as = "file_name"
 		print handler.body
+
+		try:
+			entry = StringIO()
+			entry.write(handler.body)
+		except Exception as e:
+			print "COULD NOT CREATE FILE FROM BLOB"
+			print e
+			return None
+
+		netcat_stub = {
+			'save_as' : save_as,
+			'file' : entry,
+			'importer_source' : "web_frontend"
+		}
 
 		if status not in PERMISSIONS['upload_global']:
 			# add this filename to the restricted list in handler
 			if DEBUG: print "SINCE STATUS == %d, this file will be restricted locally" % status
-			self.set_restricted_in_observer(save_as)
+			netcat_stub['for_local_use_only'] = True
 
-		# download the body into ANNEX_DIR?
-		
-
-		'''
-		with open(os.path.join(ANNEX_DIR, save_as), 'wb+') as web_upload:
-			web_upload.write(handler.body)
-			return True
-		'''
-
-		return False
+		self.addToNetcatQueue(netcat_stub)
+		return [{ 'file_name' : save_as }]
 	
 	def do_open_drive_file(self, handler):
 		if DEBUG: print "opening this drive file in unveillance annex"
@@ -149,18 +143,13 @@ class UnveillanceAPI():
 					save_as=file_name, save=False, return_content=True)
 
 				if entry is not None:
-					p = UnveillanceFabricProcess(netcat, {
+					self.addToNetcatQueue({
 						'file' : entry[0],
 						'save_as' : entry[1],
 						'importer_source' : "google_drive"
 					})
-					p.join()
-		
-					if p.output is not None:
-						if DEBUG: print p.output
-						handled_file = { 'file_name' : entry[1] }
-				
-					if DEBUG and p.error is not None: print p.error
+
+					handled_file = { 'file_name' : entry[1] }
 			
 			if handled_file is not None:
 				if files is None: files = []
