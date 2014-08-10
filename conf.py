@@ -6,6 +6,11 @@ CONF_ROOT = os.path.join(BASE_DIR, "conf")
 MONITOR_ROOT = os.path.join(BASE_DIR, ".monitor")
 USER_ROOT = os.path.join(BASE_DIR, ".users")
 
+PERMISSIONS = {
+	'upload_local' : [],
+	'upload_global' : []
+}
+
 def buildServerURL(port=None):
 	protocol = "http"
 	if SERVER_USE_SSL: protocol += "s"

@@ -80,16 +80,28 @@ class UnveillanceAPI():
 
 	def do_web_upload(self, handler):
 		if DEBUG: print "uploading a file from the web interface!"
-		# TODO: please check xsrf shit or whatever (token)
 		status = self.do_get_status(handler)
-		if status == 0: return None
 
-		if status == 1:
+		if status not in PERMISSIONS['upload_local']: return None
+		
+		save_as = "file_name"
+		print handler.body
+
+		if status not in PERMISSIONS['upload_global']:
 			# add this filename to the restricted list in handler
-			if DEBUG: print "SINCE STATUS == 1, this file will be restricted locally"
+			if DEBUG: print "SINCE STATUS == %d, this file will be restricted locally" % status
+			self.set_restricted_in_observer(save_as)
 
 		# download the body into ANNEX_DIR?
-		return None
+		
+
+		'''
+		with open(os.path.join(ANNEX_DIR, save_as), 'wb+') as web_upload:
+			web_upload.write(handler.body)
+			return True
+		'''
+
+		return False
 	
 	def do_open_drive_file(self, handler):
 		if DEBUG: print "opening this drive file in unveillance annex"

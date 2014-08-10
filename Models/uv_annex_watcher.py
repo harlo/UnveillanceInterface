@@ -68,7 +68,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			else:
 				if DEBUG: print p.error
 
-			local("%s metadata --tag uv_uploaded_%s %s" % (getConfig('git_annex_dir'), str(success_tag), filename))
+			local("%s metadata %s --json --set=uv_uploaded=%s" % (getConfig('git_annex_dir'), filename, str(success_tag)))
 	
 		os.chdir(this_dir)
 
