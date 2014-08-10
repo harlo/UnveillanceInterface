@@ -6,7 +6,7 @@ from fabric.api import settings, local
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, getConfig
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, getConfig
 
 try:
 	from Models.uv_fabric_process import UnveillanceFabricProcess
@@ -21,15 +21,22 @@ except ImportError as e:
 	from lib.Frontend.Utils.fab_api import netcat
 
 class UnveillanceFSEHandler(FileSystemEventHandler):
-	def __init__(self, path):
-		self.path = path
-		self.observer = Observer()
+	def __init__(self):
+		self.watcher_pid_file = os.path.join(MONITOR_ROOT, "watcher.pid.txt")
+		self.watcher_log_file = os.path.join(MONITOR_ROOT, "watcher.log.txt")
+
+		self.annex_observer = Observer()
+		self.restricted_list = []
 
 		FileSystemEventHandler.__init__(self)
 
+	def set_restricted_in_observer(self, filename):
+		if filename not in self.restricted_list:
+			self.restricted_list.append(filename)
+
 	def on_created(self, event):
 		if event.event_type != "created" : return
-		if re.match(re.compile("%s/.*" % os.path.join(self.path, ".git")), event.src_path) is not None: return
+		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		if DEBUG: print "NEW EVENT:\ntype: %s\nis dir: %s\npath: %s\n" % (event.event_type, event.is_directory, event.src_path)
 
@@ -42,10 +49,15 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			local("%s add %s" % (getConfig('git_annex_dir'), filename))
 			success_tag = False
 
-			p = UnveillanceFabricProcess(netcat, {
+			netcat_stub = {
 				'file' : event.src_path,
 				'save_as' : filename
-			})
+			}
+
+			if filename in self.restricted_list:
+				netcat_stub['for_local_use_only'] = True
+
+			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
 
 			if p.output is not None:
@@ -60,14 +72,17 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 	
 		os.chdir(this_dir)
 
-	def start(self):
-		self.observer.schedule(self, self.path, recursive=True)
-		print "STARTING OBSERVER on %s" % self.path
-		self.observer.start()
+	def startAnnexObserver(self):
+		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
+		print "STARTING OBSERVER on %s" % ANNEX_DIR
+		self.annex_observer.start()
 
+		startDaemon(self.watcher_log_file, self.watcher_pid_file)
 		while True: sleep(1)
 
-	def stop(self):
+	def stopAnnexObserver(self):
 		print "STOPPING OBSERVER"
-		self.observer.stop()
-		self.observer.join()
+		self.annex_observer.stop()
+		self.annex_observer.join()
+
+		stopDaemon(self.watcher_pid_file)

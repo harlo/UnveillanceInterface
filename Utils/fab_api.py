@@ -6,7 +6,7 @@ from fabric.api import *
 
 from conf import DEBUG, SERVER_HOST, getSecrets
 
-def netcat(file, save_as=None, remote_path=None):
+def netcat(file, save_as=None, for_local_use_only=False, importer_source="frontend"):
 	whoami = "unknown"
 	with settings(warn_only=True):
 		whoami = local("whoami", capture=True)
@@ -17,52 +17,48 @@ def netcat(file, save_as=None, remote_path=None):
 		if save_as is None: save_as = os.path.basename(file)
 	else:
 		if save_as is None: save_as = "uv_document_%d" % time()
-		
-	cmd = ".git/hooks/uv-post-netcat \"%s\"" % save_as
-	print cmd
-	
-	if SERVER_HOST != "127.0.0.1":
-		'''
-			from fabric.network import HostConnectionCache, ssh
-			
-			try:
-				connections = HostConnectionCache()
-				con = connections[env.host_string].get_transport().open_session()
-			except ssh.SSHException as e:
-				if DEBUG: print "ssh connection error: %s" % e
-				connections[env.host_string].close()
-				del connections[env.host_string]
-				con = connections[env.host_string].get_transport().open_session()
-		'''
-		
-		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", '')]
-		#env.password = getSecrets('ssh_key_pwd')
 
-		# TODO: port if not 22?
+	cmd = [
+		"git annex metadata %s --set=importer_source=%s" % (save_as, importer_source),
+		"git annex metadata %s --set=imported_by=%s" % (save_as, whoami)
+	]
 	
-		annex_base = getSecrets('annex_remote')
+	if for_local_use_only: 
+		upload_restriction = UPLOAD_RESTRICTION['for_local_use_only']
+	else:
+		upload_restriction = UPLOAD_RESTRICTION['no_restriction']
 	
-		if remote_path is None:
-			remote_path = annex_base
+	cmd.append(".git/hooks/uv-post-netcat \"%s\" %d" % (save_as, upload_restriction))
+	
+	if SERVER_HOST != "127.0.0.1":	
+		cmd.insert(0, "scp -i %s %s:%s/%s" % (
+			getSecrets('ssh_key_pub').replace(".pub", ""),
+			env.host_string, getSecrets('annex_remote'), save_as))
+
+		cmd[-1] = "ssh -f -i %s %s 'cd %s && %s'" % (
+			getSecrets('ssh_key_pub').replace(".pub", ""),
+			env.host_string, getSecrets('annex_remote'), cmd[-1])
+		
+		for c in cmd:
+			with settings(warn_only=True):
+				res = local(c, capture=True)
+				if DEBUG: print "AFTER SECOND RUN:\n%s" % res
+	else:
+		if type(file) is str:
+			cmd.insert(0, "cp %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)))				
 		else:
-			remote_path = os.path.join(annex_base, remote_path)
-		
-		with settings(warn_only=True):
-			res = put(file, os.path.join(remote_path, save_as))
-			if DEBUG: 
-				print "FOR BETTER OR WORSE:\n%s" % res
-		
-		with settings(warn_only=True):
-			with cd(annex_base):
-				res = run(cmd)
-				if DEBUG:
-					print "AFTER SECOND RUN:\n%s" % res
-	else:				
+			with open(os.path.join(getSecrets('annex_remote'), save_as), 'wb+') as F:
+				F.write(file)
+
 		this_dir = os.getcwd()
-		with settings(warn_only=True):
-			os.chdir(getSecrets('annex_local'))
-			res = local(cmd)
-			os.chdir(this_dir)
+		os.chdir(getSecrets('annex_remote'))
+
+		for c in cmd:
+			with settings(warn_only=True):
+				res = local(cmd, capture=True)
+				if DEBUG: print "AFTER SECOND RUN:\n%s" % res
+
+		os.chdir(this_dir)
 			
 	if DEBUG:
 		print "*************\n\n%s\n\n*************" % res

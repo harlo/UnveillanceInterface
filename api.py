@@ -77,6 +77,19 @@ class UnveillanceAPI():
 			print handler.request
 		
 		return None
+
+	def do_web_upload(self, handler):
+		if DEBUG: print "uploading a file from the web interface!"
+		# TODO: please check xsrf shit or whatever (token)
+		status = self.do_get_status(handler)
+		if status == 0: return None
+
+		if status == 1:
+			# add this filename to the restricted list in handler
+			if DEBUG: print "SINCE STATUS == 1, this file will be restricted locally"
+
+		# download the body into ANNEX_DIR?
+		return None
 	
 	def do_open_drive_file(self, handler):
 		if DEBUG: print "opening this drive file in unveillance annex"
