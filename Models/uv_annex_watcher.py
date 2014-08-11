@@ -6,7 +6,7 @@ from fabric.api import settings, local
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, getConfig
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig
 
 try:
 	from lib.Core.Utils.funcs import startDaemon, stopDaemon
@@ -45,12 +45,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		filename = event.src_path.split("/")[-1]
+		netcat_stub = None
 		
 		try:
 			netcat_stub = [ns for ns in self.netcat_queue if ns['save_as'] == filename][0]
 		except Exception as e: 
 			if DEBUG: print "NO NETCAT STUB FOUND FOR %s" % filename
-			return
 
 		if DEBUG: print "NEW EVENT:\ntype: %s\nis dir: %s\npath: %s\n" % (event.event_type, event.is_directory, event.src_path)
 
@@ -59,7 +59,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		with settings(warn_only=True):
 			# has this stub been uploaded?
-			is_absorbed = local("git annex metadata %s --json --get=uv_uploaded" % filename, capture=True)
+			is_absorbed = local("%s metadata %s --json --get=uv_uploaded" % (
+				GIT_ANNEX, filename), capture=True)
+
 			if DEBUG: print "%s absorbed? (uv_uploaded = %s)" % (filename, is_absorbed)
 
 			if is_absorbed == "":
@@ -70,9 +72,18 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if is_absorbed:
 			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (filename, is_absorbed)
 			return
+
+		if netcat_stub is None:
+			netcat_stub = {
+				'file' : event.src_path,
+				'save_as' : filename,
+				'importer_source' : "file_added"
+			}
+			
+			self.addToNetcatQueue(netcat_stub)
 		
 		with settings(warn_only=True):
-			local("git annex add %s" % filename)
+			local("%s add %s" % (GIT_ANNEX, filename))
 			success_tag = False				
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
@@ -87,7 +98,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			else:
 				if DEBUG: print p.error
 
-			local("git annex metadata %s --json --set=uv_uploaded=%s" % (filename, str(success_tag)))
+			local("%s metadata %s --json --set=uv_uploaded=%s" % (GIT_ANNEX, filename, str(success_tag)))
 
 		os.chdir(this_dir)
 		sleep(5)

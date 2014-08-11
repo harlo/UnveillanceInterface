@@ -10,6 +10,7 @@ unveillance_cookie = namedtuple("unveillance_cookie", "ADMIN USER PUBLIC")
 UnveillanceCookie = unveillance_cookie("uv_admin", "uv_user", "uv_public")
 
 FILE_NON_OVERWRITES = []
+IMPORTER_SOURCES = ["file_added"]
 
 USER_CREDENTIAL_PACK = {
 	"username" : "",

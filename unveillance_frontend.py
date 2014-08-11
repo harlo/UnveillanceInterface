@@ -13,8 +13,8 @@ from Models.uv_annex_watcher import UnveillanceFSEHandler
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
-from conf import MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from conf import DEBUG
+from conf import MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 
 def terminationHandler(signal, frame): exit(0)
 signal.signal(signal.SIGINT, terminationHandler)
@@ -383,13 +383,9 @@ if __name__ == "__main__":
 		openurl = True
 		arvg.pop()
 		
-	if len(argv) != 2: exit("Usage: unveillance_frontend.py [-start, -stop, -restart]")
+	if len(argv) != 2: exit("Usage: unveillance_frontend.py [-start, -stop]")
 	
 	if argv[1] == "-start" or argv[1] == "-firstuse":
 		unveillance_frontend.startup(openurl)
 	elif argv[1] == "-stop":
 		unveillance_frontend.shutdown()
-	elif argv[1] == "-restart":
-		unveillance_frontend.shutdown()
-		sleep(5)
-		unveillance_frontend.startup(openurl)

@@ -134,8 +134,7 @@ if __name__ == "__main__":
 
 	# init local repo
 	if git_annex_dir is not None:
-		git_annex_dir = os.path.join(git_annex_dir, "git-annex")
-		
+		GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")		
 		with settings(warn_only=True):
 			local("mkdir %s" % config['annex_local'])
 		
@@ -145,9 +144,9 @@ if __name__ == "__main__":
 		with settings(warn_only=True):
 			local("git init")
 			local("git config annex.genmetadata true")
-			local("%s init unveillance_local" % git_annex_dir)
-			local("%s untrust web" % git_annex_dir)
-			local("%s direct" % git_annex_dir)
+			local("%s init unveillance_local" % GIT_ANNEX)
+			local("%s untrust web" % GIT_ANNEX)
+			local("%s direct" % GIT_ANNEX)
 
 	os.chdir(this_dir)
 	
@@ -249,7 +248,7 @@ if __name__ == "__main__":
 	
 	with open(os.path.join(base_dir, "conf", "local.config.yaml"), 'ab') as LC:
 		try:
-			LC.write("git_annex_dir: %s\n" % os.path.join(git_annex_dir, "git-annex"))
+			LC.write("git_annex_dir: %s\n" % git_annex_dir)
 		except NameError as e: pass
 
 		LC.write("encryption.iv: %s\n" % generateSecureRandom())

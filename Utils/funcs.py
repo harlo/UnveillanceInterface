@@ -1,6 +1,7 @@
-import yaml, os, json, copy
+import yaml, os, json, copy, re
 from base64 import b64encode, b64decode
 from Crypto.Cipher import AES
+from fabric.api import settings, local
 
 from conf import CONF_ROOT, USER_ROOT, getConfig, DEBUG
 from vars import USER_CREDENTIAL_PACK, UnveillanceCookie
@@ -10,6 +11,31 @@ try:
 except Exception as e:
 	if DEBUG: print e
 	from lib.Frontend.lib.Core.Utils.funcs import generateMD5Hash, generateSecureRandom
+
+def forceQuitUnveillance(target=None):
+	if target is None:
+		target = "unveillance_frontend"
+
+	with settings(warn_only=True):
+		whoami = local("whoami", capture=True)
+		kill_list = local("ps -ef | grep %s.py" % target, capture=True)
+
+		for k in kill_list.splitlines():
+			if re.match(".*\d{2}:\d{2}:\d{2}\s/bin/sh", k) is not None: continue
+			if re.match(".*\d{2}:\d{2}:\d{2}\sgrep", k) is not None: continue
+			if re.match(".*\d{2}:\d{2}:\d{2}\spython\sshutdown.py", k) is not None: continue
+
+			pid = re.findall(re.compile("\d{4}|%s|%s\+\s+(\d{3,6})\s+.*" % (whoami, whoami[:7])), k)
+			print pid
+
+			if len(pid) == 1:
+				try:
+					pid = int(pid[0])
+				except Exception as e:
+					print "ERROR: %s" % e
+					continue
+
+				with settings(warn_only=True): local("kill -9 %d" % pid)
 
 def encryptUserData(plaintext, password, iv=None, p_salt=None):
 	if p_salt is not None:

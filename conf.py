@@ -73,6 +73,10 @@ with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 API_PORT = getConfig('api.port')
 
 try:
+	GIT_ANNEX = os.path.join(getConfig('git_annex_dir'), "git-annex")
+except Exception as e: pass
+
+try:
 	with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
 		config = json.loads(C.read())
 	
