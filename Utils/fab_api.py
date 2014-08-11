@@ -9,9 +9,7 @@ from vars import IMPORTER_SOURCES
 
 def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 	whoami = "unknown"
-	if importer_source is None: importer_source = "unknown"
-
-	if importer_source not in IMPORTER_SOURCES: return None
+	if importer_source is None or importer_source not in IMPORTER_SOURCES: return None
 
 	this_dir = os.getcwd()
 	op_dir = this_dir
@@ -46,6 +44,7 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 		if type(file) is str:
 			with settings(warn_only=True):
 				res = local("cp %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)), capture=True)				
+				print res
 		else:
 			with open(os.path.join(getSecrets('annex_remote'), save_as), 'wb+') as F:
 				F.write(file)

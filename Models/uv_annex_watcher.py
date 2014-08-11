@@ -71,6 +71,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		if is_absorbed:
 			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (filename, is_absorbed)
+			os.chdir(this_dir)
 			return
 
 		if netcat_stub is None:
@@ -79,7 +80,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				'save_as' : filename,
 				'importer_source' : "file_added"
 			}
-			
+
 			self.addToNetcatQueue(netcat_stub)
 		
 		with settings(warn_only=True):
