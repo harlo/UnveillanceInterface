@@ -197,6 +197,10 @@ if __name__ == "__main__":
 				config['ssh_key_pwd']))
 			'''
 			local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
+
+		with settings(warn_only=True):
+			# copy public key into annex local
+			local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
 		
 		if 'server_user' not in config.keys():
 			config['server_user'] = prompt("What user name should SSH use? : ")
@@ -208,12 +212,20 @@ if __name__ == "__main__":
 		if type(config['annex_remote_port']) is not int:
 			if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
 		
+		print "*************** ATTENTION ******************"
+		
 		if gdrive_auth and 'annex_admin_email' not in config.keys():
-			print "We will now attempt to send your public key to the Annex server admin."
+			print "When you first log in, we will attempt to send your public key to the Annex server admin."
 			print "You will not be able to add documents to the Annex until it has been"
 			print "received by the admin, and properly installed onto the server."
 			
 			config['annex_admin_email'] = prompt("Admin's email address:")
+		else:
+			print "Your public key needs to be sent to the Annex's administrator before you can upload anything."
+			print "Your public key is in your local Unveillance folder (%s)." % config['annex_local']
+			print "How you send this key is up to you!"
+		
+		print "*********************************"
 	
 	if 'server_use_ssl' not in config.keys():
 		print "Does the Annex server use ssl? (y or n)"
