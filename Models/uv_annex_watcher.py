@@ -9,10 +9,10 @@ from watchdog.events import FileSystemEventHandler
 from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig
 
 try:
-	from lib.Core.Utils.funcs import startDaemon, stopDaemon
+	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash
 except ImportError as e:
 	if DEBUG: print e
-	from lib.Frontend.lib.Core.Utils.funcs import startDaemon, stopDaemon
+	from lib.Frontend.lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash
 
 try:
 	from Models.uv_fabric_process import UnveillanceFabricProcess
@@ -66,7 +66,23 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			return
 
 		with settings(warn_only=True):
-			local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
+			new_save_as = generateMD5Hash(content=netcat_stub['save_as'], salt=local("whoami", capture=True))
+		
+		print "NETCAT FILE TYPE: %s" % type(netcat_stub['file'])
+
+		if type(netcat_stub['file']) in [str, unicode]:
+			new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
+			with settings(warn_only=True):
+				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
+
+			netcat_stub['file'] = new_file
+
+		netcat_stub['save_as'] = new_save_as
+
+		with settings(warn_only=True):
+			if type(netcat_stub['file']) in [str, unicode]:
+				local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
+			
 			success_tag = False				
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
@@ -80,8 +96,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				print "ERROR:"
 				print p.error
 
-			local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
-				GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
+			if type(netcat_stub['file']) in [str, unicode]:
+				local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
+					GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
 
 			if success_tag: self.netcat_queue.remove(netcat_stub)
 
@@ -92,23 +109,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if event.event_type != "created" : return
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
-		filename = sanitized_name = event.src_path.split("/")[-1]
-		sanitized_path = event.src_path
+		filename = event.src_path.split("/")[-1]
 		netcat_stub = None
 
-		# TODO: replace special chars because we caaaaaaaan't even
-		for sp in [" ", "(", ")", "%", "&", ","]:
-			sanitized_name = sanitized_name.replace(sp, "_")
-
-		if DEBUG: print "PERHAPS %s SHOULD BE REPLACED WITH %s" % (filename, sanitized_name)
-
-		if filename != sanitized_name:
-			sanitized_path = event.src_path.replace(filename, sanitized_name)
-			with settings(warn_only=True):
-				local("mv \"%s\" %s" % (event.src_path, sanitized_path))
-
-			filename = sanitized_name
-		
 		try:
 			netcat_stub = [ns for ns in self.netcat_queue if ns['save_as'] == filename][0]
 		except Exception as e: 
@@ -118,7 +121,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		if netcat_stub is None:
 			netcat_stub = {
-				'file' : sanitized_path,
+				'file' : event.src_path,
 				'save_as' : filename,
 				'importer_source' : "file_added"
 			}
