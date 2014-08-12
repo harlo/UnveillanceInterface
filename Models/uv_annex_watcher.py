@@ -36,9 +36,57 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		FileSystemEventHandler.__init__(self)
 
-	def addToNetcatQueue(self, netcat_stub):
+	def addToNetcatQueue(self, netcat_stub, send_now=True):
 		if netcat_stub['save_as'] not in [ns['save_as'] for ns in self.netcat_queue]:
 			self.netcat_queue.append(netcat_stub)
+
+			if(send_now): self.uploadToAnnex(netcat_stub)
+
+	def uploadToAnnex(self, netcat_stub):
+		this_dir = os.getcwd()
+		os.chdir(ANNEX_DIR)
+
+		with settings(warn_only=True):
+			# has this stub been uploaded?
+			is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
+				GIT_ANNEX, netcat_stub['save_as']), capture=True)
+
+			if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
+				netcat_stub['save_as'], is_absorbed, type(is_absorbed))
+
+			if is_absorbed == "" or "False": is_absorbed = False
+			elif is_absorbed == "True": is_absorbed = True
+			else: is_absorbed = False
+
+		if is_absorbed:
+			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (
+				netcat_stub['save_as'], is_absorbed)
+			
+			os.chdir(this_dir)
+			return
+
+		with settings(warn_only=True):
+			local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
+			success_tag = False				
+
+			p = UnveillanceFabricProcess(netcat, netcat_stub)
+			p.join()
+
+			if p.error is None and p.output is not None: success_tag = True
+
+			if DEBUG: print "NETCAT RESULT: %s (type=%s, success=%s)" % (p.output, type(p.output), success_tag)
+			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
+			if p.error is not None and DEBUG:
+				print "ERROR:"
+				print p.error
+
+			local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
+				GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
+
+			if success_tag: self.netcat_queue.remove(netcat_stub)
+
+		os.chdir(this_dir)
+
 
 	def on_created(self, event):
 		if event.event_type != "created" : return
@@ -54,24 +102,6 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		if DEBUG: print "NEW EVENT:\ntype: %s\nis dir: %s\npath: %s\n" % (event.event_type, event.is_directory, event.src_path)
 
-		this_dir = os.getcwd()
-		os.chdir(ANNEX_DIR)
-
-		with settings(warn_only=True):
-			# has this stub been uploaded?
-			is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
-				GIT_ANNEX, filename), capture=True)
-
-			if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (filename, is_absorbed, type(is_absorbed))
-
-			if is_absorbed == "" or "False": is_absorbed = False
-			else: is_absorbed = True
-
-		if is_absorbed:
-			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (filename, is_absorbed)
-			os.chdir(this_dir)
-			return
-
 		if netcat_stub is None:
 			netcat_stub = {
 				'file' : event.src_path,
@@ -80,27 +110,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			}
 
 			self.addToNetcatQueue(netcat_stub)
-		
-		with settings(warn_only=True):
-			local("%s add %s" % (GIT_ANNEX, filename))
-			success_tag = False				
 
-			p = UnveillanceFabricProcess(netcat, netcat_stub)
-			p.join()
-
-			if p.error is None and p.output is not None:
-				success_tag = True
-				self.netcat_queue.remove(netcat_stub)
-
-			if DEBUG: print "NETCAT RESULT: %s (type=%s, success=%s)" % (p.output, type(p.output), success_tag)
-			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
-			if p.error is not None and DEBUG:
-				print "ERROR:"
-				print p.error
-
-			local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (GIT_ANNEX, filename, str(success_tag)))
-
-		os.chdir(this_dir)
 		sleep(5)
 
 	def startAnnexObserver(self):

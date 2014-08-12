@@ -8,7 +8,7 @@ from Models.uv_annex_client import UnveillanceAnnexClient
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import parseRequestEntity, generateMD5Hash
 
-from conf import BASE_DIR, buildServerURL, DEBUG, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
+from conf import PERMISSIONS, BASE_DIR, buildServerURL, DEBUG, SERVER_HOST, CONF_ROOT, getConfig, getSecrets, USER_ROOT
 from vars import FILE_NON_OVERWRITES, USER_CREDENTIAL_PACK, UnveillanceCookie, MIME_TYPE_TASK_REQUIREMENTS
 
 class UnveillanceAPI():
@@ -66,21 +66,18 @@ class UnveillanceAPI():
 		if views != 0: return views
 		else: return None
 
-	def do_web_upload(self, handler):
+	def do_import(self, handler):
 		if DEBUG: print "uploading a file from the web interface!"
 		status = self.do_get_status(handler)
 
 		if status not in PERMISSIONS['upload_local']: return None
 
-		save_as = "file_name"
-		print handler.body
-
+		save_as = handler.request.files.keys()[0]
 		try:
 			entry = StringIO()
-			entry.write(handler.body)
+			entry.write(handler.request.body)
 		except Exception as e:
-			print "COULD NOT CREATE FILE FROM BLOB"
-			print e
+			if DEBUG: print "COULD NOT CREATE FILE FROM BLOB %s" % e
 			return None
 
 		netcat_stub = {
@@ -95,6 +92,7 @@ class UnveillanceAPI():
 			netcat_stub['for_local_use_only'] = True
 
 		self.addToNetcatQueue(netcat_stub)
+		
 		return [{ 'file_name' : save_as }]
 	
 	def do_open_drive_file(self, handler):

@@ -36,12 +36,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			"/web/js/models/unveillance_document.js"
 		]
 		self.on_loads_by_status = [[] for i in range(4)]
-		self.on_loads = {
-			'collaboration' : [
-				"/web/js/lib/sammy.js",
-				"/web/js/modules/collaboration.js"
-			]
-		}
+		self.on_loads = {}
 		
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 		self.init_vars = {
@@ -261,6 +256,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 		@tornado.web.asynchronous
 		def post(self, route):
+			print "GETTING A ROUTE %s" % route
 			res = Result()
 		
 			if route is not None:
@@ -360,6 +356,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		if DEBUG: print "Starting REST API on port %d" % API_PORT
 				
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
+		if DEBUG: print "RESERVED ROUTES: %s" % rr_group
+		
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
 		tornado.web.Application.__init__(self, self.routes,
 			**{'cookie_secret' : UV_COOKIE_SECRET })
