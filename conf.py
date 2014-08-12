@@ -16,7 +16,12 @@ def buildServerURL(port=None):
 	if SERVER_USE_SSL: protocol += "s"
 	if port is None: port = SERVER_PORT
 	
-	return "%s://%s:%d" % (protocol, SERVER_HOST, port)
+	server_url = "%s://%s" % (protocol, SERVER_HOST)
+	
+	if port in [80, 443]:
+		return server_url
+	else:
+		return "%s:%d" % (server_url, port)
 
 def getConfig(key):
 	val = None

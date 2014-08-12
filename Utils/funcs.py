@@ -17,17 +17,14 @@ def forceQuitUnveillance(target=None):
 		target = "unveillance_frontend"
 
 	with settings(warn_only=True):
-		whoami = local("whoami", capture=True)
 		kill_list = local("ps -ef | grep %s.py" % target, capture=True)
 
-		for k in kill_list.splitlines():
-			if re.match(".*\d{2}:\d{2}:\d{2}\s/bin/sh", k) is not None: continue
-			if re.match(".*\d{2}:\d{2}:\d{2}\sgrep", k) is not None: continue
-			if re.match(".*\d{2}:\d{2}:\d{2}\spython\sshutdown.py", k) is not None: continue
+		for k in [k.strip() for k in kill_list.splitlines()]:
+			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+/bin/sh", k) is not None: continue
+			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+grep", k) is not None: continue
+			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+.*[Pp]ython\sshutdown.py", k) is not None: continue
 
-			pid = re.findall(re.compile("\d{4}|%s|%s\+\s+(\d{3,6})\s+.*" % (whoami, whoami[:7])), k)
-			print pid
-
+			pid = re.findall(r"(?:\d{3,4}|\w{1,8})\s+(\d{4,6})", k)			
 			if len(pid) == 1:
 				try:
 					pid = int(pid[0])

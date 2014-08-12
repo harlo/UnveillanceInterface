@@ -364,11 +364,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		tornado.web.Application.__init__(self, self.routes,
 			**{'cookie_secret' : UV_COOKIE_SECRET })
 		
+		startDaemon(self.api_log_file, self.api_pid_file)
+		
 		server = tornado.httpserver.HTTPServer(self)
 		server.bind(API_PORT)
 		server.start(NUM_PROCESSES)
 		
-		startDaemon(self.api_log_file, self.api_pid_file)
 		tornado.ioloop.IOLoop.instance().start()
 	
 	def stopRESTAPI(self):
