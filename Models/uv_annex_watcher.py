@@ -92,8 +92,22 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if event.event_type != "created" : return
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
-		filename = event.src_path.split("/")[-1]
+		filename = sanitized_name = event.src_path.split("/")[-1]
+		sanitized_path = event.src_path
 		netcat_stub = None
+
+		# TODO: replace special chars because we caaaaaaaan't even
+		for sp in [" ", "(", ")", "%", "&", ","]:
+			sanitized_name = sanitized_name.replace(sp, "_")
+
+		if DEBUG: print "PERHAPS %s SHOULD BE REPLACED WITH %s" % (filename, sanitized_name)
+
+		if filename != sanitized_name:
+			sanitized_path = event.src_path.replace(filename, sanitized_name)
+			with settings(warn_only=True):
+				local("mv \"%s\" %s" % (event.src_path, sanitized_path))
+
+			filename = sanitized_name
 		
 		try:
 			netcat_stub = [ns for ns in self.netcat_queue if ns['save_as'] == filename][0]
@@ -104,7 +118,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		if netcat_stub is None:
 			netcat_stub = {
-				'file' : event.src_path,
+				'file' : sanitized_path,
 				'save_as' : filename,
 				'importer_source' : "file_added"
 			}
