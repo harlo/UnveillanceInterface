@@ -17,18 +17,19 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 	with settings(warn_only=True):
 		whoami = local("whoami", capture=True)
 	
+	res = []
 	if type(file) is str:
 		if save_as is None: save_as = os.path.basename(file)
 	else:
 		if save_as is None: save_as = "uv_document_%d" % time()
 
 	cmd = [
-		"git-annex metadata %s --set=importer_source=%s" % (save_as, importer_source),
-		"git-annex metadata %s --set=imported_by=%s" % (save_as, whoami)
+		"git-annex metadata \"%s\" --set=importer_source=%s" % (save_as, importer_source),
+		"git-annex metadata \"%s\" --set=imported_by=%s" % (save_as, whoami)
 	]
 	
 	if for_local_use_only:
-		cmd.append("git-annex metadata %s --set=uv_local_only=True" % save_as)
+		cmd.append("git-annex metadata \"%s\" --set=uv_local_only=True" % save_as)
 	
 	cmd.append(".git/hooks/uv-post-netcat \"%s\"" % save_as)
 	
@@ -36,15 +37,21 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]
 
 		with settings(warn_only=True):
-			res = put(file, os.path.join(getSecrets('annex_remote'), save_as))
-			print res
+			put_file = os.path.join(getSecrets('annex_remote'), save_as)
+			put_cmd = put(file, put_file)
+			
+			if DEBUG: print put_cmd
+
+			if len(put_cmd) == 0 or put_cmd[0] != put_file:
+				return None
+
+			res.append(put_cmd)
 
 		cmd = ["ssh -f -i %s %s 'cd %s && source ~/.bash_profile && %s'" % (getSecrets('ssh_key_pub').replace(".pub", ""), env.host_string, getSecrets('annex_remote'), c) for c in cmd]
 	else:
 		if type(file) is str:
 			with settings(warn_only=True):
-				res = local("cp %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)), capture=True)				
-				print res
+				res.append(local("cp %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)), capture=True))			
 		else:
 			with open(os.path.join(getSecrets('annex_remote'), save_as), 'wb+') as F:
 				F.write(file)
@@ -57,16 +64,16 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 
 	os.chdir(op_dir)
 
+	if DEBUG: print "\n\nNOW LAUNCHING NETCAT COMMANDS (%d)" % len(cmd)	
 	for c in cmd:
-		with settings(warn_only=True):
-			res = local(cmd, capture=True)
-			if DEBUG: print "RESULT:\n%s" % res
+		if DEBUG: print "\n%s\n" % c
+		res.append(local(c, capture=True))
 
 	os.chdir(this_dir)
 			
 	if DEBUG:
 		print "*************\n\n%s\n\n*************" % res
-		print "returning"
+		print "returning from netcat."
 	
 	return res
 	

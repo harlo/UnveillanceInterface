@@ -25,9 +25,7 @@ class UnveillanceFabricProcess(threading.Thread):
 		self.args.update({
 			'hosts' : ["%s@%s%s" % (uv_user, hostname, port_prefix)]
 		})
-		
-		print self.args
-		
+				
 		if op_dir is not None:
 			self.return_dir = os.getcwd()
 			os.chdir(op_dir)
@@ -37,8 +35,10 @@ class UnveillanceFabricProcess(threading.Thread):
 	
 	def run(self):
 		try:
-			self.output = execute(self.func, **self.args)
-		except Exception as e:			
+			res = execute(self.func, **self.args)
+			self.output = res[res.keys()[0]]
+		except Exception as e:
+			if DEBUG: print "THERE WAS AN ERROR EXECUTING THIS THREAD"
 			self.error = e
 			
 		if hasattr(self, "return_dir"): os.chdir(self.return_dir)

@@ -59,15 +59,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		with settings(warn_only=True):
 			# has this stub been uploaded?
-			is_absorbed = local("%s metadata %s --json --get=uv_uploaded" % (
+			is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
 				GIT_ANNEX, filename), capture=True)
 
-			if DEBUG: print "%s absorbed? (uv_uploaded = %s)" % (filename, is_absorbed)
+			if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (filename, is_absorbed, type(is_absorbed))
 
-			if is_absorbed == "":
-				is_absorbed = False
-			else:
-				is_absorbed = bool(is_absorbed)
+			if is_absorbed == "" or "False": is_absorbed = False
+			else: is_absorbed = True
 
 		if is_absorbed:
 			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (filename, is_absorbed)
@@ -90,26 +88,28 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
 
-			if p.output is not None:
-				if DEBUG: print p.output
-
-			if p.error is None:
+			if p.error is None and p.output is not None:
 				success_tag = True
 				self.netcat_queue.remove(netcat_stub)
-			else:
-				if DEBUG: print p.error
 
-			local("%s metadata %s --json --set=uv_uploaded=%s" % (GIT_ANNEX, filename, str(success_tag)))
+			if DEBUG: print "NETCAT RESULT: %s (type=%s, success=%s)" % (p.output, type(p.output), success_tag)
+			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
+			if p.error is not None and DEBUG:
+				print "ERROR:"
+				print p.error
+
+			local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (GIT_ANNEX, filename, str(success_tag)))
 
 		os.chdir(this_dir)
 		sleep(5)
 
 	def startAnnexObserver(self):
-		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
 		print "STARTING OBSERVER on %s" % ANNEX_DIR
-		self.annex_observer.start()
 
 		startDaemon(self.watcher_log_file, self.watcher_pid_file)
+		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
+		self.annex_observer.start()
+		
 		while True: sleep(1)
 
 	def stopAnnexObserver(self):
