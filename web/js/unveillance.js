@@ -122,10 +122,9 @@ function translate(obj) {
 		});
 	});
 	
-	if(trans) { new_html = trans.enc(new_html); }
+	if(trans) { new_html = trans.enc(new_html, obj); }
 	
 	if($(obj).attr('repl')) {
-		console.info("OMG " + $(obj).attr('repl'));
 		new_html = $(obj).attr('repl') + new_html;
 	}
 

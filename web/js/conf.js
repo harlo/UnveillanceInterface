@@ -19,7 +19,7 @@ _.extend(UV, {
 	TRANSLATE_VALUES : [
 			{
 				keys: ["uv_date"],
-				enc: function(val) {
+				enc: function(val, obj) {
 					return moment(Number(val)).format("MM-DD-YYYY HH:mm");
 				},
 				dec: function(val) {
@@ -28,7 +28,7 @@ _.extend(UV, {
 			},
 			{
 				keys: ["uv_none_if_null"],
-				enc: function(val) {
+				enc: function(val, obj) {
 					if(val.length == 0) {
 						return "none";
 					}
@@ -38,7 +38,7 @@ _.extend(UV, {
 			},
 			{
 				keys: ["uv_unknown_if_null"],
-				enc: function(val) {
+				enc: function(val, obj) {
 					if(val.length == 0) {
 						return "unknown";
 					}
@@ -48,12 +48,22 @@ _.extend(UV, {
 			},
 			{
 				keys: ["uv_false_if_null"],
-				enc: function(val) {
+				enc: function(val, obj) {
 					if(val.length == 0) {
 						return "false";
 					}
 					
 					return val;
+				}
+			},
+			{
+				keys: ["uv_from_rel"],
+				enc: function(val, obj) {
+					if(_.contains(["", "undefined", "null"], $(obj).attr('rel'))) {
+						return val;
+					}
+
+					return $(obj).attr('rel');
 				}
 			}
 		],

@@ -7,7 +7,7 @@ from fabric.api import *
 from conf import DEBUG, SERVER_HOST, getSecrets
 from vars import IMPORTER_SOURCES
 
-def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
+def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_source=None):
 	whoami = "unknown"
 	if importer_source is None or importer_source not in IMPORTER_SOURCES: return None
 
@@ -24,14 +24,21 @@ def netcat(file, save_as=None, for_local_use_only=False, importer_source=None):
 		if save_as is None: save_as = "uv_document_%d" % time()
 
 	cmd = [
+		"git-annex add \"%s\"" % save_as,
 		"git-annex metadata \"%s\" --set=importer_source=%s" % (save_as, importer_source),
 		"git-annex metadata \"%s\" --set=imported_by=%s" % (save_as, whoami)
 	]
+
+	if alias is not None:
+		cmd.append("git-annex metadata \"%s\" --set=uv_file_alias=\"%s\"" % (save_as, alias))
 	
 	if for_local_use_only:
 		cmd.append("git-annex metadata \"%s\" --set=uv_local_only=True" % save_as)
 	
-	cmd.append(".git/hooks/uv-post-netcat \"%s\"" % save_as)
+	cmd.extend([
+		"git-annex sync",
+		".git/hooks/uv-post-netcat \"%s\"" % save_as
+	])
 	
 	if SERVER_HOST not in ["127.0.0.1", "localhost"]:
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]

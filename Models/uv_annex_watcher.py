@@ -72,11 +72,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		if type(netcat_stub['file']) in [str, unicode]:
 			new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
+
 			with settings(warn_only=True):
 				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
 
 			netcat_stub['file'] = new_file
 
+		netcat_stub['alias'] = netcat_stub['save_as']
 		netcat_stub['save_as'] = new_save_as
 
 		with settings(warn_only=True):
@@ -90,8 +92,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 			if p.error is None and p.output is not None: success_tag = True
 
-			if DEBUG: print "NETCAT RESULT: %s (type=%s, success=%s)" % (p.output, type(p.output), success_tag)
+			if DEBUG: print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
 			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
+
+			if DEBUG and p.output is not None:
+				for o in p.output: print "\n%s\n" % o
+
 			if p.error is not None and DEBUG:
 				print "ERROR:"
 				print p.error
