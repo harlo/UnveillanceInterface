@@ -82,6 +82,10 @@ try:
 except Exception as e: pass
 
 try:
+	PYTHON_HOME = getConfig('python_home')
+except Exception as e: pass
+
+try:
 	with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
 		config = json.loads(C.read())
 	

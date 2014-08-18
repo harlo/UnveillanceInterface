@@ -1,7 +1,9 @@
 import os, re
 from time import sleep
+from threading import Thread
 
 from fabric.api import settings, local
+from fabric.context_managers import hide
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -33,8 +35,43 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		self.annex_observer = Observer()
 		self.netcat_queue = []
+		self.cleanup_upload_lock = False
 
 		FileSystemEventHandler.__init__(self)
+
+	def cleanupUploads(self):
+		self.cleanup_upload_lock = True
+		if DEBUG: print "starting watcher cleanup cron job"
+
+		this_dir = os.getcwd()
+		os.chdir(ANNEX_DIR)
+
+		for _, _, files in os.walk(ANNEX_DIR):
+			for f in files:
+				with settings(hide('everything'), warn_only=True):
+					upload_attempt = local("%s metadata \"%s\" --json --get=uv_uploaded" % (GIT_ANNEX, f), capture=True)
+				
+				if upload_attempt == "": continue
+				
+				if upload_attempt == "False":
+					with settings(hide('everything'), warn_only=True):
+						never_upload = local("%s metadata \"%s\" -- json --get=uv_never_upload" % (GIT_ANNEX, f), capture=True)
+
+					if never_upload == "True": continue
+
+					file_alias = f
+					with settings(warn_only=True):
+						file_alias = local("%s metadata \"%s\" --json --get=uv_file_alias" % (GIT_ANNEX, f), capture=True)
+
+					addToNetcatQueue({
+						'save_as' : f,
+						'file' : os.path.join(ANNEX_DIR, f),
+						'alias' : file_alias
+					})
+
+		os.chdir(this_dir)
+		sleep(5 * 60)
+		self.cleanup_upload_lock = False
 
 	def addToNetcatQueue(self, netcat_stub, send_now=True):
 		if netcat_stub['save_as'] not in [ns['save_as'] for ns in self.netcat_queue]:
@@ -42,7 +79,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 			if(send_now): self.uploadToAnnex(netcat_stub)
 
-	def uploadToAnnex(self, netcat_stub):
+	def uploadToAnnex(self, netcat_stub, sanitize=True):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
@@ -70,16 +107,18 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		
 		print "NETCAT FILE TYPE: %s" % type(netcat_stub['file'])
 
-		if type(netcat_stub['file']) in [str, unicode]:
-			new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
+		if sanitize:
+			if type(netcat_stub['file']) in [str, unicode]:
+				new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
 
-			with settings(warn_only=True):
-				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
+				with settings(warn_only=True):
+					local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
+					local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
 
-			netcat_stub['file'] = new_file
+				netcat_stub['file'] = new_file
 
-		netcat_stub['alias'] = netcat_stub['save_as']
-		netcat_stub['save_as'] = new_save_as
+			netcat_stub['alias'] = netcat_stub['save_as']
+			netcat_stub['save_as'] = new_save_as
 
 		with settings(warn_only=True):
 			if type(netcat_stub['file']) in [str, unicode]:
@@ -109,7 +148,6 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			if success_tag: self.netcat_queue.remove(netcat_stub)
 
 		os.chdir(this_dir)
-
 
 	def on_created(self, event):
 		if event.event_type != "created" : return
@@ -143,7 +181,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
 		self.annex_observer.start()
 		
-		while True: sleep(1)
+		while True: 
+			sleep(1)
+
+			if not self.cleanup_upload_lock:
+				t = Thread(target=self.cleanupUploads) 
+				t.start()
 
 	def stopAnnexObserver(self):
 		print "STOPPING OBSERVER"

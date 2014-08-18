@@ -32,17 +32,18 @@ if __name__ == "__main__":
 		except Exception as e:
 			print e
 		
-	print "****************************"
+	print "\n****************************"
 	print "Hello.  Welcome to Unveillance Frontend setup."
 	admin_username = prompt("Choose a username:")
 	admin_pwd = prompt("Pick a good password:")
 
-	print "****************************"
+	print "****************************\n"
 
 	with settings(warn_only=True):
 		SYS_ARCH = local("uname -m", capture=True)
 	
 	if 'api.port' not in config.keys():
+		print "\n****************************"
 		print "What port should the frontend run on?"
 		config['api.port'] = prompt("[DEFAULT: 8888]")
 	
@@ -60,12 +61,15 @@ if __name__ == "__main__":
 	if 'auth_storage' in config.keys():
 		gdrive_auth = True
 	else:
-		print "Google Drive Authentication:"
-		print "If you want to to use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
-		print "You will be shown an authentication code that you must paste into this terminal when prompted."
-		print "Authenticate Google Drive? y or n"
-		
-		if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
+		if 'gdrive_auth_no_ask' not in config.keys() or not config['gdrive_auth_no_ask']:
+			print "\n****************************"
+			print "Google Drive Authentication:"
+			print "If you want to to use Google Drive to import documents into the Annex server, you must authenticate the application by visiting the URL below."
+			print "You will be shown an authentication code that you must paste into this terminal when prompted."
+			print "Authenticate Google Drive? y or n"
+			
+			if prompt("[DEFAULT: n]") == "y": gdrive_auth = True
+			else: print "****************************\n"
 	
 	if gdrive_auth:
 		config.update({
@@ -104,16 +108,22 @@ if __name__ == "__main__":
 			print "URL:\n\n%s\n" % flow.step1_get_authorize_url()
 			credentials = flow.step2_exchange(prompt("Code: "))
 			Storage(config['auth_storage']).put(credentials)
+
+		print "****************************\n"
 	
 	if 'server_host' not in config.keys():
+		print "\n****************************"
 		print "What is the Public IP/hostname of the Annex server?"
 		config['server_host'] = prompt("[DEFAULT: localhost] ")
 		
 		if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
+		print "****************************\n"
 	
 	if 'annex_local' not in config.keys():
+		print "\n****************************"
 		print "Where do you want your Unveillance folder?  The folder should not exist."
 		config['annex_local'] = prompt("[DEFAULT: ~/unveillance_local]")
+		print "****************************\n"
 
 	if len(config['annex_local']) == 0:
 		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
@@ -133,26 +143,14 @@ if __name__ == "__main__":
 		git_annex_dir = locateLibrary(r'git-annex\.*')
 
 	# init local repo
-	if git_annex_dir is not None:
-		GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")		
-		with settings(warn_only=True):
-			local("mkdir %s" % config['annex_local'])
-		
-		this_dir = os.getcwd()
-		os.chdir(config['annex_local'])
+	with settings(warn_only=True):
+		local("mkdir %s" % config['annex_local'])
 
-		with settings(warn_only=True):
-			local("git init")
-			local("git config annex.genmetadata true")
-			local("%s init unveillance_local" % GIT_ANNEX)
-			local("%s untrust web" % GIT_ANNEX)
-			local("%s direct" % GIT_ANNEX)
-
-	os.chdir(this_dir)
-	
 	if 'server_port' not in config.keys():
+		print "\n****************************"
 		print "What port is the Annex server on?"
 		config['server_port'] = prompt("[DEFAULT: 8889] ")
+		print "****************************\n"
 	
 	if type(config['server_port']) is not int:
 		if len(config['server_port']) == 0: 
@@ -165,8 +163,10 @@ if __name__ == "__main__":
 				config['server_port'] = 8889
 	
 	if 'annex_remote' not in config.keys():
+		print "\n****************************"
 		print "What is the path to the Annex's repository?"
 		config['annex_remote']  = prompt("[DEFAULT: ~/unveillance_remote]")
+		print "****************************\n"
 	
 	if len(config['annex_remote']) == 0:
 		if config['server_host'] in ["127.0.0.1", "localhost"]:
@@ -179,8 +179,10 @@ if __name__ == "__main__":
 		config['server_use_ssl'] = False
 	else:
 		if 'ssh_root' not in config.keys():
+			print "\n****************************"
 			print "Where is your ssh folder?"
 			config['ssh_root'] = prompt("[DEFAULT: ~/.ssh] ")
+			print "****************************\n"
 		
 		if len(config['ssh_root']) == 0:
 			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
@@ -197,17 +199,40 @@ if __name__ == "__main__":
 				config['ssh_key_pwd']))
 			'''
 			local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
+			print "****************************\n"
 
-		with settings(warn_only=True):
-			# copy public key into annex local
-			local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
+		if git_annex_dir is not None:
+			GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")
+			
+			this_dir = os.getcwd()
+			os.chdir(config['annex_local'])
+
+			with settings(warn_only=True):
+				local("git init")
+				local("git config annex.genmetadata true")
+				local("%s init unveillance_local" % GIT_ANNEX)
+				local("%s untrust web" % GIT_ANNEX)
+				local("%s direct" % GIT_ANNEX)
+				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
+				local("%s metadata %s --json --set=uv_never_upload=True" % (GIT_ANNEX, config['ssh_key_pub']))
+				local("%s add %s" % (GIT_ANNEX, config['ssh_key_pub']))
+
+			os.chdir(this_dir)
+		else:
+			with settings(warn_only=True):
+				# copy public key into annex local only
+				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
 		
 		if 'server_user' not in config.keys():
+			print "\n****************************"
 			config['server_user'] = prompt("What user name should SSH use? : ")
+			print "****************************\n"
 		
 		if 'annex_remote_port' not in config.keys():
+			print "\n****************************"
 			print "What port does the Annex server SSH to?"
 			config['annex_remote_port'] = prompt('[DEFAULT: 22]')
+			print "****************************\n"
 		
 		if type(config['annex_remote_port']) is not int:
 			if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
@@ -228,8 +253,10 @@ if __name__ == "__main__":
 		print "*********************************"
 	
 	if 'server_use_ssl' not in config.keys():
+		print "\n****************************"
 		print "Does the Annex server use ssl? (y or n)"
 		config['server_use_ssl'] = prompt("[DEFAULT: n] ")
+		print "****************************\n"
 	
 	if type(config['server_use_ssl']) is not bool:
 		if config['server_use_ssl'] == 'y':
@@ -238,7 +265,9 @@ if __name__ == "__main__":
 			config['server_use_ssl'] = False
 	
 	if 'uv_uuid' not in config.keys():
+		print "\n****************************"
 		config['uv_uuid'] = prompt("What is the Annex server's short name?")
+		print "****************************\n"
 			
 	config['web_cookie_secret'] = generateSecureNonce()
 	
@@ -268,7 +297,10 @@ if __name__ == "__main__":
 		LC.write("encryption.doc_salt: \"%s\"\n" % generateNonce())
 		LC.write("encryption.user_salt: \"%s\"\n" % generateNonce())
 		LC.write("api.port: %d\n" % config['api.port'])
-		LC.write("sys_arch: %s\n" % SYS_ARCH)	
+		LC.write("sys_arch: %s\n" % SYS_ARCH)
+
+		with settings(hide('everything'), warn_only=True):
+			LC.write("python_home: %s\n" % local("which python", capture=True))
 	
 	sleep(3)
 	from Utils.funcs import createNewUser
