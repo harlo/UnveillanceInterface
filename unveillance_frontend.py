@@ -6,15 +6,17 @@ from time import sleep, time
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
+
 from mako.template import Template
 
 from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
+
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
 
 from conf import DEBUG
-from conf import MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 
 def terminationHandler(signal, frame): exit(0)
 signal.signal(signal.SIGINT, terminationHandler)
@@ -24,7 +26,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
 		
-		self.reserved_routes = ["frontend", "web", "files"]
+		self.reserved_routes = ["frontend", "web", "files", "statuses"]
 		self.routes = [
 			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
@@ -355,19 +357,18 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def startRESTAPI(self):
 		if DEBUG: print "Starting REST API on port %d" % API_PORT
 				
-		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)
-		if DEBUG: print "RESERVED ROUTES: %s" % rr_group
-		
+		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)		
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
+
 		tornado.web.Application.__init__(self, self.routes,
-			**{'cookie_secret' : UV_COOKIE_SECRET })
+			**{ 'cookie_secret' : UV_COOKIE_SECRET})
 		
 		startDaemon(self.api_log_file, self.api_pid_file)
 		
 		server = tornado.httpserver.HTTPServer(self)
 		server.bind(API_PORT)
 		server.start(NUM_PROCESSES)
-		
+
 		tornado.ioloop.IOLoop.instance().start()
 	
 	def stopRESTAPI(self):

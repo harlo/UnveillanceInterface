@@ -116,13 +116,15 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 function translate(obj) {
 	var new_html = $(obj).html();
 	
-	var trans = _.find(UV.TRANSLATE_VALUES, function(t_val) {
+	var trans = _.filter(UV.TRANSLATE_VALUES, function(t_val) {
 		return _.find($(obj).attr('class').split(' '), function(cn) {
 			return _.contains(t_val.keys, cn);
 		});
 	});
-	
-	if(trans) { new_html = trans.enc(new_html, obj); }
+
+	_.each(trans, function(t) {
+		new_html = t.enc(new_html, obj);
+	});
 	
 	if($(obj).attr('repl')) {
 		new_html = $(obj).attr('repl') + new_html;

@@ -65,6 +65,14 @@ _.extend(UV, {
 
 					return $(obj).attr('rel');
 				}
+			},
+			{
+				keys: ["uv_truncate_30"],
+				enc: function(val, obj) {
+					if(val.length > 30) {
+						return val.slice(0, 15) + "..." + val.slice(-15);
+					}
+				}
 			}
 		],
 	FACET_VALUES : [

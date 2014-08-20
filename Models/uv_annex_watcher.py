@@ -63,7 +63,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 					with settings(warn_only=True):
 						file_alias = local("%s metadata \"%s\" --json --get=uv_file_alias" % (GIT_ANNEX, f), capture=True)
 
-					addToNetcatQueue({
+					self.addToNetcatQueue({
 						'save_as' : f,
 						'file' : os.path.join(ANNEX_DIR, f),
 						'alias' : file_alias
@@ -180,6 +180,15 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			self.addToNetcatQueue(netcat_stub)
 
 		sleep(5)
+
+	def on_message(self, message):
+		print "MESSAGE: %s" % message
+
+	def on_open(self, info):
+		print "ON OPEN"
+
+	def on_close(self):
+		print "ON CLOSE"
 
 	def startAnnexObserver(self):
 		print "STARTING OBSERVER on %s" % ANNEX_DIR
