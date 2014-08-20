@@ -11,10 +11,10 @@ from watchdog.events import FileSystemEventHandler
 from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig
 
 try:
-	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash
+	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
 except ImportError as e:
 	if DEBUG: print e
-	from lib.Frontend.lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash
+	from lib.Frontend.lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
 
 try:
 	from Models.uv_fabric_process import UnveillanceFabricProcess
@@ -79,7 +79,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 			if(send_now): self.uploadToAnnex(netcat_stub)
 
-	def uploadToAnnex(self, netcat_stub, sanitize=True):
+	def uploadToAnnex(self, netcat_stub):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
@@ -105,21 +105,27 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			os.chdir(this_dir)
 			return
 
-		with settings(warn_only=True):
-			new_save_as = generateMD5Hash(content=netcat_stub['save_as'], salt=local("whoami", capture=True))
+		if type(netcat_stub['file']) in [str, unicode]:
+			new_hash = hashEntireFile(netcat_stub['file'])
+		else:
+			new_hash = hashEntireStream(netcat_stub['file'])
+
+		if DEBUG: print "NEW HASH: %s" % new_hash
 		
-		if sanitize:
-			if type(netcat_stub['file']) in [str, unicode]:
-				new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
+		with settings(warn_only=True):
+			new_save_as = generateMD5Hash(content=new_hash, salt=local("whoami", capture=True))
+		
+		if type(netcat_stub['file']) in [str, unicode]:
+			new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
 
-				with settings(warn_only=True):
-					local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
-					local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
+			with settings(warn_only=True):
+				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
+				local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
 
-				netcat_stub['file'] = new_file
+			netcat_stub['file'] = new_file
 
-			netcat_stub['alias'] = netcat_stub['save_as']
-			netcat_stub['save_as'] = new_save_as
+		netcat_stub['alias'] = netcat_stub['save_as']
+		netcat_stub['save_as'] = new_save_as
 
 		with settings(warn_only=True):
 			if type(netcat_stub['file']) in [str, unicode]:
