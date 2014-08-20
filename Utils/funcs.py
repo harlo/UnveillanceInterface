@@ -22,7 +22,7 @@ def forceQuitUnveillance(target=None):
 		for k in [k.strip() for k in kill_list.splitlines()]:
 			print k
 
-			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+/bin/sh", k) is not None: continue
+			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+/bin/(?:ba)?sh", k) is not None: continue
 			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+grep", k) is not None: continue
 			if re.match(r".*\d{1,2}:\d{2}[:|\.]\d{2}\s+.*[Pp]ython\sshutdown\.py", k) is not None: continue
 

@@ -83,17 +83,20 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
-		with settings(warn_only=True):
-			# has this stub been uploaded?
-			is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
-				GIT_ANNEX, netcat_stub['save_as']), capture=True)
+		if type(netcat_stub['file']) in [str, unicode]:
+			with settings(warn_only=True):
+				# has this stub been uploaded?
+				is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
+					GIT_ANNEX, netcat_stub['save_as']), capture=True)
 
-			if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
-				netcat_stub['save_as'], is_absorbed, type(is_absorbed))
+				if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
+					netcat_stub['save_as'], is_absorbed, type(is_absorbed))
 
-			if is_absorbed == "" or "False": is_absorbed = False
-			elif is_absorbed == "True": is_absorbed = True
-			else: is_absorbed = False
+				if is_absorbed == "" or "False": is_absorbed = False
+				elif is_absorbed == "True": is_absorbed = True
+				else: is_absorbed = False
+		else:
+			is_absorbed = False
 
 		if is_absorbed:
 			if DEBUG: print "%s IS absorbed (uv_uploaded = %s)" % (
@@ -105,8 +108,6 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		with settings(warn_only=True):
 			new_save_as = generateMD5Hash(content=netcat_stub['save_as'], salt=local("whoami", capture=True))
 		
-		print "NETCAT FILE TYPE: %s" % type(netcat_stub['file'])
-
 		if sanitize:
 			if type(netcat_stub['file']) in [str, unicode]:
 				new_file = netcat_stub['file'].replace(netcat_stub['save_as'], new_save_as)
@@ -123,8 +124,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		with settings(warn_only=True):
 			if type(netcat_stub['file']) in [str, unicode]:
 				local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
-			
-			success_tag = False				
+
+			success_tag = False
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
@@ -134,7 +135,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			if DEBUG: print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
 			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
 
-			if DEBUG and p.output is not None:
+			if p.output is not None and DEBUG:
 				for o in p.output: print "\n%s\n" % o
 
 			if p.error is not None and DEBUG:
@@ -161,7 +162,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		except Exception as e: 
 			if DEBUG: print "NO NETCAT STUB FOUND FOR %s" % filename
 
-		if DEBUG: print "NEW EVENT:\ntype: %s\nis dir: %s\npath: %s\n" % (event.event_type, event.is_directory, event.src_path)
+		#if DEBUG: print "NEW EVENT:\ntype: %s\nis dir: %s\npath: %s\n" % (event.event_type, event.is_directory, event.src_path)
 
 		if netcat_stub is None:
 			netcat_stub = {

@@ -1,3 +1,4 @@
+#! /bin/bash
 THIS_DIR=`pwd`
 if [ $# -eq 0 ]
 then

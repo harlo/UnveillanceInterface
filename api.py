@@ -2,7 +2,7 @@ import os, requests, json, re, copy, urllib
 from subprocess import Popen, PIPE
 from time import sleep
 from itertools import chain
-from cStringIO import StringIO
+from io import BytesIO
 
 from Models.uv_annex_client import UnveillanceAnnexClient
 from lib.Core.vars import Result
@@ -72,9 +72,12 @@ class UnveillanceAPI():
 
 		if status not in PERMISSIONS['upload_local']: return None
 
-		save_as = handler.request.files.keys()[0]
+		for s_a in handler.request.files.keys():
+			if s_a != "uv_import":
+				save_as = s_a
+				break
 		try:
-			entry = StringIO()
+			entry = BytesIO()
 			entry.write(handler.request.body)
 		except Exception as e:
 			if DEBUG: print "COULD NOT CREATE FILE FROM BLOB %s" % e

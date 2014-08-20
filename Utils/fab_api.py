@@ -4,7 +4,7 @@ import os
 from time import time
 from fabric.api import *
 
-from conf import DEBUG, SERVER_HOST, getSecrets
+from conf import DEBUG, SERVER_HOST, getConfig, getSecrets
 from vars import IMPORTER_SOURCES
 
 def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_source=None):
@@ -39,6 +39,8 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 		"git-annex sync",
 		".git/hooks/uv-post-netcat \"%s\"" % save_as
 	])
+
+	if DEBUG: print "ATTEMPTING NETCAT:\nfile:%s" % save_as
 	
 	if SERVER_HOST not in ["127.0.0.1", "localhost"]:
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]
@@ -56,22 +58,26 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 
 		cmd = ["ssh -f -i %s %s 'cd %s && source ~/.bash_profile && %s'" % (getSecrets('ssh_key_pub').replace(".pub", ""), env.host_string, getSecrets('annex_remote'), c) for c in cmd]
 	else:
-		if type(file) is str:
+		if type(file) in [str, unicode]:
 			with settings(warn_only=True):
-				res.append(local("cp %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)), capture=True))			
+				res.append(local("mv %s %s" % (os.path.join(getSecrets('annex_local'), save_as), os.path.join(getSecrets('annex_remote'), save_as)), capture=True))			
 		else:
 			with open(os.path.join(getSecrets('annex_remote'), save_as), 'wb+') as F:
-				F.write(file)
+				F.write(file.getvalue())
+				file.close()
 
 		for i, c in enumerate(cmd):
 			if i != len(cmd) - 1:
-				cmd[i] = "%s/%s" % (GIT_ANNEX, c)
+				cmd[i] = "%s/%s" % (getConfig('git_annex_dir'), c)
 
 		op_dir = getSecrets('annex_remote')
 
 	os.chdir(op_dir)
 
-	if DEBUG: print "\n\nNOW LAUNCHING NETCAT COMMANDS (%d)" % len(cmd)	
+	if DEBUG: 
+		print "\n\nNOW LAUNCHING NETCAT COMMANDS (%d)" % len(cmd)	
+		print "in dir %s" % os.getcwd()
+
 	for c in cmd:
 		if DEBUG: print "\n%s\n" % c
 		res.append(local(c, capture=True))

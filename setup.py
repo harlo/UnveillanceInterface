@@ -146,6 +146,21 @@ if __name__ == "__main__":
 	with settings(warn_only=True):
 		local("mkdir %s" % config['annex_local'])
 
+	if git_annex_dir is not None:
+		GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")
+		
+		this_dir = os.getcwd()
+		os.chdir(config['annex_local'])
+
+		with settings(warn_only=True):
+			local("git init")
+			local("git config annex.genmetadata true")
+			local("%s init unveillance_local" % GIT_ANNEX)
+			local("%s untrust web" % GIT_ANNEX)
+			local("%s direct" % GIT_ANNEX)
+
+		os.chdir(this_dir)
+
 	if 'server_port' not in config.keys():
 		print "\n****************************"
 		print "What port is the Annex server on?"
@@ -187,32 +202,26 @@ if __name__ == "__main__":
 		if len(config['ssh_root']) == 0:
 			config['ssh_root'] = os.path.join(os.path.expanduser("~"), ".ssh")
 
-		print "Unveillance will now generate a public/private key pair for communication with the server"
-		config['ssh_key_pwd'] = generateNonce(top_range=59, bottom_range=29)
-		config['ssh_key_priv'] = os.path.join(config['ssh_root'],
-			"unveillance.%d.key" % time())
-		config['ssh_key_pub'] = "%s.pub" % config['ssh_key_priv']
-	
-		with settings(warn_only=True):
-			'''
-			local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (config['ssh_key_priv'],
-				config['ssh_key_pwd']))
-			'''
-			local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
-			print "****************************\n"
+		if 'ssh_key_priv' not in config.keys():
+			print "Unveillance will now generate a public/private key pair for communication with the server"
+			config['ssh_key_pwd'] = generateNonce(top_range=59, bottom_range=29)
+			config['ssh_key_priv'] = os.path.join(config['ssh_root'],
+				"unveillance.%d.key" % time())
+			config['ssh_key_pub'] = "%s.pub" % config['ssh_key_priv']
+		
+			with settings(warn_only=True):
+				'''
+				local("ssh-keygen -f %s -t rsa -b 4096 -N %s" % (config['ssh_key_priv'],
+					config['ssh_key_pwd']))
+				'''
+				local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
+				print "****************************\n"
 
-		if git_annex_dir is not None:
-			GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")
-			
+		if git_annex_dir is not None:			
 			this_dir = os.getcwd()
 			os.chdir(config['annex_local'])
 
 			with settings(warn_only=True):
-				local("git init")
-				local("git config annex.genmetadata true")
-				local("%s init unveillance_local" % GIT_ANNEX)
-				local("%s untrust web" % GIT_ANNEX)
-				local("%s direct" % GIT_ANNEX)
 				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
 				local("%s metadata %s --json --set=uv_never_upload=True" % (GIT_ANNEX, config['ssh_key_pub']))
 				local("%s add %s" % (GIT_ANNEX, config['ssh_key_pub']))
