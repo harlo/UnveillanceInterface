@@ -105,7 +105,8 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 		url : (static_root + tmpl),
 		method: "get",
 		dataType: "html",
-		context: ctx
+		context: ctx,
+		async: false
 	};
 	
 	if(on_complete) { a_obj.complete = on_complete; }
