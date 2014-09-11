@@ -3,13 +3,20 @@ function randomString() {
 }
 
 function getFileContent(ctx, path, callback) {
-	$.ajax({
+	var a = $.ajax({
 		url: "/files/" + path,
 		method: "get",
 		complete: callback,
 		context: ctx,
 		async: false
 	});
+
+	try {
+		return a.success().responseText;
+	} catch(err) {
+		console.error(err);
+		return null;
+	}
 }
 
 function setRawAsset(el, path) {
@@ -100,6 +107,7 @@ function doInnerAjax(url, method, data, callback, async) {
 
 function getTemplate(tmpl, on_complete, static_root, ctx) {
 	if(!static_root) { static_root = "/web/layout/tmpl/"; }
+	if(!ctx) { ctx = this; }
 	
 	var a_obj = {
 		url : (static_root + tmpl),
@@ -111,7 +119,14 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 	
 	if(on_complete) { a_obj.complete = on_complete; }
 	
-	$.ajax(a_obj);
+	var a = $.ajax(a_obj);
+
+	try {
+		return a.success().responseText;
+	} catch(err) {
+		console.error(err);
+		return null;
+	}
 }
 
 function translate(obj) {
