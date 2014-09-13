@@ -1,3 +1,14 @@
+String.prototype.escape = function() {
+    var tags = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
+    };
+    return this.replace(/[&<>]/g, function(tag) {
+        return tags[tag] || tag;
+    });
+};
+
 function randomString() {
 	return Math.random().toString(36).replace(/[^a-z]+/g, '');
 }
