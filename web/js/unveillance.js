@@ -32,9 +32,7 @@ function getFileContent(ctx, path, callback) {
 
 function setRawAsset(el, path) {
 	$(el).empty();
-	getFileContent(this, path, function(res) {
-		$(el).append($(document.createElement('textarea')).html(res.responseText));
-	});
+	$(el).append($(document.createElement('textarea')).html(getFileContent(this, path)));
 }
 
 function JSONtoURLString(json) {

@@ -1,0 +1,9 @@
+<div class="uv_instructions">
+	<p><b>Assets</b> are attached bits of data that can be operated on.  Assets are generated during the indexing process, and can be edited here.</p>
+</div>
+<ol id="uv_document_asset_list">
+	{{ #assets }}
+	<li><a onclick="onAssetRequested('{{ file_name }}')">{{ file_name }}</a> ({{ description }})</li>
+	{{ /assets }}
+</ol>
+<div id="uv_document_asset_viewer"></div>
