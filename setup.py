@@ -6,6 +6,7 @@ from fabric.operations import prompt
 from fabric.context_managers import hide
 
 from lib.Core.Utils.funcs import generateSecureNonce, generateSecureRandom, generateNonce
+from conf import DEBUG
 
 def locateLibrary(lib_rx):
 	base_dir = os.getcwd()
@@ -30,7 +31,8 @@ if __name__ == "__main__":
 			with open(argv[1], 'rb') as CONF:
 				config.update(json.loads(CONF.read()))
 		except Exception as e:
-			print e
+			print "No pre-set configurations.  That's fine: we'll get you started!"
+			if DEBUG: print e
 		
 	print "\n****************************"
 	print "Hello.  Welcome to Unveillance Frontend setup."
@@ -221,10 +223,12 @@ if __name__ == "__main__":
 			this_dir = os.getcwd()
 			os.chdir(config['annex_local'])
 
+			key_name = [s for s in config['ssh_key_pub'].split('/') if s != ''][-1]
+
 			with settings(warn_only=True):
 				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
-				local("%s metadata %s --json --set=uv_never_upload=True" % (GIT_ANNEX, config['ssh_key_pub']))
-				local("%s add %s" % (GIT_ANNEX, config['ssh_key_pub']))
+				local("%s metadata %s --json --set=uv_never_upload=True" % (GIT_ANNEX, key_name))
+				local("%s add %s" % (GIT_ANNEX, key_name))
 
 			os.chdir(this_dir)
 		else:

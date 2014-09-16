@@ -46,19 +46,23 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
-		for _, _, files in os.walk(ANNEX_DIR):
+		for _, dir, files in os.walk(ANNEX_DIR, topdown=True):
+			dir[:] = [d for d in dir if d not in ['.git']]
+
 			for f in files:
-				with settings(hide('everything'), warn_only=True):
+				with settings(warn_only=True):
+					never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (GIT_ANNEX, f), capture=True)
+
+					if never_upload == "True":
+						if DEBUG: print "%s is never-upload. continuing..." % f
+						continue
+
+				with settings(warn_only=True):
 					upload_attempt = local("%s metadata \"%s\" --json --get=uv_uploaded" % (GIT_ANNEX, f), capture=True)
 				
 				if upload_attempt == "": continue
 				
 				if upload_attempt == "False":
-					with settings(hide('everything'), warn_only=True):
-						never_upload = local("%s metadata \"%s\" -- json --get=uv_never_upload" % (GIT_ANNEX, f), capture=True)
-
-					if never_upload == "True": continue
-
 					file_alias = f
 					with settings(warn_only=True):
 						file_alias = local("%s metadata \"%s\" --json --get=uv_file_alias" % (GIT_ANNEX, f), capture=True)
@@ -161,8 +165,22 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		filename = event.src_path.split("/")[-1]
-		netcat_stub = None
 
+		with settings(warn_only=True):
+			# has this stub been uploaded?
+			is_valid = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
+				GIT_ANNEX, filename), capture=True)
+
+			if DEBUG: print "%s valid? (uv_never_upload = %s type = %s)" % (
+				filename, is_valid, type(is_valid))
+
+			if is_valid == "" or "False": is_valid = False
+			elif is_valid == "True": is_valid = True
+			else: is_valid = False
+
+		if not is_valid: return
+
+		netcat_stub = None
 		try:
 			netcat_stub = [ns for ns in self.netcat_queue if ns['save_as'] == filename][0]
 		except Exception as e: 
