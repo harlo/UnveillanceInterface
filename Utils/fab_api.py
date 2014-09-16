@@ -9,7 +9,9 @@ from vars import IMPORTER_SOURCES
 
 def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_source=None):
 	whoami = "unknown"
-	if importer_source is None or importer_source not in IMPORTER_SOURCES: return None
+	if importer_source is None or importer_source not in IMPORTER_SOURCES: 
+		print "NO IMPORTER SOURCE?"
+		return None
 
 	this_dir = os.getcwd()
 	op_dir = this_dir

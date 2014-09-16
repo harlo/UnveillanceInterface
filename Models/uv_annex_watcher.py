@@ -54,15 +54,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 					never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (GIT_ANNEX, f), capture=True)
 
 					if never_upload == "True":
-						if DEBUG: print "%s is never-upload. continuing..." % f
+						if DEBUG: print "%s is never-upload. continuing...\n" % f
 						continue
 
 				with settings(warn_only=True):
 					upload_attempt = local("%s metadata \"%s\" --json --get=uv_uploaded" % (GIT_ANNEX, f), capture=True)
-				
-				if upload_attempt == "": continue
-				
-				if upload_attempt == "False":
+								
+				if upload_attempt == "False" or upload_attempt == "":
 					file_alias = f
 					with settings(warn_only=True):
 						file_alias = local("%s metadata \"%s\" --json --get=uv_file_alias" % (GIT_ANNEX, f), capture=True)
@@ -156,7 +154,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
 					GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
 
-			if success_tag: self.netcat_queue.remove(netcat_stub)
+			self.netcat_queue.remove(netcat_stub)
 
 		os.chdir(this_dir)
 
@@ -165,20 +163,19 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		filename = event.src_path.split("/")[-1]
+		never_upload = False
 
 		with settings(warn_only=True):
 			# has this stub been uploaded?
-			is_valid = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
+			never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
 				GIT_ANNEX, filename), capture=True)
 
 			if DEBUG: print "%s valid? (uv_never_upload = %s type = %s)" % (
-				filename, is_valid, type(is_valid))
+				filename, never_upload, type(never_upload))
 
-			if is_valid == "" or "False": is_valid = False
-			elif is_valid == "True": is_valid = True
-			else: is_valid = False
+			if never_upload == "True": never_upload = True
 
-		if not is_valid: return
+		if never_upload: return
 
 		netcat_stub = None
 		try:
