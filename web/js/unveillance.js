@@ -190,6 +190,11 @@ function removeEl() {
 	console.info(this);
 }
 
+function failOut(el, msg) {
+	if(!msg) { msg = "Sorry.  Could not get any results."; }
+	$(el).html(msg);
+}
+
 function doPost(endpoint, in_el, out_el) {
 	if(in_el[0] != "#") {
 		in_el = "#" + in_el;

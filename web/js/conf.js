@@ -83,7 +83,8 @@ _.extend(UV, {
 					value : mime_type,
 					label: mime_type
 				};
-			})
+			}),
+			uri_label : "mime_type"
 		},
 		{
 			category: "With Asset",
@@ -92,7 +93,8 @@ _.extend(UV, {
 					value: asset_tag[1],
 					label: asset_tag[1]
 				};
-			})
+			}),
+			uri_label: "assets"
 		}
 	]
 });

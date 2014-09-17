@@ -38,3 +38,7 @@ a {
 .uv_form_elements p {
 	margin:10px 0 !important;
 }
+
+.uv_toggle_none {
+	display:none;
+}
