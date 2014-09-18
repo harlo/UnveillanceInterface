@@ -95,6 +95,11 @@ _.extend(UV, {
 				};
 			}),
 			uri_label: "assets"
+		},
+		{
+			category : "Tags",
+			values: [],
+			uri_label : "in_pool"
 		}
 	]
 });
