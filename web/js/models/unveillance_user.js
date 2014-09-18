@@ -13,34 +13,55 @@ var UnveillanceUser = Backbone.Model.extend({
 	save: function() {
 		try {
 			localStorage.setItem('user', JSON.stringify(this.toJSON()));
+			return true;
 		} catch(err) {
 			console.warn("COULD NOT SAVE USER DATA");
 			console.warn(err);
 		}
+
+		return false;
 	},
-	
-	getDirective: function(d_name, create_if_none) {
-		var directive;
-		if(create_if_none == undefined) {
-			create_if_none = true;
-		}
-		
-		try {
-			directive = _.pluck(this.get('session_log'), d_name)[0];
-		} catch(err) {
-			console.warn(err);
+	commit: function() {
+		if(this.save()) {
+			// push self to server
+			return true;
 		}
 
-		if(!directive) {
-			if(create_if_none) {
-				this.get('session_log').push(_.object([d_name],[0]));
-				directive = _.pluck(this.get('session_log'), d_name)[0];
-			}
+		return false;
+	},
+	getDirective: function(d_name, create_if_none) {
+		var directive;
+
+		try {
+			directive = _.filter(this.get('session_log'), function(d) {
+				return _.keys(d)[0] == d_name;
+			})[0];
+		} catch(err) { console.warn(err); }
+
+		if(!directive && (create_if_none && create_if_none !== false)) {
+			directive = setDirective(d_name, create_if_none);
 		}
 		
 		return directive;
 	},
-	
+	setDirective: function(d_name, create_with) {
+		if(!create_with) { create_with = []; }
+
+		var directive;
+		try {
+			directive = _.indexOf(this.get('session_log'), this.getDirective(d_name, false));
+		} catch(err) { console.warn(err); }
+
+		if(directive >= 0) {
+			console.info("directive replaced!");
+			this.get('session_log')[directive][d_name] = create_with;
+		} else {
+			console.info("directive created!");
+			this.get('session_log').push(_.object([d_name],[create_with]));
+		}
+		
+		return this.getDirective(d_name, false);
+	},
 	logIn: function(el) {
 		var user = {
 			username: $($(el).find("input[name=username]")[0]).val(),
