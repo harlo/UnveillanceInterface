@@ -89,6 +89,13 @@ var UnveillanceDocument = Backbone.Model.extend({
 		}
 
 		return;
+	},
+	getChildAsset: function(_id, doc_type) {
+		return doInnerAjax("documents", "post", {
+			doc_type : doc_type,
+			_id : _id,
+			media_id : this.get('data')._id
+		}, null, false).data;
 	}
 });
 
