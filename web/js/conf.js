@@ -94,7 +94,7 @@ _.extend(UV, {
 					label: asset_tag[1]
 				};
 			}),
-			uri_label: "assets"
+			uri_label: "assets.tags"
 		},
 		{
 			category : "Tags",
