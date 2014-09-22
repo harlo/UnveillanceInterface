@@ -51,23 +51,7 @@ def getSecrets(key, password=None):
 		except KeyError as e: pass
 	
 	del config
-	return val	
-
-def setSecrets(secrets, password=None):	
-	try:
-		with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'rb') as C:
-			secrets.update(json.loads(C.read()))
-	except Exception as e: return False
-	
-	try:
-		with open(os.path.join(CONF_ROOT, "unveillance.secrets.json"), 'wb+') as C:
-			C.write(json.dumps(secrets))
-		
-		del secrets
-		return True
-	except Exception as e: pass
-	
-	return False
+	return val
 
 with open(os.path.join(CONF_ROOT, "api.settings.yaml"), 'rb') as C:
 	config = yaml.load(C.read())

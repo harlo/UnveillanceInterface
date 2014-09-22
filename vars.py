@@ -15,7 +15,8 @@ IMPORTER_SOURCES = ["file_added"]
 USER_CREDENTIAL_PACK = {
 	"username" : "",
 	"saved_searches" : [],
-	"session_log" : []
+	"session_log" : [],
+	"annex_key_sent" : False
 }
 
 MIME_TYPES = {

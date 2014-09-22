@@ -99,7 +99,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 	}
 });
 
-var UnveillanceDocumentTag = Backbone.Model.extend({
+var UnveillanceDirectiveItem = Backbone.Model.extend({
 	constructor: function() {
 		Backbone.Model.apply(this, arguments);
 
@@ -128,15 +128,32 @@ var UnveillanceDocumentTag = Backbone.Model.extend({
 		this.update();
 	},
 	update: function() {
-		var tags = current_user.getDirective('tags').tags;
-		var self = _.findWhere(tags, { hash : this.get('hash') });
+		var items = current_user.getDirective(this.get('d_name'))[this.get('d_name')];
+		var self = _.findWhere(items, { hash : this.get('hash') });
 
 		if(self) {
-			tags[_.indexOf(tags, self)] = this.toJSON();
+			items[_.indexOf(items, self)] = this.toJSON();
 		} else {
-			tags.push(this.toJSON());
+			items.push(this.toJSON());
 		}
 
 		current_user.save();
+	},
+	remove: function() {
+		var items = current_user.getDirective(this.get('d_name'))[this.get('d_name')];
+		var self = _.findWhere(items, { hash : this.get('hash') });
+
+		if(self) {
+			items.splice(_.indexOf(items, self), 1);
+			current_user.save();
+		}
+	}
+});
+
+var UnveillanceDocumentTag = UnveillanceDirectiveItem.extend({
+	constructor: function() {
+		UnveillanceDirectiveItem.prototype.constructor.apply(this, arguments);
+
+		this.set('d_name', "tags");
 	}
 });

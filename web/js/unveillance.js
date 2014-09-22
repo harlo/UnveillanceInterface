@@ -139,24 +139,23 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 }
 
 function translate(obj) {
-	var new_html = $(obj).html();
-	
-	var trans = _.filter(UV.TRANSLATE_VALUES, function(t_val) {
-		return _.find($(obj).attr('class').split(' '), function(cn) {
-			return _.contains(t_val.keys, cn);
+	console.info($(obj));
+
+	_.each($(obj).find(".uv_translate"), function(item) {
+		console.info($(item));
+
+		var trans = _.filter(UV.TRANSLATE_VALUES, function(t) {
+			return _.find($(item).attr('class').split(' '), function(cn) {
+				return _.contains(t.keys, cn);
+			});
+		});
+
+		_.each(trans, function(t) {
+			$(item).html(t.enc($(item).html(), $(item)));
 		});
 	});
 
-	_.each(trans, function(t) {
-		new_html = t.enc(new_html, obj);
-	});
-	
-	if($(obj).attr('repl')) {
-		new_html = $(obj).attr('repl') + new_html;
-	}
-
-	
-	return new_html;
+	return obj;
 }
 
 function insertTemplate(tmpl, data, append_root, on_complete, static_root, ctx) {

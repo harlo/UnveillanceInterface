@@ -162,6 +162,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if event.event_type != "created" : return
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
+		sleep(3)
+
 		filename = event.src_path.split("/")[-1]
 		never_upload = False
 

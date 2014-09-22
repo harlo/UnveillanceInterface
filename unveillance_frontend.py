@@ -13,7 +13,7 @@ from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
 
 from lib.Core.vars import Result
-from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity
+from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
 from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
@@ -234,7 +234,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			
 			self.finish(idx.render(web_title=web_title, 
 				on_loader=self.getOnLoad(module, self.application.do_get_status(self)),
-				content=content, header=header, footer=footer))
+				content=content, header=header, footer=footer,
+				x_token=generateSecureNonce(bottom_range=24, top_range=44)))
 	
 		def getOnLoad(self, module, with_status=0):
 			on_loads = []
