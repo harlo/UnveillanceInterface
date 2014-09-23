@@ -1,3 +1,13 @@
+//prevent opening files on drop
+window.addEventListener("dragover", function(e) {
+	e = e || event;
+	e.preventDefault();
+}, false);
+window.addEventListener("drop", function(e) {
+	e = e || event;
+	e.preventDefault();
+}, false);
+
 Dropzone.autoDiscover = false;
 var dropzones = [];
 
@@ -14,7 +24,7 @@ function discoverDropzones(dz_profile, el, onSuccess, onError, onFileAdded) {
 		dz_profile_.paramName = param_name;
 		dz_profile_.maxFiles = max_files ? max_files : 1;
 		dz_profile.uploadMultiple = true;
-
+		
 		var dropzone_id = param_name.replace(/\./g, "_") + "_dropzone";
 		var mandatory = $(item).hasClass('uv_mandatory');
 
@@ -36,11 +46,15 @@ var UnveillanceDropzone = Backbone.Model.extend({
 		this.dropzone.on("error", onError ? onError : this.onError);
 		this.dropzone.on("addedfile", onFileAdded ? onFileAdded : this.onFileAdded);
 		this.dropzone.on("sending", this.onSending);
+		
 	},
 	
 	onSending: function(file, xhr, form_data) {
 		console.info("renaming? " + file.name);
 		form_data.append(file.name, file);
+		setTimeout(function() {
+			$('.dz-progress').fadeOut();
+		}, 1000);
 	},
 	
 	onSuccess: function(file, res) {
@@ -57,5 +71,6 @@ var UnveillanceDropzone = Backbone.Model.extend({
 	onFileAdded: function(file) {
 		console.info("added file:");
 		console.info(file);
+		$('#ic_upload_instructions').hide();
 	}
 });
