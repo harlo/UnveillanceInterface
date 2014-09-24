@@ -94,9 +94,18 @@ class UnveillanceAPI():
 			if DEBUG: print "SINCE STATUS == %d, this file will be restricted locally" % status
 			netcat_stub['for_local_use_only'] = True
 
-		self.addToNetcatQueue(netcat_stub)
-		
-		return [{ 'file_name' : save_as }]
+		try:
+			res = self.addToNetcatQueue(netcat_stub)
+			res.update({
+				'file_name' : save_as,
+				'result' : 200 if res['uploaded'] else 403
+			})
+
+			return res
+		except Exception as e:
+			if DEBUG: print e
+
+		return None
 	
 	def do_open_drive_file(self, handler):
 		if DEBUG: print "opening this drive file in unveillance annex"
