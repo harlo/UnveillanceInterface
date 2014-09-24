@@ -1,0 +1,62 @@
+#ic_import_dropzone_holder, #uv_import_dropzone {
+	position:fixed !important;
+	top:0 !important;
+	left:0 !important;
+	right:0 !important;
+	bottom:0 !important;
+	width:100% !important;
+	height:100% !important;
+}
+
+#uv_import_dropzone.dz-drag-hover {
+	transition:background-color 1s;
+	-webkit-transition:background-color 1s;
+	background-color:#CCF;
+}
+
+#header {
+	display:none;
+}
+
+.dz-success-mark, .dz-error-mark, .dz-filename, .dz-size {
+	display:none;
+}
+
+.dz-progress {
+	width:20%;
+	height:20px;
+	margin:auto;
+	position:absolute;
+	top:0;
+	left:0;
+	bottom:0;
+	right:0;
+	border:1px solid #999;
+}
+
+.dz-upload {
+	height:20px;
+	background:#DDD;
+	position:absolute;
+}
+
+#ic_upload_instructions {
+	height:33px;
+	text-align:center;
+	margin:auto;
+	position:absolute;
+	top:0;
+	left:0;
+	bottom:0;
+	right:0;
+	z-index:99;
+}
+
+.dz-details img {
+	margin:auto;
+	position:absolute;
+	top:-140px;
+	left:0;
+	bottom:0;
+	right:0;
+}
