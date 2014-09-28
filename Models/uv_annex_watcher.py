@@ -159,7 +159,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			self.netcat_queue.remove(netcat_stub)
 
 		os.chdir(this_dir)
-		return { 'uploaded' : success_tag } 
+		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
 		if event.event_type != "created" : return
