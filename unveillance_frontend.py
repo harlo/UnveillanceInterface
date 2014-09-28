@@ -309,6 +309,10 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			if result_obj.data is None: 
 				del result_obj.data
 				result_obj.result = 412
+			elif 'result' in result_obj.data.keys():
+				result_obj.result = result_obj.data['result']
+				del result_obj.data['result']
+				
 		except AttributeError as e: pass
 
 		return result_obj

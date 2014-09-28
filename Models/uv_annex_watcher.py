@@ -40,9 +40,11 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		FileSystemEventHandler.__init__(self)
 
 	def cleanupUploads(self):
-		self.cleanup_upload_lock = True
+		# THIS ANNOYS ME.
+		# self.cleanup_upload_lock = True
 		if DEBUG: print "starting watcher cleanup cron job"
 
+		'''
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
@@ -74,12 +76,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		os.chdir(this_dir)
 		sleep(5 * 60)
 		self.cleanup_upload_lock = False
+		'''
 
 	def addToNetcatQueue(self, netcat_stub, send_now=True):
 		if netcat_stub['save_as'] not in [ns['save_as'] for ns in self.netcat_queue]:
 			self.netcat_queue.append(netcat_stub)
 
-			if(send_now): self.uploadToAnnex(netcat_stub)
+		return self.uploadToAnnex(netcat_stub)
 
 	def uploadToAnnex(self, netcat_stub):
 		this_dir = os.getcwd()
@@ -105,7 +108,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				netcat_stub['save_as'], is_absorbed)
 			
 			os.chdir(this_dir)
-			return
+			return None
 
 		if type(netcat_stub['file']) in [str, unicode]:
 			new_hash = hashEntireFile(netcat_stub['file'])
@@ -128,12 +131,11 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		netcat_stub['alias'] = netcat_stub['save_as']
 		netcat_stub['save_as'] = new_save_as
+		success_tag = False
 
 		with settings(warn_only=True):
 			if type(netcat_stub['file']) in [str, unicode]:
 				local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
-
-			success_tag = False
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
@@ -157,6 +159,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			self.netcat_queue.remove(netcat_stub)
 
 		os.chdir(this_dir)
+		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
 		if event.event_type != "created" : return
@@ -214,12 +217,14 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
 		self.annex_observer.start()
 		
+		'''
 		while True: 
 			sleep(1)
 
 			if not self.cleanup_upload_lock:
 				t = Thread(target=self.cleanupUploads) 
 				t.start()
+		'''
 
 	def stopAnnexObserver(self):
 		print "STOPPING OBSERVER"
