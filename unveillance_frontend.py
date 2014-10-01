@@ -1,4 +1,5 @@
 import json, signal, os, logging, re, webbrowser, requests
+from requests.exceptions import ConnectionError
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep, time
@@ -285,7 +286,14 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		# TODO: verify=False ... hmm.... no.
 		# TODO: also, some other xsrf stuff
 		if DEBUG: print "SENDING REQUEST TO %s" % url
-		r = requests.get(url, verify=False)
+
+		try:
+			r = requests.get(url, verify=False)
+		except Exception as e:
+			if DEBUG: print e
+
+			if type(e) is ConnectionError:
+				return { 'result' : 404, 'error' : e.message.reason }
 		
 		try:
 			return json.loads(r.content)['data']
