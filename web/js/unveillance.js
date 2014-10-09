@@ -134,8 +134,9 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 		return a.success().responseText;
 	} catch(err) {
 		console.error(err);
-		return null;
 	}
+
+	return null;
 }
 
 function translate(obj) {
