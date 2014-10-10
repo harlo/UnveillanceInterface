@@ -1,4 +1,4 @@
-import os, re
+import os, re, requests
 from time import sleep
 from threading import Thread
 
@@ -8,24 +8,21 @@ from fabric.context_managers import hide
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig, buildServerURL
 
 try:
 	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
 except ImportError as e:
-	if DEBUG: print e
 	from lib.Frontend.lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
 
 try:
 	from Models.uv_fabric_process import UnveillanceFabricProcess
 except ImportError as e:
-	if DEBUG: print e
 	from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
 
 try:
 	from Utils.fab_api import netcat
 except ImportError as e:
-	if DEBUG: print e
 	from lib.Frontend.Utils.fab_api import netcat
 
 class UnveillanceFSEHandler(FileSystemEventHandler):
@@ -38,6 +35,23 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		self.cleanup_upload_lock = False
 
 		FileSystemEventHandler.__init__(self)
+
+	def checkForDuplicate(self, _id):
+		url = "%s/documents/?_id=%s" % (buildServerURL(), _id)
+		try:
+			r = requests.get(url, verify=False)
+		except Exception as e:
+			if DEBUG: print e
+			return None
+
+		try:
+			r = json.loads(r.content)
+			if 'data' in r.keys():
+			return r
+		except Exception as e:
+			if DEBUG: print e
+
+		return None
 
 	def cleanupUploads(self):
 		# THIS ANNOYS ME.
@@ -116,6 +130,21 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			new_hash = hashEntireStream(netcat_stub['file'])
 
 		if DEBUG: print "NEW HASH: %s" % new_hash
+
+		possible_duplicate = self.checkForDuplicate(new_hash)
+		if possible_duplicate is not None:
+			if DEBUG: 
+				print "Document already exists in Annex and will not be uploaded!  Here it is:"
+				print possible_duplicate
+			
+			os.chdir(this_dir)
+
+			possible_duplicate.update({
+				'uploaded' : False,
+				'duplicate_attempt' : True
+			})
+
+			return possible_duplicate
 		
 		with settings(warn_only=True):
 			new_save_as = generateMD5Hash(content=new_hash, salt=local("whoami", capture=True))
@@ -132,6 +161,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		netcat_stub['alias'] = netcat_stub['save_as']
 		netcat_stub['save_as'] = new_save_as
 		success_tag = False
+
+		# look up to see if this file is already in the annex
 
 		with settings(warn_only=True):
 			if type(netcat_stub['file']) in [str, unicode]:

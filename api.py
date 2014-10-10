@@ -96,10 +96,12 @@ class UnveillanceAPI():
 
 		try:
 			res = self.addToNetcatQueue(netcat_stub)
-			res.update({
-				'file_name' : save_as,
-				'result' : 200 if res['uploaded'] else 403
-			})
+			
+			if 'duplicate_attempt' not in res.keys():
+				res.update({
+					'file_name' : save_as,
+					'result' : 200 if res['uploaded'] else 403
+				})
 
 			return res
 		except Exception as e:
