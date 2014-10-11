@@ -46,8 +46,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		try:
 			r = json.loads(r.content)
-			if 'data' in r.keys():
-			return r
+			if 'data' in r.keys(): return r
 		except Exception as e:
 			if DEBUG: print e
 
@@ -248,10 +247,10 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		self.annex_observer.schedule(self, ANNEX_DIR, recursive=True)
 		self.annex_observer.start()
 		
-		'''
 		while True: 
 			sleep(1)
 
+		'''
 			if not self.cleanup_upload_lock:
 				t = Thread(target=self.cleanupUploads) 
 				t.start()
