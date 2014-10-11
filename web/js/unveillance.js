@@ -107,10 +107,9 @@ function doInnerAjax(url, method, data, callback, async) {
 	if(!async) {
 		try {
 			return JSON.parse(a.success().responseText);
-		} catch(err) {
-			console.error(err);
-			return null;
-		}
+		} catch(err) { console.error(err); }
+
+		return null;
 	}
 }
 

@@ -1,7 +1,5 @@
 import re, os
 from multiprocessing import Process
-from apiclient import errors
-from apiclient.discovery import build
 
 from lib.Frontend.Models.uv_fabric_process import UnveillanceFabricProcess
 from conf import DEBUG, getConfig, getSecrets, ANNEX_DIR
@@ -28,6 +26,9 @@ class UnveillanceAnnexClient(object):
 		except KeyError as e: pass
 
 		if getSecrets('auth_storage') is None: return
+
+		from apiclient import errors
+		from apiclient.discovery import build
 
 		credentials = None		
 		

@@ -293,7 +293,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			if DEBUG: print e
 
 			if type(e) is ConnectionError:
-				return { 'result' : 404, 'error' : e.message.reason }
+				if DEBUG: print type(e.message)
+				return { 'result' : 404, 'error' : e.message[0] }
 		
 		try:
 			return json.loads(r.content)['data']
