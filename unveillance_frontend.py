@@ -36,16 +36,20 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			(r"/task/", self.TaskHandler)]
 		
 		self.default_on_loads = [
+			"/web/js/lib/sockjs-0.3.min.js",
+			"/web/js/models/unveillance_notifier.js",
 			"/web/js/models/unveillance_document.js"
 		]
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
+		from conf import buildServerURL, SERVER_PORT
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
-			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS
+			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
+			'TASK_CHANNEL_URL' : buildServerURL(port=(SERVER_PORT + 1))
 		}
 		
 		UnveillanceAPI.__init__(self)

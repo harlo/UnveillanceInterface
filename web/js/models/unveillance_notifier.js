@@ -2,7 +2,9 @@ var UnveillanceNotifier = Backbone.Model.extend({
 	constructor: function() {
 		Backbone.Model.apply(this, arguments);
 
-		var web_socket = new SockJS("http://localhost:" + UV.API_PORT + "/", ['websocket']);
+		var web_socket = new SockJS("http://localhost:8890/ab7f47babf5beda74613dcf09c723f0a", null, {
+			protocols_whitelist : ['xhr-streaming']
+		});
 		web_socket.onopen = this.onSocketOpen;
 		web_socket.onclose = this.onSocketClose;
 		web_socket.onmessage = this.onSocketMessage;
