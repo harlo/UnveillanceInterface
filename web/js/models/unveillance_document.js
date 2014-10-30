@@ -50,11 +50,18 @@ var UnveillanceDocument = Backbone.Model.extend({
 	},
 	refreshTags: function() {
 		if(!current_user) { return; }
-		this.set('tags', _.filter(
-			current_user.getDirective('tags').tags,
-			function(tag) {
-				return _.contains(tag.documents, this.get('data')._id);
-			}, this));
+
+		try {
+			this.set('tags', _.filter(
+				current_user.getDirective('tags').tags,
+				function(tag) {
+					return _.contains(tag.documents, this.get('data')._id);
+				}, this));
+		} catch(err) {
+			console.info(err);
+			this.set('tags', []);
+		}
+
 
 		try {
 			onTagsRefreshed();
