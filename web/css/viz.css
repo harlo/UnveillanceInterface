@@ -23,3 +23,47 @@ h3.uv_viz_header {
 	fill: none;
 	stroke-width:3;
 }
+
+#ic_j3mheader_view_holder {
+	width:100%;
+}
+
+.graph_holder {
+	width:45%;
+	margin-left:2.5%;
+	float:left;
+}
+
+.graph_holder:nth-child(even) {
+	clear:both;
+	margin-left:0;
+}
+
+#ic_gps_coords_view_holder {
+	width:90%;
+	clear:both;
+}
+
+#ic_gps_coords_view_holder div.rendered {
+	height:400px;
+	width:45%;
+	margin-left:2.5%;
+	float:left;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
