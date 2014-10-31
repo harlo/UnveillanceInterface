@@ -74,17 +74,18 @@ class UnveillanceAPI():
 
 		for s_a in handler.request.files.keys():
 			if s_a != "uv_import":
-				save_as = s_a
+				save_as = handler.request.files[s_a][0]
 				break
+
 		try:
 			entry = BytesIO()
-			entry.write(handler.request.body)
+			entry.write(save_as['body'])
 		except Exception as e:
 			if DEBUG: print "COULD NOT CREATE FILE FROM BLOB %s" % e
 			return None
 
 		netcat_stub = {
-			'save_as' : save_as,
+			'save_as' : save_as['filename'],
 			'file' : entry,
 			'importer_source' : "web_frontend"
 		}
@@ -99,7 +100,7 @@ class UnveillanceAPI():
 			
 			if 'duplicate_attempt' not in res.keys():
 				res.update({
-					'file_name' : save_as,
+					'file_name' : save_as['filename'],
 					'result' : 200 if res['uploaded'] else 403
 				})
 
