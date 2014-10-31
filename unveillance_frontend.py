@@ -91,7 +91,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	class WebAssetHandler(tornado.web.RequestHandler):	# TODO: secure this better.
 		@tornado.web.asynchronous
 		def get(self, uri):
-			if uri == "conf.json":					
+			if uri == "conf.json":
+				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])				
 				self.finish(json.dumps(self.application.init_vars))
 				return
 			
