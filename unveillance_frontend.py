@@ -18,6 +18,7 @@ from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, ge
 
 from conf import DEBUG
 from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from vars import CONTENT_TYPES
 
 def terminationHandler(signal, frame): exit(0)
 signal.signal(signal.SIGINT, terminationHandler)
@@ -107,7 +108,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				self.finish(res.emit())
 				return
 			
-			with open(asset, 'rb') as a: self.finish(a.read())
+			try:
+				content_type = CONTENT_TYPES[asset.split('.')[-1]]
+			except Exception as e:
+				content_type = CONTENT_TYPES['html']
+
+			self.set_header("Content-Type", '%s; charset="utf-8"' % content_type)
+
+			with open(asset, 'rb') as a:
+				self.finish(a.read())
 				
 	class FrontendHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous

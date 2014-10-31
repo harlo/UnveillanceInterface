@@ -19,6 +19,18 @@ USER_CREDENTIAL_PACK = {
 	"annex_key_sent" : False
 }
 
+CONTENT_TYPES = {
+	'json' : "application/json",
+	'js' : "application/javascript",
+	'html' : "text/html",
+	'jpg' : "image/jpeg",
+	'png' : "image/png",
+	'css' : "text/css",
+	'mp4' : "video/mp4",
+	'ogg' : "video/ogg",
+	'ogv' : "video/ogg"
+}
+
 MIME_TYPES = {
 	'txt' : "text/plain",
 	'zip' : "application/zip",
