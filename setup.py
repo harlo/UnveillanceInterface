@@ -178,6 +178,25 @@ if __name__ == "__main__":
 			except ValueError as e:
 				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['server_port']
 				config['server_port'] = 8889
+
+
+	if 'server_message_port' not in config.keys():
+		print "\n****************************"
+		print "What port does the Annex server send messages over?"
+		config['server_message_port'] = prompt("[DEFAULT: %d] " % (config['server_port'] + 1))
+
+		if len(config['server_message_port']) == 0:
+			config['server_message_port'] = (config['server_port'] + 1)
+		else:
+			try:
+				config['server_message_port'] = int(config['server_message_port'])
+			except ValueError as e:
+				print "WARN: could not be sure %s is a number.  Using %d instead." % (
+					config['server_message_port'], (config['server_port'] + 1))
+				
+				config['server_message_port'] = (config['server_port'] + 1)
+
+		print "****************************\n"
 	
 	if 'annex_remote' not in config.keys():
 		print "\n****************************"

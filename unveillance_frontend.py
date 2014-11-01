@@ -14,6 +14,7 @@ from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
 
 from lib.Core.vars import Result
+from lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
@@ -27,6 +28,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def __init__(self):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
+
+		self.chan_pid_file = os.path.join(MONITOR_ROOT, "chan.pid.txt")
+		self.chan_log_file = os.path.join(MONITOR_ROOT, "chan.log.txt")
 		
 		self.reserved_routes = ["frontend", "web", "files", "statuses"]
 		self.routes = [
@@ -366,6 +370,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		p = Process(target=self.startRESTAPI)
 		p.start()
 
+		p = Process(target=self.startAnnexChannel)
+		p.start()
+
 		p = Process(target=self.startAnnexObserver)
 		p.start()
 		
@@ -374,9 +381,20 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			webbrowser.open(url)
 		
 	def shutdown(self):
-		self.stopRESTAPI()
+		try:
+			self.stopRESTAPI()
+		except Exception as e:
+			pass
 
-		if hasattr(self, "annex_observer"): self.stopAnnexObserver()
+		try:
+			self.stopAnnexObserver()
+		except Exception as e:
+			pass
+
+		try:
+			self.stopAnnexChannel()
+		except Exception as e:
+			pass
 	
 	def startRESTAPI(self):
 		if DEBUG: print "Starting REST API on port %d" % API_PORT
@@ -398,6 +416,33 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def stopRESTAPI(self):
 		if DEBUG : print "shutting down REST API"
 		stopDaemon(self.api_pid_file, extra_pids_port=API_PORT)
+
+	def startAnnexChannel(self):
+		from time import time
+		from fabric.api import local, settings
+
+		from conf import getSecrets
+		from lib.Core.Utils.funcs import generateMD5Hash
+
+		startDaemon(self.chan_log_file, self.chan_pid_file)
+
+		with settings(warn_only=True):
+			try:
+				self.annex_channel = UnveillanceTaskChannel(
+					generateMD5Hash(content=local("whoami", capture=True), salt=time()),
+					getSecrets('server_host'), 
+					getSecrets('server_message_port'))
+			except Exception as e:
+				if DEBUG:
+					print "ERROR STARTING CONNECTION TO ANNEX MESSENGER:"
+					print e
+
+	def stopAnnexChannel(self):
+		print "Stopping Annex channel %s on %d" % (
+			self.annex_channel.host, self.annex_channel.port)
+		
+		self.annex_channel.die()
+		stopDaemon(self.chan_pid_file)
 
 if __name__ == "__main__":
 	unveillance_frontend = UnveillanceFrontend()
