@@ -8,7 +8,7 @@ from fabric.context_managers import hide
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig, buildServerURL
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig, buildServerURL, SERVER_HOST, SERVER_PORT
 
 try:
 	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
@@ -24,6 +24,11 @@ try:
 	from Utils.fab_api import netcat
 except ImportError as e:
 	from lib.Frontend.Utils.fab_api import netcat
+
+try:
+	from lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
+except ImportError as e:
+	from lib.Frontend.lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
 
 class UnveillanceFSEHandler(FileSystemEventHandler):
 	def __init__(self):
