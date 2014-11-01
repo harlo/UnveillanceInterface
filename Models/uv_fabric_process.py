@@ -1,5 +1,4 @@
 import threading, os
-from subprocess import Popen, PIPE
 from fabric.api import execute
 
 from conf import BASE_DIR, DEBUG, SERVER_HOST, getSecrets
