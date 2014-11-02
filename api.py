@@ -46,7 +46,7 @@ class UnveillanceAPI():
 					if repl[0] in req.keys():				
 						handler.request.body = handler.request.body.replace(
 							repl[1], getSecrets(repl[1]))
-									
+						
 		return self.passToAnnex(handler)
 	
 	def do_num_views(self, query):
