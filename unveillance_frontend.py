@@ -12,6 +12,7 @@ from mako.template import Template
 
 from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
+from Models.uv_annex_channel import UnveillanceAnnexChannel
 
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
@@ -23,7 +24,7 @@ from vars import CONTENT_TYPES
 def terminationHandler(signal, frame): exit(0)
 signal.signal(signal.SIGINT, terminationHandler)
 
-class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler):
+class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler, UnveillanceAnnexChannel):
 	def __init__(self):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
@@ -366,11 +367,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def startup(self, openurl=False):
 		self.checkForAdminParty()
 		UnveillanceFSEHandler.__init__(self)
+		UnveillanceAnnexChannel.__init__(self)
 
 		p = Process(target=self.startRESTAPI)
 		p.start()
 
 		p = Process(target=self.startAnnexObserver)
+		p.start()
+
+		p = Process(target=self.startAnnexChannel)
 		p.start()
 		
 		if openurl:

@@ -213,7 +213,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			if DEBUG: print "%s valid? (uv_never_upload = %s type = %s)" % (
 				filename, never_upload, type(never_upload))
 
-			if never_upload == "True": never_upload = True
+			if never_upload == "True": 
+				never_upload = True
 
 		if never_upload: return
 

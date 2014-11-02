@@ -25,8 +25,12 @@ class UnveillanceAPI():
 	
 	def do_reindex(self, handler):
 		req = parseRequestEntity(handler.request.body)
-		if req is None: return None
+		if req is None:
+			return None
 		
+		if '_id' not in req.keys():
+			return None
+
 		'''
 			we might have to replace parts of the request with
 			secret values.
