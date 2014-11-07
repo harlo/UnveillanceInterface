@@ -42,3 +42,14 @@ a {
 .uv_toggle_none {
 	display:none;
 }
+
+#uv_document_asset_viewer {
+	width:99%;
+	height:30em;
+	overflow:auto;
+}
+
+#uv_document_asset_viewer textarea {
+	width:inherit;
+	height:inherit;
+}
