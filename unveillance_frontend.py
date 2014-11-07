@@ -12,7 +12,6 @@ from mako.template import Template
 
 from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
-from Models.uv_annex_channel import UnveillanceAnnexChannel
 
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
@@ -26,7 +25,7 @@ def terminationHandler(signal, frame):
 
 signal.signal(signal.SIGINT, terminationHandler)
 
-class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler, UnveillanceAnnexChannel):
+class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler):
 	def __init__(self):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
@@ -47,13 +46,19 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
-		from conf import buildServerURL, SERVER_PORT
+		from conf import buildServerURL, SERVER_PORT, getSecrets
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
+
+
+		TASK_CHANNEL_URL = "%s://%s%s" % ("https" if getSecrets('server_message_use_ssl') is True else "http",
+			getSecrets('server_host'),
+			":%d" % (getSecrets('server_message_port') if getSecrets('server_message_port') is not None else (getSecrets('server_port') + 1)))
+
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
 			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
-			'TASK_CHANNEL_URL' : buildServerURL(port=(SERVER_PORT + 1))
+			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL
 		}
 		
 		UnveillanceAPI.__init__(self)
@@ -369,7 +374,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def startup(self, openurl=False):
 		self.checkForAdminParty()
 		UnveillanceFSEHandler.__init__(self)
-		UnveillanceAnnexChannel.__init__(self)
 
 		p = Process(target=self.startRESTAPI)
 		p.start()
@@ -377,9 +381,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		p = Process(target=self.startAnnexObserver)
 		p.start()
 
-		p = Process(target=self.startAnnexChannel)
-		p.start()
-		
 		if openurl:
 			url = "http://localhost:%d/" % API_PORT
 			webbrowser.open(url)
