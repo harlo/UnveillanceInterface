@@ -21,7 +21,9 @@ from conf import DEBUG
 from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
-def terminationHandler(signal, frame): exit(0)
+def terminationHandler(signal, frame):
+	exit(0)
+
 signal.signal(signal.SIGINT, terminationHandler)
 
 class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler, UnveillanceAnnexChannel):
