@@ -3,7 +3,7 @@ var UnveillanceNotifier = Backbone.Model.extend({
 		Backbone.Model.apply(this, arguments);
 
 		var web_socket = new SockJS(UV.TASK_CHANNEL_URL + "/annex_channel", null, {
-			protocols_whitelist : ['xhr-streaming']
+			protocols_whitelist : ['websocket']
 		});
 		web_socket.onopen = this.onSocketOpen;
 		web_socket.onclose = this.onSocketClose;

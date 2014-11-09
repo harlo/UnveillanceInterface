@@ -17,7 +17,7 @@ from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
-from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, TASK_CHANNEL_URL, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
 def terminationHandler(signal, frame):
@@ -37,7 +37,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			(r"/auth/(user|annex|drive)/", self.AuthHandler),
 			(r"/files/(.+)", self.FileHandler),
 			(r"/task/", self.TaskHandler)]
-		
+
 		self.default_on_loads = [
 			"/web/js/lib/sockjs-0.3.min.js",
 			"/web/js/models/unveillance_notifier.js",
@@ -46,13 +46,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
-		from conf import buildServerURL, SERVER_PORT, getSecrets
+		from conf import buildServerURL, SERVER_PORT
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
-
-
-		TASK_CHANNEL_URL = "%s://%s%s" % ("https" if getSecrets('server_message_use_ssl') is True else "http",
-			getSecrets('server_host'),
-			":%d" % (getSecrets('server_message_port') if getSecrets('server_message_port') is not None else (getSecrets('server_port') + 1)))
 
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
@@ -62,7 +57,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		}
 		
 		UnveillanceAPI.__init__(self)
-	
+
 	class AuthHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self, auth_type):

@@ -96,6 +96,17 @@ try:
 		try:
 			SSH_ROOT = config['ssh_root']
 		except KeyError as e: pass
+
+		try:
+			protocol = "http"
+			if getSecrets('server_message_port') in [443] or getSecrets('server_message_use_ssl'):
+				protocol += "s"
+
+			TASK_CHANNEL_URL = "%s://%s:%d" % (protocol, getSecrets('server_host'),
+				getSecrets('server_message_port') if getSecrets('server_message_port') is not None else (getSecrets('server_port') + 1))
+		except Exception as e:
+			print "******* TASK CHANNEL ERROR ********"
+			print e
 	
 		del config
 except IOError as e: pass
