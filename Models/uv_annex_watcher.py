@@ -143,12 +143,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			
 			os.chdir(this_dir)
 
-			possible_duplicate.update({
+			possible_duplicate['data'].update({
 				'uploaded' : False,
 				'duplicate_attempt' : True
 			})
 
-			return possible_duplicate
+			return possible_duplicate['data']
 		
 		with settings(warn_only=True):
 			new_save_as = generateMD5Hash(content=new_hash, salt=local("whoami", capture=True))
