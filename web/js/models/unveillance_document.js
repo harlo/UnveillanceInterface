@@ -108,7 +108,11 @@ var UnveillanceDocument = Backbone.Model.extend({
 		console.info(message);
 		
 		if(message.doc_id && message.doc_id == this.get('data')._id) {
-			$($("#uv_default_task_update").children('p')[0]).html(JSON.stringify(message));
+			var message_li = $(document.createElement('li')).html(JSON.stringify(message));
+			
+			$($("#uv_default_task_update").children('ul')[0]).append(message_li);
+
+			window.setTimeout(function() { $(message_li).remove(); }, 15000);
 		}
 	}
 });
