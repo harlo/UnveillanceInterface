@@ -103,6 +103,13 @@ var UnveillanceDocument = Backbone.Model.extend({
 			_id : _id,
 			media_id : this.get('data')._id
 		}, null, false).data;
+	},
+	updateTaskMessage: function(message) {
+		console.info(message);
+		
+		if(message.doc_id && message.doc_id == this.get('data')._id) {
+			$($("#uv_default_task_update").children('p')[0]).html(JSON.stringify(message));
+		}
 	}
 });
 

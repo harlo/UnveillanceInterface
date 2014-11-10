@@ -9,33 +9,42 @@ var UnveillanceNotifier = Backbone.Model.extend({
 
 		web_socket.onopen = this.onSocketOpen;
 		web_socket.onclose = this.onSocketClose;
-		web_socket.onmessage = this.onSocketMessage;
+		web_socket.onmessage = _.bind(this.onSocketMessage, this);
 
 		this.set('web_socket', web_socket);
+		this.set('message_map', []);
+
 		window.onbeforeunload = _.bind(this.disconnect, this);
 	},
 	connect: function() {
 		try {
-			onSocketConnect();
+			this.onSocketConnect();
 		} catch(err) { console.warn(err); }
 	},
 	disconnect: function() {
 		console.info("DISCONNECTION!");
 		this.get('web_socket').close();
 	},
-	onSocketOpen: function() {
-		try {
-			onSocketOpen(arguments);
-		} catch(err) { console.warn(err); }
-	},
-	onSocketClose: function() {
-		try {
-			onSocketClose(arguments);
-		} catch(err) { console.warn(err); }
-	},
+	onSocketOpen: function() {},
+	onSocketClose: function() {},
+	onSocketConnect: function() {},
 	onSocketMessage: function(message) {
 		try {
-			onSocketMessage(arguments);
-		} catch(err) { console.warn(err); }		
+			var route_func = _.reject(window.location.pathname.split('/'), function(p) {
+				return p.length == 0;
+			})[0];
+		} catch(err) {
+			console.error(err);
+			return;
+		}
+
+		_.each(_.pluck(this.get('message_map'), route_func), function(func) {
+			try {
+				func = _.compose(func);
+				func(message['data']);
+
+			} catch(err) { console.warn(err); }			
+		});
+
 	}
 });
