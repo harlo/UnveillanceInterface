@@ -51,16 +51,19 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		try:
 			r = json.loads(r.content)
-			if 'data' in r.keys(): return r
+			if 'data' in r.keys():
+				return r['data']
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print e
 
 		return None
 
 	def cleanupUploads(self):
 		# THIS ANNOYS ME.
 		# self.cleanup_upload_lock = True
-		if DEBUG: print "starting watcher cleanup cron job"
+		if DEBUG:
+			print "starting watcher cleanup cron job"
 
 		'''
 		this_dir = os.getcwd()
@@ -115,9 +118,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
 					netcat_stub['save_as'], is_absorbed, type(is_absorbed))
 
-				if is_absorbed == "" or "False": is_absorbed = False
-				elif is_absorbed == "True": is_absorbed = True
-				else: is_absorbed = False
+				if is_absorbed == "" or "False":
+					is_absorbed = False
+				elif is_absorbed == "True":
+					is_absorbed = True
+				else:
+					is_absorbed = False
 		else:
 			is_absorbed = False
 
@@ -143,12 +149,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			
 			os.chdir(this_dir)
 
-			possible_duplicate['data'].update({
+			possible_duplicate.update({
 				'uploaded' : False,
 				'duplicate_attempt' : True
 			})
 
-			return possible_duplicate['data']
+			return possible_duplicate
 		
 		with settings(warn_only=True):
 			new_save_as = generateMD5Hash(content=new_hash, salt=local("whoami", capture=True))
@@ -177,11 +183,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 			if p.error is None and p.output is not None: success_tag = True
 
-			if DEBUG: print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
-			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
+			if DEBUG:
+				print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
+				print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
 
 			if p.output is not None and DEBUG:
-				for o in p.output: print "\n%s\n" % o
+				for o in p.output:
+					print "\n%s\n" % o
 
 			if p.error is not None and DEBUG:
 				print "ERROR:"
@@ -197,7 +205,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
-		if event.event_type != "created" : return
+		if event.event_type != "created":
+			return
+
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		sleep(3)
