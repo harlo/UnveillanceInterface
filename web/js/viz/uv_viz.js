@@ -87,3 +87,15 @@ function drillToKey(obj, key) {
 	});
 	return [val, last_key];
 };
+
+$(window).on("resize", scaleGraphs).trigger("resize");
+
+function scaleGraphs() {
+	$('.graph_holder').each(function() {
+		var targetWidth = $(this).width(),
+		chart = $(this).find('svg'),
+		aspect = chart.width() / chart.height();
+		chart.attr("width", targetWidth);
+		chart.attr("height", Math.round(targetWidth / aspect));
+	});
+}
