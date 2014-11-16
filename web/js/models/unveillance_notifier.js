@@ -30,6 +30,8 @@ var UnveillanceNotifier = Backbone.Model.extend({
 	onSocketConnect: function() {},
 	onSocketMessage: function(message) {
 		_.each(this.get('message_map'), function(func) {
+			console.info(func);
+			
 			try {
 				func = _.compose(func);
 				func(message['data']);
