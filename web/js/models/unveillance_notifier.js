@@ -3,7 +3,7 @@ var UnveillanceNotifier = Backbone.Model.extend({
 		Backbone.Model.apply(this, arguments);
 
 		var web_socket = new SockJS(
-			(!UV.TASK_CHANNEL_URL.match(/127\.0\.0\.1|localhost/) ? UV.TASK_CHANNEL_URL : UV.TASK_CHANNEL_URL.replace(/127\.0\.0\.1|localhost/gi, window.location.host)) 
+			(!UV.TASK_CHANNEL_URL.match(/127\.0\.0\.1|localhost/) ? UV.TASK_CHANNEL_URL : UV.TASK_CHANNEL_URL.replace(/127\.0\.0\.1|localhost/gi, window.location.host.split(':')[0])) 
 				+ "/annex_channel",
 			null, { protocols_whitelist : ['websocket']});
 

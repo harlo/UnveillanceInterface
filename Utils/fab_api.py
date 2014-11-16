@@ -65,7 +65,10 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 
 			res.append(put_cmd)
 
-		cmd = ["ssh -f -i %s %s -o IdentitiesOnly=yes 'cd %s && source ~/.bash_profile && %s'" % (getSecrets('ssh_key_pub').replace(".pub", ""), env.host_string, getSecrets('annex_remote'), c) for c in cmd]
+		use_hostname = env.host_string.split(":")[0]
+
+		cmd = ["ssh -f -p %d -i %s %s -o IdentitiesOnly=yes 'cd %s && source ~/.bash_profile && %s'" % (
+			getSecrets('annex_remote_port'), getSecrets('ssh_key_pub').replace(".pub", ""), use_hostname, getSecrets('annex_remote'), c) for c in cmd]
 	else:
 		if type(file) in [str, unicode]:
 			with settings(warn_only=True):
