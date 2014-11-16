@@ -118,9 +118,26 @@ if __name__ == "__main__":
 		print "What is the Public IP/hostname of the Annex server?"
 		config['server_host'] = prompt("[DEFAULT: localhost] ")
 		
-		if len(config['server_host']) == 0: config['server_host'] = "127.0.0.1"
+		if len(config['server_host']) == 0:
+			config['server_host'] = "127.0.0.1"
+		
 		print "****************************\n"
-	
+
+	if 'server_force_ssh' not in config.keys():
+		if config['server_host'] in ["127.0.0.1", "localhost"]:
+			print "\n****************************"
+			print "Although the Annex server is on local host, this could be a proxy."
+			print "Treat Annex server as a proxy? [y or n]"
+			config['server_force_ssh'] = prompt("[DEFAULT: n] ")
+
+			if config['server_force_ssh'] == "y":
+				config['server_force_ssh'] = True
+			else:
+				config['server_force_ssh'] = False
+
+	if config['server_host'] not in ["127.0.0.1", "localhost"]:
+		config['server_force_ssh'] = True
+
 	if 'annex_local' not in config.keys():
 		print "\n****************************"
 		print "Where do you want your Unveillance folder?  The folder should not exist."
@@ -179,7 +196,6 @@ if __name__ == "__main__":
 				print "WARN: could not be sure %s is a number.  Using 8889 instead." % config['server_port']
 				config['server_port'] = 8889
 
-
 	if 'server_message_port' not in config.keys():
 		print "\n****************************"
 		print "What port does the Annex server send messages over?"
@@ -205,13 +221,13 @@ if __name__ == "__main__":
 		print "****************************\n"
 	
 	if len(config['annex_remote']) == 0:
-		if config['server_host'] in ["127.0.0.1", "localhost"]:
+		if not config['server_force_ssh']:
 			config['annex_remote'] = os.path.join(os.path.expanduser("~"),
 				"unveillance_remote")
 		else:
 			config['annex_remote'] = "~/unveillance_remote"
 	
-	if config['server_host'] in ["127.0.0.1", "localhost"]: 
+	if not config['server_force_ssh']: 
 		config['server_use_ssl'] = False
 	else:
 		if 'ssh_root' not in config.keys():
@@ -267,7 +283,8 @@ if __name__ == "__main__":
 			print "****************************\n"
 		
 		if type(config['annex_remote_port']) is not int:
-			if len(config['annex_remote_port']) == 0: config['annex_remote_port'] = 22
+			if len(config['annex_remote_port']) == 0:
+				config['annex_remote_port'] = 22
 		
 		print "*************** ATTENTION ******************"
 		

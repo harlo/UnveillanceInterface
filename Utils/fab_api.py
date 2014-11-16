@@ -43,8 +43,15 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 	])
 
 	if DEBUG: print "ATTEMPTING NETCAT:\nfile:%s" % save_as
+
+	USE_SSH = getSecrets('server_force_ssh')
+	if USE_SSH is None:
+		if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+			USE_SSH = False
+		else:
+			USE_SSH = True
 	
-	if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+	if USE_SSH:
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]
 
 		with settings(warn_only=True):

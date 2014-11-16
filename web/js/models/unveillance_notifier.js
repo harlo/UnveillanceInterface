@@ -29,22 +29,12 @@ var UnveillanceNotifier = Backbone.Model.extend({
 	onSocketClose: function() {},
 	onSocketConnect: function() {},
 	onSocketMessage: function(message) {
-		try {
-			var route_func = _.reject(window.location.pathname.split('/'), function(p) {
-				return p.length == 0;
-			})[0];
-		} catch(err) {
-			console.error(err);
-			return;
-		}
-
-		_.each(_.pluck(this.get('message_map'), route_func), function(func) {
+		_.each(this.get('message_map'), function(func) {
 			try {
 				func = _.compose(func);
 				func(message['data']);
 
-			} catch(err) { console.warn(err); }			
+			} catch(err) { console.warn(err); }	
 		});
-
 	}
 });
