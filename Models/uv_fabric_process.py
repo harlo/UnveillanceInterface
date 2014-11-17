@@ -13,7 +13,14 @@ class UnveillanceFabricProcess(threading.Thread):
 		self.output = None
 		self.error = None
 		
-		if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+		USE_SSH = getSecrets('server_force_ssh')
+		if USE_SSH is None:
+			if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+				USE_SSH = False
+			else:
+				USE_SSH = True
+		
+		if USE_SSH:
 			uv_user = getSecrets("server_user")
 			hostname = getSecrets("server_host")
 			port = getSecrets("annex_remote_port")

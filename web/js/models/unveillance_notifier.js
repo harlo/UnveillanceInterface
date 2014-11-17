@@ -3,7 +3,7 @@ var UnveillanceNotifier = Backbone.Model.extend({
 		Backbone.Model.apply(this, arguments);
 
 		var web_socket = new SockJS(
-			(!UV.TASK_CHANNEL_URL.match(/127\.0\.0\.1|localhost/) ? UV.TASK_CHANNEL_URL : UV.TASK_CHANNEL_URL.replace(/127\.0\.0\.1|localhost/gi, window.location.host)) 
+			(!UV.TASK_CHANNEL_URL.match(/127\.0\.0\.1|localhost/) ? UV.TASK_CHANNEL_URL : UV.TASK_CHANNEL_URL.replace(/127\.0\.0\.1|localhost/gi, window.location.host.split(':')[0])) 
 				+ "/annex_channel",
 			null, { protocols_whitelist : ['websocket']});
 
@@ -29,22 +29,14 @@ var UnveillanceNotifier = Backbone.Model.extend({
 	onSocketClose: function() {},
 	onSocketConnect: function() {},
 	onSocketMessage: function(message) {
-		try {
-			var route_func = _.reject(window.location.pathname.split('/'), function(p) {
-				return p.length == 0;
-			})[0];
-		} catch(err) {
-			console.error(err);
-			return;
-		}
-
-		_.each(_.pluck(this.get('message_map'), route_func), function(func) {
+		_.each(this.get('message_map'), function(func) {
+			console.info(func);
+			
 			try {
 				func = _.compose(func);
 				func(message['data']);
 
-			} catch(err) { console.warn(err); }			
+			} catch(err) { console.warn(err); }	
 		});
-
 	}
 });
