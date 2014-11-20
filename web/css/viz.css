@@ -24,13 +24,23 @@ h3.uv_viz_header {
 	stroke-width:3;
 }
 
+#ic_progressNotifierViewHolder, #ic_header_view_holder {
+	display:none;
+	width:95%;
+	margin:0 auto;
+}
+
+#ic_progressNotifierViewHolder.rendered, #ic_header_view_holder.rendered {
+	display:block;
+}
+
+#ic_header_view_holder ul {
+	padding:0;
+}
+
 #submission_permalink {
 	width:90%;
 	max-width:540px;
-}
-
-#ic_j3mheader_view_holder {
-	width:100%;
 }
 
 .graph_holder {
@@ -95,9 +105,9 @@ h3.uv_viz_header {
 }
 
 #ic_linechart_view_holder #graph_controls {
-	position:absolute;
-	top:410px;
 	height:40px;
+	width:722px;
+	margin:410px auto 0 auto;
 }
 
 #ic_linechart_view_holder #graph_controls label, #ic_linechart_view_holder #graph_controls input[type=checkbox] {
