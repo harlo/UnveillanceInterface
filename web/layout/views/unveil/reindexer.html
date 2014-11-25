@@ -6,4 +6,19 @@
 	<a class="uv_button" onclick="onReindexRequested(this);">Reindex entire document</a>
 	<span class=".cp_waiter"></span>
 </div>
-<ol id="uv_reindex_list"></ol>
+<div>
+	<table>
+		<tr>
+			<td>
+				<ol id="uv_reindex_list"></ol>
+			</td>
+			<td>
+				<p>Or, build a task list:<br />Package.module.function, Package.module.function</p>
+				<textarea id="uv_reindex_custom"></textarea>
+				<p>With extras:<br />{ key: value }</p>
+				<textarea id="uv_reindex_custom_extras"></textarea>
+				<a class="uv_button" onclick="onCustomTaskRequested(this);">Reindex on path</a>
+			</td>
+		</tr>
+	</table>
+</div>
