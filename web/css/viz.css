@@ -118,27 +118,27 @@ h3.uv_viz_header {
 	display:inline;
 }
 
-label.pressureAltitude, .line.pressureAltitude {
+label.pressureAltitude, .line.pressureAltitude, .y.axis.pressureAltitude {
 	color:#00A;
 	stroke:#00A;
 }
 
-label.lightMeter, .line.lightMeter {
+label.lightMeter, .line.lightMeter, .y.axis.lightMeter {
 	color:#0AA;
 	stroke:#0AA;
 }
 
-label.GPSAccuracy, .line.GPSAccuracy {
+label.GPSAccuracy, .line.GPSAccuracy, .y.axis.GPSAccuracy {
 	color:#A0A;
 	stroke:#A0A;
 }
 
-label.GPSBearing, .line.GPSBearing {
+label.GPSBearing, .line.GPSBearing, .y.axis.GPSBearing {
 	color:#AA0;
 	stroke:#AA0;
 }
 
-label.pressureHPAOrMBAR, .line.pressureHPAOrMBAR {
+label.pressureHPAOrMBAR, .line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR {
 	color:#0A0;
 	stroke:#0A0;
 }
