@@ -107,6 +107,11 @@ try:
 		except Exception as e:
 			print "******* TASK CHANNEL ERROR ********"
 			print e
+
+		try:
+			SHA1_INDEX = config['index.sha1']
+		except KeyError as e:
+			SHA1_INDEX = False
 	
 		del config
 except IOError as e: pass

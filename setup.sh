@@ -10,10 +10,10 @@ else
 	WITH_CONFIG=$1
 fi
 
-pip install --upgrade -r requirements.txt
+pip install -r requirements.txt
 
 cd $THIS_DIR/lib/Core
-pip install --upgrade -r requirements.txt
+pip install -r requirements.txt
 
 cd $THIS_DIR/lib/Core/lib/sockjs-tornado
 python setup.py install

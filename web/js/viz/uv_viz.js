@@ -68,7 +68,8 @@ function getRandomColor() {
     for (var i = 0; i < 6; i++ ) {
         color += letters[Math.floor(Math.random() * 16)];
     }
-    return color;
+
+    return (window.reserved_colors && _.contains(window.reserved_colors, color)) ? getRandomColor() : color;
 }
 
 function drillToKey(obj, key) {
