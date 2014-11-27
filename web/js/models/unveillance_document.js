@@ -32,14 +32,12 @@ var UnveillanceDocument = Backbone.Model.extend({
 
 		switch(asset) {
 			case "reindexer":
-				var ctx = this.get('data');
-				
 				callback = function() {
-					$("#uv_reindex_list").html(Mustache.to_html(getTemplate("task_li.html"),
-						_.map(UV.MIME_TYPE_TASKS[ctx.mime_type], function(task) {							
-							return { path : task, desc: task };
-						})
-					));
+					$('#uv_pipe_builder').html(getTemplate("pipe_builder.html"));
+					if(task_pipe) {
+						task_pipe.setOptions($("#uv_reindex_list"));
+						task_pipe.set('task_extras',  $("#uv_reindex_custom_extras"));
+					}
 				}
 
 				break;
@@ -81,7 +79,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 	removeTag: function(tag_name) {
 		if(!current_user) { return; }
 
-		tag = this.getTagByName(tag_name);
+		var tag = this.getTagByName(tag_name);
 		if(tag) {
 			tag.removeDocument(this.get('data')._id);
 			this.refreshTags();

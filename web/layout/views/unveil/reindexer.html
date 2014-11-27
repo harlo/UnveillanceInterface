@@ -3,8 +3,7 @@
 	<p>Please note, not all processes are run by default.</p>
 </div>
 <div>
-	<a class="uv_button" onclick="onReindexRequested(this);">Reindex entire document</a>
-	<span class=".cp_waiter"></span>
+	<a class="uv_button" onclick="onReindexRequested();">Reindex entire document</a>
 </div>
 <div>
 	<table>
@@ -13,11 +12,7 @@
 				<ol id="uv_reindex_list"></ol>
 			</td>
 			<td>
-				<p>Or, build a task list:<br />Package.module.function, Package.module.function</p>
-				<textarea id="uv_reindex_custom"></textarea>
-				<p>With extras:<br />{ key: value }</p>
-				<textarea id="uv_reindex_custom_extras"></textarea>
-				<a class="uv_button" onclick="onCustomTaskRequested(this);">Reindex on path</a>
+				<div id="uv_pipe_builder"></div>
 			</td>
 		</tr>
 	</table>
