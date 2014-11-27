@@ -25,10 +25,13 @@ var UnveillanceTaskPipe = Backbone.Model.extend({
 	},
 	buildTaskPipeFrom : function(els, docs) {
 		var tasks = _.flatten(_.map(els, function(el) {
-			return $(el).val().split('\n').replace(/\s/gi, '');
+			return _.filter(_.map($(el).val().split(/\s/), function(e) {
+				return e.replace(/,/gi, '');
+			}), function(e) {
+				return !_.isEmpty(e);
+			})
 		}));
 
-		console.info(tasks);
 		this.onTaskPipeReady(docs, tasks);
 	},
 	onTaskPipeReady: function(docs, tasks) {
