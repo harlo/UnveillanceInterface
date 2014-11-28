@@ -71,7 +71,13 @@ var UnveillanceTaskPipe = Backbone.Model.extend({
 		}
 
 		_.each(docs, function(doc) {
-			var pipe = { _id : doc.get('data')._id }
+			try {
+				var pipe = { _id : doc.attributes ? doc.get('data')._id : doc._id };
+			} catch(err) {
+				console.warn(err);
+				return;
+			}
+
 			_.extend(pipe, pipe_default);	
 			
 			this.onTaskPipeStarted(doInnerAjax("reindex", "post", pipe, null, false));
