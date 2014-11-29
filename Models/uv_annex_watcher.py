@@ -147,6 +147,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				print "Document already exists in Annex and will not be uploaded!  Here it is:"
 				print possible_duplicate
 			
+			register_upload_attempt(possible_duplicate['_id'])
 			os.chdir(this_dir)
 
 			possible_duplicate.update({
