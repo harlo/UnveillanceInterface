@@ -15,7 +15,7 @@ class UnveillanceFabricProcess(threading.Thread):
 		
 		USE_SSH = getSecrets('server_force_ssh')
 		if USE_SSH is None:
-			if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+			if SERVER_HOST in ["127.0.0.1", "localhost"]:
 				USE_SSH = False
 			else:
 				USE_SSH = True

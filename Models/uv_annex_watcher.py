@@ -26,6 +26,11 @@ except ImportError as e:
 	from lib.Frontend.Utils.fab_api import netcat
 
 try:
+	from Utils.fab_api import register_upload_attempt
+except ImportError as e:
+	from lib.Frontend.Utils.fab_api import register_upload_attempt
+
+try:
 	from lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
 except ImportError as e:
 	from lib.Frontend.lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
