@@ -101,7 +101,6 @@ class UnveillanceAPI():
 
 		try:
 			res = self.addToNetcatQueue(netcat_stub)
-			
 			if 'duplicate_attempt' not in res.keys():
 				res.update({
 					'file_name' : save_as['filename'],
@@ -110,7 +109,8 @@ class UnveillanceAPI():
 
 			return res
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print "ERROR IN NETCAT: %s" % e
 
 		return None
 	

@@ -12,17 +12,20 @@ def register_upload_attempt(_id):
 	cmd = "cd %s && .git/hooks/uv-on-upload-attempted \"%s\"" % (
 		getSecrets('annex_remote'), _id)
 
+	print "REGISTERING UPLOAD ATTEMPT"
+
 	USE_SSH = getSecrets('server_force_ssh')
 	if USE_SSH is None:
-		if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+		if SERVER_HOST in ["127.0.0.1", "localhost"]:
 			USE_SSH = False
 		else:
 			USE_SSH = True
 	
 	if USE_SSH:
 		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]
-		cmd = "ssh -f -p %d -i %s %s -o IdentitiesOnly=yes 'source ~/.bash_profile && %s" % (
-			getSecrets('annex_remote_port'), env.key_filename[0], use_hostname, cmd)
+
+		cmd = "ssh -f -p %d -i %s %s -o IdentitiesOnly=yes 'source ~/.bash_profile && %s'" % (
+			getSecrets('annex_remote_port'), env.key_filename[0], env.host_string.split(":")[0], cmd)
 
 	with settings(warn_only=True):
 		res = local(cmd, capture=True)

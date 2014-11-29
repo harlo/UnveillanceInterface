@@ -51,7 +51,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		try:
 			r = requests.get(url, verify=False)
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print e
 			return None
 
 		try:
@@ -148,18 +149,20 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		possible_duplicate = self.checkForDuplicate(new_hash)
 		if possible_duplicate is not None:
-			if DEBUG: 
-				print "Document already exists in Annex and will not be uploaded!  Here it is:"
-				print possible_duplicate
-			
-			register_upload_attempt(possible_duplicate['_id'])
-			os.chdir(this_dir)
-
 			possible_duplicate.update({
 				'uploaded' : False,
 				'duplicate_attempt' : True
 			})
 
+			if DEBUG: 
+				print "Document already exists in Annex and will not be uploaded!  Here it is:"
+				print type(possible_duplicate)
+				print possible_duplicate
+
+			p = UnveillanceFabricProcess(register_upload_attempt, {'_id' : possible_duplicate['_id'] })
+			p.join()
+
+			os.chdir(this_dir)
 			return possible_duplicate
 		
 		with settings(warn_only=True):
@@ -187,7 +190,8 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
 
-			if p.error is None and p.output is not None: success_tag = True
+			if p.error is None and p.output is not None:
+				success_tag = True
 
 			if DEBUG:
 				print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
