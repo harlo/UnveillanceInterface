@@ -149,21 +149,22 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		possible_duplicate = self.checkForDuplicate(new_hash)
 		if possible_duplicate is not None:
-			possible_duplicate.update({
-				'uploaded' : False,
-				'duplicate_attempt' : True
-			})
 
 			if DEBUG: 
 				print "Document already exists in Annex and will not be uploaded!  Here it is:"
-				print possible_duplicate
 
 			p = UnveillanceFabricProcess(register_upload_attempt, {'_id' : possible_duplicate['_id'] })
 			p.join()
 
 			os.chdir(this_dir)
 			self.netcat_queue.remove(netcat_stub)
-			return self.checkForDuplicate(possible_duplicate['_id'])
+
+			possible_duplicate = self.checkForDuplicate(possible_duplicate['_id'])
+			possible_duplicate.update({
+				'uploaded' : False,
+				'duplicate_attempt' : True
+			})
+			return possible_duplicate
 		
 		with settings(warn_only=True):
 			new_save_as = generateMD5Hash(content=new_hash, salt=local("whoami", capture=True))
