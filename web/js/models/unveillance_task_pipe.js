@@ -65,6 +65,7 @@ var UnveillanceTaskPipe = Backbone.Model.extend({
 					_.extend(pipe_default, task_extras);
 					pipe_default.persist_keys = "[" + _.keys(task_extras).join(',') + "]";
 				} catch(err) {
+					console.warn(err);
 					console.warn("task extras appear to be invalid");
 				}
 			}

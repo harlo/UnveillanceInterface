@@ -12,7 +12,8 @@ function initDocumentBrowser() {
 	document_browser.unset('result');
 	task_pipe = new UnveillanceTaskPipe({
 		context : document_browser,
-		pipe_options : UV.MIME_TYPE_TASKS[document_browser.get('data').mime_type]
+		pipe_options : UV.MIME_TYPE_TASKS[document_browser.get('data').mime_type],
+		task_extras: $("#uv_reindex_custom_extras")
 	});
 
 	window.onSingleTaskRequested = _.bind(function(task_path) {
