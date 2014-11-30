@@ -32,7 +32,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 
 		switch(asset) {
 			case "reindexer":
-				callback = function() {
+				callback = window.onReindexerInvoked || function() {
 					$('#uv_pipe_builder').html(getTemplate("pipe_builder.html"));
 					if(task_pipe) {
 						task_pipe.setOptions($("#uv_reindex_list"));
@@ -40,6 +40,12 @@ var UnveillanceDocument = Backbone.Model.extend({
 					}
 				}
 
+				break;
+			case "assets":
+				callback = window.onAssetsInvoked || null;
+				break;
+			case "info":
+				callback = window.onInfoInvoked || null;
 				break;
 		}
 
