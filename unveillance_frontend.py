@@ -44,6 +44,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			"/web/js/models/unveillance_document.js"
 		]
 		self.on_loads_by_status = [[] for i in range(4)]
+		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
 		from conf import buildServerURL, SERVER_PORT
@@ -196,6 +197,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
 		def get(self, route):
+			handler_status = self.application.do_get_status(self)
 			static_path = os.path.join(BASE_DIR, "web")
 			module = "main"
 			header = None
@@ -216,6 +218,18 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			else:
 				route = [r for r in route.split("/") if r != '']
 				module = route[0]
+
+				if module in self.application.restricted_routes_by_status[handler_status]:
+					if DEBUG:
+						print "YOU CANNOT GO TO THERE.  YOUR STATUS IS %d AND YOU WANT %s" % (
+							handler_status, module)
+
+					res = Result()
+					
+					self.set_status(res.result)
+					self.finish(res.emit())
+					return
+
 				if hasattr(self.application, "MODULE_HEADER"):
 					header = self.application.MODULE_HEADER
 				if hasattr(self.application, "MODULE_FOOTER"):
@@ -251,7 +265,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			else: footer = ""
 			
 			self.finish(idx.render(web_title=web_title, 
-				on_loader=self.getOnLoad(module, self.application.do_get_status(self)),
+				on_loader=self.getOnLoad(module, handler_status),
 				content=content, header=header, footer=footer,
 				x_token=generateSecureNonce(bottom_range=24, top_range=44)))
 	
@@ -281,8 +295,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			res = Result()
 		
 			if route is not None:
+				handler_status = self.application.do_get_status(self)
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				res = self.application.routeRequest(res, route[0], self)
+
+				if route[0] not in self.application.restricted_routes_by_status[handler_status]:
+					res = self.application.routeRequest(res, route[0], self)
+				else:
+					if DEBUG:
+						print "YOU CANNOT GO TO THERE.  YOUR STATUS IS %d AND YOU WANT %s" % (
+							handler_status, route[0])
 						
 			self.set_status(res.result)					
 			self.finish(res.emit())

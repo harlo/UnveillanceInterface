@@ -96,7 +96,9 @@ class UnveillanceAPI():
 
 		if status not in PERMISSIONS['upload_global']:
 			# add this filename to the restricted list in handler
-			if DEBUG: print "SINCE STATUS == %d, this file will be restricted locally" % status
+			if DEBUG:
+				print "SINCE STATUS == %d, this file will be restricted locally" % status
+			
 			netcat_stub['for_local_use_only'] = True
 
 		try:
