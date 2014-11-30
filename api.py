@@ -211,7 +211,9 @@ class UnveillanceAPI():
 	def do_get_status(self, handler):
 		try:
 			for cookie in handler.request.cookies:
-				if cookie == UnveillanceCookie.PUBLIC: return 0
+				if cookie == UnveillanceCookie.PUBLIC:
+					print "**** VISITOR OF TYPE ZERO ENCOUNTERED: %s *****" % UnveillanceCookie.PUBLIC
+					return 0
 		except KeyError as e: pass
 		
 		access = handler.get_secure_cookie(UnveillanceCookie.USER)
