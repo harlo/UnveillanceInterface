@@ -32,16 +32,20 @@ var UnveillanceDocument = Backbone.Model.extend({
 
 		switch(asset) {
 			case "reindexer":
-				var ctx = this.get('data');
-				
-				callback = function() {
-					$("#uv_reindex_list").html(Mustache.to_html(getTemplate("task_li.html"),
-						_.map(UV.MIME_TYPE_TASKS[ctx.mime_type], function(task) {							
-							return { path : task, desc: task };
-						})
-					));
+				callback = window.onReindexerInvoked || function() {
+					$('#uv_pipe_builder').html(getTemplate("pipe_builder.html"));
+					if(task_pipe) {
+						task_pipe.setOptions($("#uv_reindex_list"));
+						task_pipe.set('task_extras',  $("#uv_reindex_custom_extras"));
+					}
 				}
 
+				break;
+			case "assets":
+				callback = window.onAssetsInvoked || null;
+				break;
+			case "info":
+				callback = window.onInfoInvoked || null;
 				break;
 		}
 
@@ -81,7 +85,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 	removeTag: function(tag_name) {
 		if(!current_user) { return; }
 
-		tag = this.getTagByName(tag_name);
+		var tag = this.getTagByName(tag_name);
 		if(tag) {
 			tag.removeDocument(this.get('data')._id);
 			this.refreshTags();
@@ -103,6 +107,17 @@ var UnveillanceDocument = Backbone.Model.extend({
 			_id : _id,
 			media_id : this.get('data')._id
 		}, null, false).data;
+	},
+	updateTaskMessage: function(message) {
+		console.info(message);
+		
+		if(message.doc_id && message.doc_id == this.get('data')._id) {
+			var message_li = $(document.createElement('li')).html(JSON.stringify(message));
+			
+			$($("#uv_default_task_update").children('ul')[0]).append(message_li);
+
+			window.setTimeout(function() { $(message_li).remove(); }, 15000);
+		}
 	}
 });
 

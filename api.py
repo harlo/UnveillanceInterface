@@ -96,12 +96,13 @@ class UnveillanceAPI():
 
 		if status not in PERMISSIONS['upload_global']:
 			# add this filename to the restricted list in handler
-			if DEBUG: print "SINCE STATUS == %d, this file will be restricted locally" % status
+			if DEBUG:
+				print "SINCE STATUS == %d, this file will be restricted locally" % status
+			
 			netcat_stub['for_local_use_only'] = True
 
 		try:
 			res = self.addToNetcatQueue(netcat_stub)
-			
 			if 'duplicate_attempt' not in res.keys():
 				res.update({
 					'file_name' : save_as['filename'],
@@ -110,7 +111,8 @@ class UnveillanceAPI():
 
 			return res
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print "ERROR IN NETCAT: %s" % e
 
 		return None
 	
@@ -211,7 +213,9 @@ class UnveillanceAPI():
 	def do_get_status(self, handler):
 		try:
 			for cookie in handler.request.cookies:
-				if cookie == UnveillanceCookie.PUBLIC: return 0
+				if cookie == UnveillanceCookie.PUBLIC:
+					print "**** VISITOR OF TYPE ZERO ENCOUNTERED: %s *****" % UnveillanceCookie.PUBLIC
+					return 0
 		except KeyError as e: pass
 		
 		access = handler.get_secure_cookie(UnveillanceCookie.USER)

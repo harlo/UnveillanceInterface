@@ -24,8 +24,23 @@ h3.uv_viz_header {
 	stroke-width:3;
 }
 
-#ic_j3mheader_view_holder {
-	width:100%;
+#ic_progressNotifierViewHolder, #ic_header_view_holder {
+	display:none;
+	width:95%;
+	margin:0 auto;
+}
+
+#ic_progressNotifierViewHolder.rendered, #ic_header_view_holder.rendered {
+	display:block;
+}
+
+#ic_header_view_holder ul {
+	padding:0;
+}
+
+#submission_permalink {
+	width:90%;
+	max-width:540px;
 }
 
 .graph_holder {
@@ -64,6 +79,66 @@ h3.uv_viz_header {
 
 .line {
   fill: none;
-  stroke: steelblue;
+  stroke:#00A;
   stroke-width: 1.5px;
+}
+
+.line.acc_y {
+	stroke:#A00;
+}
+
+.line.acc_z {
+	stroke:#0A0;
+}
+
+#ic_linechart_view_holder {
+	width:90%;
+	clear:both;
+	position:relative;
+}
+
+#ic_linechart_view_holder svg {
+	position:absolute;
+	top:0;
+	left:0;
+	height:400px;
+}
+
+#ic_linechart_view_holder #graph_controls {
+	height:40px;
+	width:722px;
+	margin:410px auto 0 auto;
+}
+
+#ic_linechart_view_holder #graph_controls label, #ic_linechart_view_holder #graph_controls input[type=checkbox] {
+	display:none;
+}
+
+#ic_linechart_view_holder #graph_controls label.rendered, #ic_linechart_view_holder #graph_controls input[type=checkbox].rendered {
+	display:inline;
+}
+
+label.pressureAltitude, .line.pressureAltitude {
+	color:#00A;
+	stroke:#00A;
+}
+
+label.lightMeter, .line.lightMeter {
+	color:#0AA;
+	stroke:#0AA;
+}
+
+label.GPSAccuracy, .line.GPSAccuracy {
+	color:#A0A;
+	stroke:#A0A;
+}
+
+label.GPSBearing, .line.GPSBearing {
+	color:#AA0;
+	stroke:#AA0;
+}
+
+label.pressureHPAOrMBAR, .line.pressureHPAOrMBAR {
+	color:#0A0;
+	stroke:#0A0;
 }

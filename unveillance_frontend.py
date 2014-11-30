@@ -12,19 +12,20 @@ from mako.template import Template
 
 from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
-from Models.uv_annex_channel import UnveillanceAnnexChannel
 
 from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
-from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, TASK_CHANNEL_URL, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
-def terminationHandler(signal, frame): exit(0)
+def terminationHandler(signal, frame):
+	exit(0)
+
 signal.signal(signal.SIGINT, terminationHandler)
 
-class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler, UnveillanceAnnexChannel):
+class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFSEHandler):
 	def __init__(self):
 		self.api_pid_file = os.path.join(MONITOR_ROOT, "frontend.pid.txt")
 		self.api_log_file = os.path.join(MONITOR_ROOT, "frontend.log.txt")
@@ -36,26 +37,28 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			(r"/auth/(user|annex|drive)/", self.AuthHandler),
 			(r"/files/(.+)", self.FileHandler),
 			(r"/task/", self.TaskHandler)]
-		
+
 		self.default_on_loads = [
 			"/web/js/lib/sockjs-0.3.min.js",
 			"/web/js/models/unveillance_notifier.js",
 			"/web/js/models/unveillance_document.js"
 		]
 		self.on_loads_by_status = [[] for i in range(4)]
+		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
 		from conf import buildServerURL, SERVER_PORT
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
+
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
 			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
-			'TASK_CHANNEL_URL' : buildServerURL(port=(SERVER_PORT + 1))
+			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL
 		}
 		
 		UnveillanceAPI.__init__(self)
-	
+
 	class AuthHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self, auth_type):
@@ -194,6 +197,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	class RouteHandler(tornado.web.RequestHandler):	
 		@tornado.web.asynchronous
 		def get(self, route):
+			handler_status = self.application.do_get_status(self)
 			static_path = os.path.join(BASE_DIR, "web")
 			module = "main"
 			header = None
@@ -214,6 +218,18 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			else:
 				route = [r for r in route.split("/") if r != '']
 				module = route[0]
+
+				if module in self.application.restricted_routes_by_status[handler_status]:
+					if DEBUG:
+						print "YOU CANNOT GO TO THERE.  YOUR STATUS IS %d AND YOU WANT %s" % (
+							handler_status, module)
+
+					res = Result()
+					
+					self.set_status(res.result)
+					self.finish(res.emit())
+					return
+
 				if hasattr(self.application, "MODULE_HEADER"):
 					header = self.application.MODULE_HEADER
 				if hasattr(self.application, "MODULE_FOOTER"):
@@ -249,7 +265,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			else: footer = ""
 			
 			self.finish(idx.render(web_title=web_title, 
-				on_loader=self.getOnLoad(module, self.application.do_get_status(self)),
+				on_loader=self.getOnLoad(module, handler_status),
 				content=content, header=header, footer=footer,
 				x_token=generateSecureNonce(bottom_range=24, top_range=44)))
 	
@@ -279,8 +295,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			res = Result()
 		
 			if route is not None:
+				handler_status = self.application.do_get_status(self)
 				route = [r_ for r_ in route.split("/") if r_ != '']
-				res = self.application.routeRequest(res, route[0], self)
+
+				if route[0] not in self.application.restricted_routes_by_status[handler_status]:
+					res = self.application.routeRequest(res, route[0], self)
+				else:
+					if DEBUG:
+						print "YOU CANNOT GO TO THERE.  YOUR STATUS IS %d AND YOU WANT %s" % (
+							handler_status, route[0])
 						
 			self.set_status(res.result)					
 			self.finish(res.emit())
@@ -367,7 +390,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	def startup(self, openurl=False):
 		self.checkForAdminParty()
 		UnveillanceFSEHandler.__init__(self)
-		UnveillanceAnnexChannel.__init__(self)
 
 		p = Process(target=self.startRESTAPI)
 		p.start()
@@ -375,9 +397,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		p = Process(target=self.startAnnexObserver)
 		p.start()
 
-		p = Process(target=self.startAnnexChannel)
-		p.start()
-		
 		if openurl:
 			url = "http://localhost:%d/" % API_PORT
 			webbrowser.open(url)

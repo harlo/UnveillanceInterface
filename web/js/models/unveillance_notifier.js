@@ -2,43 +2,39 @@ var UnveillanceNotifier = Backbone.Model.extend({
 	constructor: function() {
 		Backbone.Model.apply(this, arguments);
 
-		var web_socket = new SockJS("http://localhost:8890/ab7f47babf5beda74613dcf09c723f0a", null, {
-			protocols_whitelist : ['xhr-streaming']
-		});
+		var web_socket = new SockJS(
+			(!UV.TASK_CHANNEL_URL.match(/127\.0\.0\.1|localhost/) ? UV.TASK_CHANNEL_URL : UV.TASK_CHANNEL_URL.replace(/127\.0\.0\.1|localhost/gi, window.location.host.split(':')[0])) 
+				+ "/annex_channel",
+			null, { protocols_whitelist : ['websocket']});
+
 		web_socket.onopen = this.onSocketOpen;
 		web_socket.onclose = this.onSocketClose;
-		web_socket.onmessage = this.onSocketMessage;
+		web_socket.onmessage = _.bind(this.onSocketMessage, this);
 
 		this.set('web_socket', web_socket);
+		this.set('message_map', []);
+
+		window.onbeforeunload = _.bind(this.disconnect, this);
 	},
 	connect: function() {
-
+		try {
+			this.onSocketConnect();
+		} catch(err) { console.warn(err); }
 	},
 	disconnect: function() {
+		console.info("DISCONNECTION!");
 		this.get('web_socket').close();
 	},
-	onSocketOpen: function() {
-		console.info("ON SOCKET OPEN!");
-		console.info(arguments);
-
-		try {
-			onSocketOpen(arguments);
-		} catch(err) { console.warn(err); }
-	},
-	onSocketClose: function() {
-		console.info("ON SOCKET CLOSE!");
-		console.info(arguments);
-
-		try {
-			onSocketClose(arguments);
-		} catch(err) { console.warn(err); }
-	},
+	onSocketOpen: function() {},
+	onSocketClose: function() {},
+	onSocketConnect: function() {},
 	onSocketMessage: function(message) {
-		console.info("ON SOCKET MESSAGE!");
-		console.info(arguments);
+		_.each(this.get('message_map'), function(func) {			
+			try {
+				func = _.compose(func);
+				func(message['data']);
 
-		try {
-			onSocketMessage(arguments);
-		} catch(err) { console.warn(err); }		
+			} catch(err) { console.warn(err); }	
+		});
 	}
 });

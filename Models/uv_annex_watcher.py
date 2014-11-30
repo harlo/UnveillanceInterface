@@ -26,6 +26,11 @@ except ImportError as e:
 	from lib.Frontend.Utils.fab_api import netcat
 
 try:
+	from Utils.fab_api import register_upload_attempt
+except ImportError as e:
+	from lib.Frontend.Utils.fab_api import register_upload_attempt
+
+try:
 	from lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
 except ImportError as e:
 	from lib.Frontend.lib.Core.Models.uv_task_channel import UnveillanceTaskChannel
@@ -46,21 +51,25 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		try:
 			r = requests.get(url, verify=False)
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print e
 			return None
 
 		try:
 			r = json.loads(r.content)
-			if 'data' in r.keys(): return r
+			if 'data' in r.keys():
+				return r['data']
 		except Exception as e:
-			if DEBUG: print e
+			if DEBUG:
+				print e
 
 		return None
 
 	def cleanupUploads(self):
 		# THIS ANNOYS ME.
 		# self.cleanup_upload_lock = True
-		if DEBUG: print "starting watcher cleanup cron job"
+		if DEBUG:
+			print "starting watcher cleanup cron job"
 
 		'''
 		this_dir = os.getcwd()
@@ -115,9 +124,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
 					netcat_stub['save_as'], is_absorbed, type(is_absorbed))
 
-				if is_absorbed == "" or "False": is_absorbed = False
-				elif is_absorbed == "True": is_absorbed = True
-				else: is_absorbed = False
+				if is_absorbed == "" or "False":
+					is_absorbed = False
+				elif is_absorbed == "True":
+					is_absorbed = True
+				else:
+					is_absorbed = False
 		else:
 			is_absorbed = False
 
@@ -137,17 +149,21 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		possible_duplicate = self.checkForDuplicate(new_hash)
 		if possible_duplicate is not None:
+
 			if DEBUG: 
 				print "Document already exists in Annex and will not be uploaded!  Here it is:"
-				print possible_duplicate
-			
-			os.chdir(this_dir)
 
+			p = UnveillanceFabricProcess(register_upload_attempt, {'_id' : possible_duplicate['_id'] })
+			p.join()
+
+			os.chdir(this_dir)
+			self.netcat_queue.remove(netcat_stub)
+
+			possible_duplicate = self.checkForDuplicate(possible_duplicate['_id'])
 			possible_duplicate.update({
 				'uploaded' : False,
 				'duplicate_attempt' : True
 			})
-
 			return possible_duplicate
 		
 		with settings(warn_only=True):
@@ -175,13 +191,16 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
 			p.join()
 
-			if p.error is None and p.output is not None: success_tag = True
+			if p.error is None and p.output is not None:
+				success_tag = True
 
-			if DEBUG: print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
-			if DEBUG: print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
+			if DEBUG:
+				print "NETCAT RESULT: (type=%s, success=%s)" % (type(p.output), success_tag)
+				print "NETCAT ERROR (none is good!): (type=%s)" % type(p.error)
 
 			if p.output is not None and DEBUG:
-				for o in p.output: print "\n%s\n" % o
+				for o in p.output:
+					print "\n%s\n" % o
 
 			if p.error is not None and DEBUG:
 				print "ERROR:"
@@ -197,7 +216,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
-		if event.event_type != "created" : return
+		if event.event_type != "created":
+			return
+
 		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
 
 		sleep(3)

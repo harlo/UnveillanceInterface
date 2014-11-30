@@ -3,7 +3,17 @@
 	<p>Please note, not all processes are run by default.</p>
 </div>
 <div>
-	<a class="uv_button" onclick="onReindexRequested(this);">Reindex entire document</a>
-	<span class=".cp_waiter"></span>
+	<a class="uv_button" onclick="onReindexRequested();">Reindex entire document</a>
 </div>
-<ol id="uv_reindex_list"></ol>
+<div>
+	<table>
+		<tr>
+			<td>
+				<ol id="uv_reindex_list"></ol>
+			</td>
+			<td width="60%">
+				<div id="uv_pipe_builder"></div>
+			</td>
+		</tr>
+	</table>
+</div>

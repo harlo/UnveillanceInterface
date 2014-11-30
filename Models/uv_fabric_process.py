@@ -7,13 +7,22 @@ class UnveillanceFabricProcess(threading.Thread):
 	def __init__(self, func, args=None, op_dir=None):
 		self.func = func
 		
-		if args is not None: self.args = args
-		else: self.args = {}
+		if args is not None:
+			self.args = args
+		else:
+			self.args = {}
 		
 		self.output = None
 		self.error = None
 		
-		if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+		USE_SSH = getSecrets('server_force_ssh')
+		if USE_SSH is None:
+			if SERVER_HOST in ["127.0.0.1", "localhost"]:
+				USE_SSH = False
+			else:
+				USE_SSH = True
+		
+		if USE_SSH:
 			uv_user = getSecrets("server_user")
 			hostname = getSecrets("server_host")
 			port = getSecrets("annex_remote_port")
@@ -41,6 +50,7 @@ class UnveillanceFabricProcess(threading.Thread):
 			if DEBUG: print "THERE WAS AN ERROR EXECUTING THIS THREAD"
 			self.error = e
 			
-		if hasattr(self, "return_dir"): os.chdir(self.return_dir)
+		if hasattr(self, "return_dir"):
+			os.chdir(self.return_dir)
 		
 		
