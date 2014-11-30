@@ -7,6 +7,31 @@ from fabric.api import *
 from conf import DEBUG, SERVER_HOST, getConfig, getSecrets
 from vars import IMPORTER_SOURCES
 
+def register_upload_attempt(_id):
+	res = None
+	cmd = "cd %s && .git/hooks/uv-on-upload-attempted \"%s\"" % (
+		getSecrets('annex_remote'), _id)
+
+	print "REGISTERING UPLOAD ATTEMPT"
+
+	USE_SSH = getSecrets('server_force_ssh')
+	if USE_SSH is None:
+		if SERVER_HOST in ["127.0.0.1", "localhost"]:
+			USE_SSH = False
+		else:
+			USE_SSH = True
+	
+	if USE_SSH:
+		env.key_filename = [getSecrets('ssh_key_pub').replace(".pub", "")]
+
+		cmd = "ssh -f -p %d -i %s %s -o IdentitiesOnly=yes 'source ~/.bash_profile && %s'" % (
+			getSecrets('annex_remote_port'), env.key_filename[0], env.host_string.split(":")[0], cmd)
+
+	with settings(warn_only=True):
+		res = local(cmd, capture=True)
+
+	return res
+
 def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_source=None):
 	whoami = "unknown"
 	if importer_source is None or importer_source not in IMPORTER_SOURCES: 
@@ -45,8 +70,10 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 	if DEBUG: print "ATTEMPTING NETCAT:\nfile:%s" % save_as
 
 	USE_SSH = getSecrets('server_force_ssh')
+	print "USE SSH? %s" % USE_SSH
+
 	if USE_SSH is None:
-		if SERVER_HOST not in ["127.0.0.1", "localhost"]:
+		if SERVER_HOST in ["127.0.0.1", "localhost"]:
 			USE_SSH = False
 		else:
 			USE_SSH = True
@@ -68,7 +95,7 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 		use_hostname = env.host_string.split(":")[0]
 
 		cmd = ["ssh -f -p %d -i %s %s -o IdentitiesOnly=yes 'cd %s && source ~/.bash_profile && %s'" % (
-			getSecrets('annex_remote_port'), getSecrets('ssh_key_pub').replace(".pub", ""), use_hostname, getSecrets('annex_remote'), c) for c in cmd]
+			getSecrets('annex_remote_port'), env.key_filename[0], use_hostname, getSecrets('annex_remote'), c) for c in cmd]
 	else:
 		if type(file) in [str, unicode]:
 			with settings(warn_only=True):

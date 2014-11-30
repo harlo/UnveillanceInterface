@@ -6,6 +6,8 @@ CONF_ROOT = os.path.join(BASE_DIR, "conf")
 MONITOR_ROOT = os.path.join(BASE_DIR, ".monitor")
 USER_ROOT = os.path.join(BASE_DIR, ".users")
 
+SHA1_INDEX = False
+
 PERMISSIONS = {
 	'upload_local' : [],
 	'upload_global' : []
@@ -111,7 +113,7 @@ try:
 		try:
 			SHA1_INDEX = config['index.sha1']
 		except KeyError as e:
-			SHA1_INDEX = False
+			pass
 	
 		del config
 except IOError as e: pass
