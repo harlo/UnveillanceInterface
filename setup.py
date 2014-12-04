@@ -146,20 +146,33 @@ if __name__ == "__main__":
 
 	if len(config['annex_local']) == 0:
 		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
-	
-	git_annex_dir = locateLibrary(r'git-annex\.*')
-	if git_annex_dir is None:
-		with settings(warn_only=True):
-			if SYS_ARCH == "i686":
-				arch = "git-annex-standalone-i386.tar.gz"
-			else:
-				arch = "git-annex-standalone-amd64.tar.gz"
 
-			local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/%s" % arch)
-			local("tar -xvzf lib/git-annex.tar.gz -C lib")
-			local("rm lib/git-annex.tar.gz")
-	
-		git_annex_dir = locateLibrary(r'git-annex\.*')
+	with settings(warn_only=True):
+		git_annex_dir = local("which git-annex", capture=True)
+
+	if len(git_annex_dir) == 0:
+		is_mac = False
+		with settings(warn_only=True):
+			is_mac = local("uname -s", capture=True) == "Darwin"
+		
+		if is_mac:
+			local("brew install git-annex")
+			git_annex_dir = local("which git-annex", capture=True)
+
+		else:
+			git_annex_dir = locateLibrary(r'git-annex\.*')
+			if git_annex_dir is None:
+				with settings(warn_only=True):
+					if SYS_ARCH == "i686":
+						arch = "git-annex-standalone-i386.tar.gz"
+					else:
+						arch = "git-annex-standalone-amd64.tar.gz"
+
+					local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/%s" % arch)
+					local("tar -xvzf lib/git-annex.tar.gz -C lib")
+					local("rm lib/git-annex.tar.gz")
+			
+				git_annex_dir = locateLibrary(r'git-annex\.*')
 
 	# init local repo
 	with settings(warn_only=True):
