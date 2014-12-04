@@ -17,7 +17,7 @@ from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
-from conf import getConfig, TASK_CHANNEL_URL, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
 def terminationHandler(signal, frame):
@@ -47,7 +47,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		
-		from conf import buildServerURL, SERVER_PORT
+		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 
 		self.init_vars = {
