@@ -159,6 +159,12 @@ if __name__ == "__main__":
 			local("brew install git-annex")
 			git_annex_dir = local("which git-annex", capture=True)
 
+			if len(git_annex_dir) == 0:
+				print "NO GIT ANNEX FOR MAC.  PLEASE INSTALL GIT-ANNEX AND SET UP AGAIN."
+				exit(-1)
+
+			git_annex_dir = os.path.abspath(os.path.join(git_annex_dir, os.pardir))
+
 		else:
 			git_annex_dir = locateLibrary(r'git-annex\.*')
 			if git_annex_dir is None:
@@ -173,9 +179,13 @@ if __name__ == "__main__":
 					local("rm lib/git-annex.tar.gz")
 			
 				git_annex_dir = locateLibrary(r'git-annex\.*')
-
+	else:
+		git_annex_dir = os.path.abspath(os.path.join(git_annex_dir, os.pardir))
 	# init local repo
 	with settings(warn_only=True):
+		if os.path.exists(config['annex_local']):
+			local("rm -rf %s" % config['annex_local'])
+			
 		local("mkdir %s" % config['annex_local'])
 
 	if git_annex_dir is not None:
