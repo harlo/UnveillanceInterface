@@ -219,7 +219,10 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if event.event_type != "created":
 			return
 
-		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None: return
+		if re.match(re.compile("%s/.*" % os.path.join(ANNEX_DIR, ".git")), event.src_path) is not None:
+			return
+		if re.match(r'\.DS_Store', event.src_path) is not None:
+			return
 
 		sleep(3)
 
