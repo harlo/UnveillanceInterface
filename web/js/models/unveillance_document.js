@@ -53,7 +53,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 			panel, callback, "/web/layout/views/unveil/");
 	},
 	refreshTags: function() {
-		if(!current_user) { return; }
+		if(!window.current_user) { return; }
 
 		try {
 			this.set('tags', _.filter(
@@ -72,7 +72,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 		} catch(err) { console.warn(err); }
 	},
 	addTag: function(tag_name) {
-		if(!current_user) { return; }
+		if(!window.current_user) { return; }
 
 		var tag = this.getTagByName(tag_name);
 		if(!tag) {
@@ -83,7 +83,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 		this.refreshTags();
 	},
 	removeTag: function(tag_name) {
-		if(!current_user) { return; }
+		if(!window.current_user) { return; }
 
 		var tag = this.getTagByName(tag_name);
 		if(tag) {
@@ -92,7 +92,7 @@ var UnveillanceDocument = Backbone.Model.extend({
 		}
 	},
 	getTagByName: function(tag_name) {
-		if(!current_user) { return; }
+		if(!window.current_user) { return; }
 
 		var tag = _.findWhere(current_user.getDirective('tags').tags, { hash : MD5(tag_name) });
 		if(tag) {
