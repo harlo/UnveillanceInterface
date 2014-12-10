@@ -77,20 +77,6 @@ h3.uv_viz_header {
   display: none;
 }
 
-.line {
-  fill: none;
-  stroke:#00A;
-  stroke-width: 1.5px;
-}
-
-.line.acc_y {
-	stroke:#A00;
-}
-
-.line.acc_z {
-	stroke:#0A0;
-}
-
 #ic_linechart_view_holder {
 	width:90%;
 	clear:both;
@@ -114,9 +100,43 @@ h3.uv_viz_header {
 	height:100px;
 }
 
+g .label {
+	font-size:14pt;
+}
+
+.line, .line.acc_x {
+  fill: none;
+  stroke:#00A;
+  stroke-width: 1.5px;
+}
+
+.label.acc_x {
+	fill:#00A;
+}
+
+.line.acc_y {
+	stroke:#A00;
+}
+
+.label.acc_y {
+	fill:#A00;
+}
+
+.line.acc_z {
+	stroke:#0A0;
+}
+
+.label.acc_z {
+	fill:#0A0;
+}
+
 .line.pressureAltitude, .y.axis.pressureAltitude {
 	color:#00A;
 	stroke:#00A;
+}
+
+.label.pressureAltitude {
+	fill:#00A;
 }
 
 .line.lightMeter, .y.axis.lightMeter {
@@ -124,9 +144,17 @@ h3.uv_viz_header {
 	stroke:#0AA;
 }
 
+.label.lightMeter {
+	fill:#0AA;
+}
+
 .line.GPSAccuracy, .y.axis.GPSAccuracy {
 	color:#A0A;
 	stroke:#A0A;
+}
+
+.label.GPSAccuracy {
+	fill:#A0A;
 }
 
 .line.GPSBearing, .y.axis.GPSBearing {
@@ -134,9 +162,17 @@ h3.uv_viz_header {
 	stroke:#AA0;
 }
 
+.label.GPSBearing {
+	fill:#AA0;
+}
+
 .line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR {
 	color:#0A0;
 	stroke:#0A0;
+}
+
+.label.pressureHPAOrMBAR {
+	fill:#0A0;
 }
 
 #ic_appended_user_data ul {
