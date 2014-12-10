@@ -105,40 +105,40 @@ h3.uv_viz_header {
 }
 
 #ic_linechart_view_holder #graph_controls {
-	height:40px;
+	height:100px;
 	width:722px;
 	margin:410px auto 0 auto;
 }
 
-#ic_linechart_view_holder #graph_controls label, #ic_linechart_view_holder #graph_controls input[type=checkbox] {
-	display:none;
+#ic_linechart_view_holder #graph_controls #graph_select {
+	height:100px;
 }
 
-#ic_linechart_view_holder #graph_controls label.rendered, #ic_linechart_view_holder #graph_controls input[type=checkbox].rendered {
-	display:inline;
-}
-
-label.pressureAltitude, .line.pressureAltitude, .y.axis.pressureAltitude {
+.line.pressureAltitude, .y.axis.pressureAltitude {
 	color:#00A;
 	stroke:#00A;
 }
 
-label.lightMeter, .line.lightMeter, .y.axis.lightMeter {
+.line.lightMeter, .y.axis.lightMeter {
 	color:#0AA;
 	stroke:#0AA;
 }
 
-label.GPSAccuracy, .line.GPSAccuracy, .y.axis.GPSAccuracy {
+.line.GPSAccuracy, .y.axis.GPSAccuracy {
 	color:#A0A;
 	stroke:#A0A;
 }
 
-label.GPSBearing, .line.GPSBearing, .y.axis.GPSBearing {
+.line.GPSBearing, .y.axis.GPSBearing {
 	color:#AA0;
 	stroke:#AA0;
 }
 
-label.pressureHPAOrMBAR, .line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR {
+.line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR {
 	color:#0A0;
 	stroke:#0A0;
+}
+
+#ic_appended_user_data ul {
+	margin-left:16px;
 }
