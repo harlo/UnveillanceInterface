@@ -73,6 +73,14 @@ h3.uv_viz_header {
   shape-rendering: crispEdges;
 }
 
+g.x.axis {
+	display:none;
+}
+
+#ic_linechart_view_holder svg:first-child g.x.axis {
+	display:block;
+}
+
 .x.axis path {
   display: none;
 }
@@ -177,4 +185,18 @@ g .label {
 
 #ic_appended_user_data ul {
 	margin-left:16px;
+}
+
+@media print {
+	#ic_linechart_view_holder svg {
+		position:static;
+	}
+
+	g.x.axis {
+		display:block;
+	}
+	
+	#ic_linechart_view_holder #graph_controls {
+		display:none;
+	}
 }
