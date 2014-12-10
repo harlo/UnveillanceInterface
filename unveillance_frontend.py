@@ -43,6 +43,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			"/web/js/models/unveillance_notifier.js",
 			"/web/js/models/unveillance_document.js"
 		]
+
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.on_loads = {}
@@ -284,10 +285,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 					pass
 				
 			js = '<script type="text/javascript" src="%s?t=%d"></script>'
+			css = '<link rel="stylesheet" type="text/css" href="%s" />'
+
+			js_or_css = lambda asset: js % (asset, time() * 1000) if asset.split('.')[-1] == "js" else css % asset
+
 			if module in [k for k,v in self.application.on_loads.iteritems()]:
 				on_loads.extend(self.application.on_loads[module])
+
+			print on_loads
+			return "".join(map(js_or_css, on_loads))
 			
-			return "".join([js % (v, time() * 1000) for v in on_loads])
+			#return "".join([js if v.split('.')[-1] == "js" else css % (v, time() * 1000) for v in on_loads])
 
 		@tornado.web.asynchronous
 		def post(self, route):
