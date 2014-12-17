@@ -138,7 +138,7 @@ g .label {
 	fill:#0A0;
 }
 
-.line.pressureAltitude, .y.axis.pressureAltitude {
+.line.pressureAltitude, .y.axis.pressureAltitude .tick {
 	color:#00A;
 	stroke:#00A;
 }
@@ -147,7 +147,7 @@ g .label {
 	fill:#00A;
 }
 
-.line.lightMeter, .y.axis.lightMeter {
+.line.lightMeter, .y.axis.lightMeter .tick {
 	color:#0AA;
 	stroke:#0AA;
 }
@@ -174,7 +174,7 @@ g .label {
 	fill:#AA0;
 }
 
-.line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR {
+.line.pressureHPAOrMBAR, .y.axis.pressureHPAOrMBAR .tick {
 	color:#0A0;
 	stroke:#0A0;
 }
