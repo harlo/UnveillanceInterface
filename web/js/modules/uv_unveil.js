@@ -37,9 +37,19 @@ function onDownloadRequested(file_name, el) {
 		return;
 	}
 
-	data = new Blob([data], { type : "application/octet-stream" });
+	//141264
+
+	data_array = new Uint8Array(data.length);
+	console.info(data.length);
+	for(var i=0; i < data.length; i++) {
+		data_array[i] = data.charCodeAt(i);
+	}
+
+	console.info(data_array.length);
+
+	var download_url = window.URL.createObjectURL(new Blob([data_array.buffer], {type : "image/png"}))
 	$(el).attr({
-		'href' : window.URL.createObjectURL(data),
+		'href' : download_url,
 		'download' : [document_browser.get('data')._id, file_name].join('_')
 	});
 	
@@ -50,6 +60,7 @@ function onDownloadRequested(file_name, el) {
 		$(el).click(function() {
 			onDownloadRequested(file_name, this);
 		});
+		window.URL.revokeObjectURL(download_url);
 	}, 300);
 }
 

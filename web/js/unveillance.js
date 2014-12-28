@@ -18,6 +18,7 @@ function getFileContent(ctx, path, callback) {
 		url: "/files/" + path,
 		method: "get",
 		complete: callback,
+		responseType: "blob",
 		context: ctx,
 		async: false
 	});
@@ -90,8 +91,18 @@ function validateFormField(field, form_root) {
 	return true;
 }
 
-function doInnerAjax(url, method, data, callback, async) {	
+function doInnerAjax(url, method, data, callback, async) {
+	if(!data) { data = {}}
 	if(async === undefined) { async = true; }
+
+	try {
+		data._xsrf = $($("input[name='_xsrf']")[0]).val();
+	} catch(err) {
+		console.error("cannot get xsrf element.");
+		console.error(err);
+		return null;
+	}
+
 	var a = $.ajax({
 		url: "/" + url + "/",
 		dataType: "json",

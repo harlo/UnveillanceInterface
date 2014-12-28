@@ -9,6 +9,8 @@ import tornado.web
 import tornado.httpserver
 
 from mako.template import Template
+from urllib import quote_plus, urlencode
+from urlparse import urlparse, parse_qs
 
 from api import UnveillanceAPI
 from Models.uv_annex_watcher import UnveillanceFSEHandler
@@ -32,7 +34,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		
 		self.reserved_routes = ["frontend", "web", "files", "statuses"]
 		self.routes = [
-			(r"/frontend/", self.FrontendHandler),
 			(r"/web/([a-zA-Z0-9\-\._/]+)", self.WebAssetHandler),
 			(r"/auth/(user|annex|drive)/", self.AuthHandler),
 			(r"/files/(.+)", self.FileHandler),
@@ -127,35 +128,19 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 			with open(asset, 'rb') as a:
 				self.finish(a.read())
-				
-	class FrontendHandler(tornado.web.RequestHandler):
-		@tornado.web.asynchronous
-		def get(self):
-			res = Result()
-			query = parseRequestEntity(self.request.query)
-			
-			if DEBUG : 
-				print self.request.query
-				print query
-			
-			if query is not None:
-				try:
-					r = query['req']
-					del query['req']
-					
-					res = self.application.routeRequest(res, r, query)
-				except KeyError as e: print e				
-				
-			self.set_status(res.result)
-			self.finish(res.emit())
 	
 	class FileHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self, file):
 			url = "%s%s" % (buildServerURL(), self.request.uri)
-			if DEBUG: print url
+			if DEBUG:
+				print url
 			
 			r = requests.get(url, verify=False)
+
+			self.set_header("Content-Type", r.headers['content-type'])
+			self.set_header("Content-Disposition", 
+				'attachment; filename="%s"' % self.request.uri.split('/')[-1])
 			self.finish(r.content)
 		
 	class TaskHandler(tornado.web.RequestHandler):
@@ -268,7 +253,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			self.finish(idx.render(web_title=web_title, 
 				on_loader=self.getOnLoad(module, handler_status),
 				content=content, header=header, footer=footer,
-				x_token=generateSecureNonce(bottom_range=24, top_range=44)))
+				x_token=self.xsrf_form_html()))
 	
 		def getOnLoad(self, module, with_status=0):
 			on_loads = []
@@ -307,6 +292,22 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				route = [r_ for r_ in route.split("/") if r_ != '']
 
 				if route[0] not in self.application.restricted_routes_by_status[handler_status]:
+					# remove _xsrf param; we no longer need it.
+					query = parse_qs(self.request.body)
+
+					try:
+						del query['_xsrf']
+					except Exception as e:
+						if DEBUG:
+							print "how did this happen that there is not _xsrf token here?"
+							print e
+						
+						self.set_status(412)
+						self.finish(res.emit())
+						return
+
+					# put request back together again
+					self.request.body = urlencode(query, doseq=True)
 					res = self.application.routeRequest(res, route[0], self)
 				else:
 					if DEBUG:
@@ -331,7 +332,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 		# TODO: verify=False ... hmm.... no.
 		# TODO: also, some other xsrf stuff
-		if DEBUG: print "SENDING REQUEST TO %s" % url
+		if DEBUG:
+			print "SENDING REQUEST TO %s" % url
 
 		try:
 			r = requests.get(url, verify=False)
@@ -427,7 +429,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
 
 		tornado.web.Application.__init__(self, self.routes,
-			**{ 'cookie_secret' : UV_COOKIE_SECRET})
+			**{ 'cookie_secret' : UV_COOKIE_SECRET, 'xsrf_cookies' : True})
 		
 		startDaemon(self.api_log_file, self.api_pid_file)
 		

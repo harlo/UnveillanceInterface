@@ -52,26 +52,8 @@ class UnveillanceAPI():
 							repl[1], getSecrets(repl[1]))
 						
 		return self.passToAnnex(handler)
-	
-	def do_num_views(self, query):
-		views = 0
-		path = os.path.join(BASE_DIR, "web", "layout", "views", query['view_root'])
-		path_e = os.path.join(BASE_DIR, "web", "extras", "layout",
-			"views", query['view_root'])
-			
-		if DEBUG: print "GETTIN NUM VIEWS IN %s" % path
-		
-		for dir in [path, path_e]:			
-			if os.path.exists(dir):
-				for _, _, files in os.walk(dir):
-					views += len(files)
-					break
-				
-		if views != 0: return views
-		else: return None
 
 	def do_import(self, handler):
-		if DEBUG: print "uploading a file from the web interface!"
 		status = self.do_get_status(handler)
 
 		if status not in PERMISSIONS['upload_local']: return None
