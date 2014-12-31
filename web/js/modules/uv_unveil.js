@@ -47,7 +47,7 @@ function onDownloadRequested(file_name, el) {
 
 	console.info(data_array.length);
 
-	var download_url = window.URL.createObjectURL(new Blob([data_array.buffer], {type : "image/png"}))
+	var download_url = window.URL.createObjectURL(new Blob([data_array.buffer]));
 	$(el).attr({
 		'href' : download_url,
 		'download' : [document_browser.get('data')._id, file_name].join('_')
