@@ -68,8 +68,13 @@ var UnveillanceDropzone = Backbone.Model.extend({
 	},
 	
 	onSending: function(file, xhr, form_data) {
-		console.info("renaming? " + file.name);
 		form_data.append(file.name, file);
+
+		var _xsrf = $($("input[name='_xsrf']")[0]).val();
+		if(_xsrf) {
+			form_data.append("_xsrf", _xsrf);
+		}
+		
 		setTimeout(function() {
 			$('.dz-progress').fadeOut();
 		}, 1000);

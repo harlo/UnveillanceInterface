@@ -298,6 +298,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				if route[0] not in self.application.restricted_routes_by_status[handler_status]:
 					# remove _xsrf param; we no longer need it.
 					query = parse_qs(self.request.body)
+					print query
 
 					try:
 						del query['_xsrf']
@@ -305,10 +306,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 						if DEBUG:
 							print "how did this happen that there is not _xsrf token here?"
 							print e
-						
-						self.set_status(412)
-						self.finish(res.emit())
-						return
 
 					# put request back together again
 					self.request.body = urlencode(query, doseq=True)
