@@ -284,8 +284,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			print on_loads
 			return "".join(map(js_or_css, on_loads))
 			
-			#return "".join([js if v.split('.')[-1] == "js" else css % (v, time() * 1000) for v in on_loads])
-
 		@tornado.web.asynchronous
 		def post(self, route):
 			print "GETTING A ROUTE %s" % route
@@ -298,13 +296,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				if route[0] not in self.application.restricted_routes_by_status[handler_status]:
 					# remove _xsrf param; we no longer need it.
 					query = parse_qs(self.request.body)
-					print query
 
 					try:
 						del query['_xsrf']
 					except Exception as e:
 						if DEBUG:
-							print "how did this happen that there is not _xsrf token here?"
 							print e
 
 					# put request back together again
