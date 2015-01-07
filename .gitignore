@@ -12,4 +12,3 @@ web/extras
 
 lib/*
 !lib/Frontend
-lib/Core
