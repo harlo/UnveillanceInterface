@@ -48,6 +48,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.on_loads = {}
+		self.get_page_load_extras = {}
 		
 		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
@@ -256,8 +257,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			
 			self.finish(idx.render(web_title=web_title, 
 				on_loader=self.getOnLoad(module, handler_status),
+				body_classes = self.get_body_classes(),
 				content=content, header=header, footer=footer,
 				x_token=self.xsrf_form_html()))
+
+		def get_body_classes(self):
+			if 'body_classes' in self.application.get_page_load_extras.keys():
+				return self.application.get_page_load_extras['body_classes'](self)
+
+			return ""
 	
 		def getOnLoad(self, module, with_status=0):
 			on_loads = []
