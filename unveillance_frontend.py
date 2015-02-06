@@ -263,7 +263,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 		def get_body_classes(self):
 			if 'body_classes' in self.application.get_page_load_extras.keys():
-				return self.application.get_page_load_extras['body_classes'](self)
+				return self.application.get_page_load_extras['body_classes'](self.request)
 
 			return ""
 	
@@ -289,7 +289,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			if module in [k for k,v in self.application.on_loads.iteritems()]:
 				on_loads.extend(self.application.on_loads[module])
 
-			print on_loads
 			return "".join(map(js_or_css, on_loads))
 			
 		@tornado.web.asynchronous
