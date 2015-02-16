@@ -50,14 +50,15 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads = {}
 		self.get_page_load_extras = {}
 		
-		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL
+		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL, SHA1_INDEX
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
 			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
-			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL
+			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL,
+			'SHA1_INDEX' : 32 if not SHA1_INDEX else 40
 		}
 		
 		UnveillanceAPI.__init__(self)
