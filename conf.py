@@ -6,7 +6,7 @@ CONF_ROOT = os.path.join(BASE_DIR, "conf")
 MONITOR_ROOT = os.path.join(BASE_DIR, ".monitor")
 USER_ROOT = os.path.join(BASE_DIR, ".users")
 
-SHA1_INDEX = False
+SHA1_INDEX = True
 
 PERMISSIONS = {
 	'upload_local' : [],
