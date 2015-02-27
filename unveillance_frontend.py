@@ -337,13 +337,11 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		url = "%s%s%s" % (buildServerURL(), uri, query)
 
 		# TODO: verify=False ... hmm.... no.
-		# TODO: also, some other xsrf stuff
 		if DEBUG:
 			print "SENDING REQUEST TO %s" % url
 
 		try:
 			r = self.uv_cache.get(url, verify=False)
-			print dir(self.uv_cache)
 		except Exception as e:
 			if DEBUG: print e
 

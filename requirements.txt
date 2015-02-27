@@ -4,4 +4,3 @@ oauth2client
 urllib3
 watchdog
 anyjson
-cachecontrol
