@@ -340,7 +340,7 @@ if __name__ == "__main__":
 		print "\n****************************"
 		config['uv_uuid'] = prompt("What is the Annex server's short name?")
 		print "****************************\n"
-			
+
 	config['web_cookie_secret'] = generateSecureNonce()
 	
 	with settings(hide('everything'), warn_only=True):
