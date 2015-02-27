@@ -8,6 +8,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 
+from cachecontrol import CacheControl
 from mako.template import Template
 from urllib import quote_plus, urlencode
 from urlparse import urlparse, parse_qs
@@ -341,7 +342,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			print "SENDING REQUEST TO %s" % url
 
 		try:
-			r = requests.get(url, verify=False)
+			r = self.uv_cache.get(url, verify=False)
+			print dir(self.uv_cache)
 		except Exception as e:
 			if DEBUG: print e
 
@@ -432,6 +434,9 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				
 		rr_group = r"/(?:(?!%s))([a-zA-Z0-9_/]*/$)?" % "|".join(self.reserved_routes)		
 		self.routes.append((re.compile(rr_group).pattern, self.RouteHandler))
+
+		s = requests.session()
+		self.uv_cache = CacheControl(s)
 
 		tornado.web.Application.__init__(self, self.routes,
 			**{ 'cookie_secret' : UV_COOKIE_SECRET, 'xsrf_cookies' : True})
