@@ -147,61 +147,12 @@ if __name__ == "__main__":
 	if len(config['annex_local']) == 0:
 		config['annex_local'] = os.path.join(os.path.expanduser("~"), "unveillance_local")
 
-	with settings(warn_only=True):
-		git_annex_dir = local("which git-annex", capture=True)
-
-	if len(git_annex_dir) == 0:
-		is_mac = False
-		with settings(warn_only=True):
-			is_mac = local("uname -s", capture=True) == "Darwin"
-		
-		if is_mac:
-			local("brew install git-annex")
-			git_annex_dir = local("which git-annex", capture=True)
-
-			if len(git_annex_dir) == 0:
-				print "NO GIT ANNEX FOR MAC.  PLEASE INSTALL GIT-ANNEX AND SET UP AGAIN."
-				exit(-1)
-
-			git_annex_dir = os.path.abspath(os.path.join(git_annex_dir, os.pardir))
-
-		else:
-			git_annex_dir = locateLibrary(r'git-annex\.*')
-			if git_annex_dir is None:
-				with settings(warn_only=True):
-					if SYS_ARCH == "i686":
-						arch = "git-annex-standalone-i386.tar.gz"
-					else:
-						arch = "git-annex-standalone-amd64.tar.gz"
-
-					local("wget -O lib/git-annex.tar.gz http://downloads.kitenet.net/git-annex/linux/current/%s" % arch)
-					local("tar -xvzf lib/git-annex.tar.gz -C lib")
-					local("rm lib/git-annex.tar.gz")
-			
-				git_annex_dir = locateLibrary(r'git-annex\.*')
-	else:
-		git_annex_dir = os.path.abspath(os.path.join(git_annex_dir, os.pardir))
 	# init local repo
 	with settings(warn_only=True):
 		if os.path.exists(config['annex_local']):
 			local("rm -rf %s" % config['annex_local'])
 			
 		local("mkdir %s" % config['annex_local'])
-
-	if git_annex_dir is not None:
-		GIT_ANNEX = os.path.join(git_annex_dir, "git-annex")
-		
-		this_dir = os.getcwd()
-		os.chdir(config['annex_local'])
-
-		with settings(warn_only=True):
-			local("git init")
-			local("git config annex.genmetadata true")
-			local("%s init unveillance_local" % GIT_ANNEX)
-			local("%s untrust web" % GIT_ANNEX)
-			local("%s direct" % GIT_ANNEX)
-
-		os.chdir(this_dir)
 
 	if 'server_port' not in config.keys():
 		print "\n****************************"
@@ -277,22 +228,9 @@ if __name__ == "__main__":
 				local('ssh-keygen -f %s -t rsa -b 4096 -N ""' % config['ssh_key_priv'])
 				print "****************************\n"
 
-		if git_annex_dir is not None:			
-			this_dir = os.getcwd()
-			os.chdir(config['annex_local'])
-
-			key_name = [s for s in config['ssh_key_pub'].split('/') if s != ''][-1]
-
-			with settings(warn_only=True):
-				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
-				local("%s metadata %s --json --set=uv_never_upload=True" % (GIT_ANNEX, key_name))
-				local("%s add %s" % (GIT_ANNEX, key_name))
-
-			os.chdir(this_dir)
-		else:
-			with settings(warn_only=True):
-				# copy public key into annex local only
-				local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
+		with settings(warn_only=True):
+			# copy public key into annex local only
+			local("cp %s %s" % (config['ssh_key_pub'], config['annex_local']))
 		
 		if 'server_user' not in config.keys():
 			print "\n****************************"
