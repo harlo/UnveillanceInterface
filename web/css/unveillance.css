@@ -29,9 +29,6 @@ a {
 }
 
 .uv_dropzone_holder {
-	border:1px solid #000 !important;
-	width:15% !important;
-	height:0.95em !important;
 	display:inline-flex;
 }
 

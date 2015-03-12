@@ -28,9 +28,15 @@ function discoverDropzones(dz_profile, el, onSuccess, onError, onFileAdded) {
 		var dropzone_id = param_name.replace(/\./g, "_") + "_dropzone";
 		var mandatory = $(item).hasClass('uv_mandatory');
 
-		$($(item).parent()).append($(document.createElement('div'))
+		var dz_div = $(document.createElement('div'))
 			.attr({ 'id' : dropzone_id, 'name' : param_name })
-			.addClass('uv_dropzone_holder' + (mandatory ? ' uv_mandatory_dz' : "")));
+			.addClass('uv_dropzone_holder' + (mandatory ? ' uv_mandatory_dz' : ""));
+
+		if(dz_profile_.extra_classes) {
+			dz_div.addClass(dz_profile_.extra_classes.join(" "));
+		}
+
+		$($(item).parent()).append(dz_div);
 		$(item).remove();
 
 		dz_profile_.error = function(file, message) {

@@ -20,6 +20,10 @@ _.extend(UV, {
 			{
 				keys: ["uv_date"],
 				enc: function(val, obj) {
+					if(Number(val) == 0) {
+						return "unknown";
+					}
+					
 					return moment(Number(val)).format("MM-DD-YYYY HH:mm");
 				},
 				dec: function(val) {
