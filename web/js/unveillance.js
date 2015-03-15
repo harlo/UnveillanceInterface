@@ -193,9 +193,8 @@ function insertTemplate(tmpl, data, append_root, on_complete, static_root, ctx) 
 	$.ajax(a_obj);
 }
 
-function removeEl() {
-	console.info("removing a genereric element");
-	console.info(this);
+function removeEl(el) {
+	$(el).remove();
 }
 
 function failOut(el, msg) {

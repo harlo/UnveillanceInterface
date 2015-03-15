@@ -100,6 +100,5 @@ var UnveillanceDropzone = Backbone.Model.extend({
 	onFileAdded: function(file) {
 		console.info("added file:");
 		console.info(file);
-		$('#ic_upload_instructions').hide();
 	}
 });
