@@ -37,8 +37,6 @@ function onDownloadRequested(file_name, el) {
 		return;
 	}
 
-	//141264
-
 	data_array = new Uint8Array(data.length);
 	console.info(data.length);
 	for(var i=0; i < data.length; i++) {

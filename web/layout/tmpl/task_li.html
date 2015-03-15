@@ -1,4 +1,6 @@
 <li>
-	<a onclick="onSingleTaskRequested('{{ path }}');">{{ description }}</a>
-	<span style="display:none;" class="uv_waiter"></span>
+	<div class="uv_task_li" draggable="true" ondragstart="">
+		<a onclick="onSingleTaskRequested('{{ path }}');">{{ description }}</a>
+		<span style="display:none;" class="uv_waiter"></span>
+	</div>
 </li>
