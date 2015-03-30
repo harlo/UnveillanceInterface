@@ -30,6 +30,9 @@ def buildTaskChannelURL(request):
 		if hasattr(request, p):
 			print "%s : %s" % (p, getattr(request, p))
 
+	if TASK_CHANNEL_MASK is not None:
+		return TASK_CHANNEL_MASK
+
 	return "%s://%s%s" % ( \
 		request.protocol, TASK_CHANNEL_URL, \
 		(":%d" % TASK_CHANNEL_PORT))
@@ -120,6 +123,11 @@ try:
 		except Exception as e:
 			print "******* TASK CHANNEL ERROR ********"
 			print e
+
+		try:
+			TASK_CHANNEL_MASK = getSecrets('server_task_channel_mask')
+		except Exception as e:
+			TASK_CHANNEL_MASK = None
 
 		try:
 			SHA1_INDEX = config['index.sha1']
