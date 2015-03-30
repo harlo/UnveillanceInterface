@@ -8,7 +8,12 @@ from fabric.context_managers import hide
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig, buildServerURL, SERVER_HOST, SERVER_PORT
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, getConfig, buildServerURL, SERVER_HOST, SERVER_PORT
+
+try:
+	from conf import GIT_ANNEX
+except ImportError as e:
+	GIT_ANNEX = None
 
 try:
 	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
@@ -71,40 +76,6 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		if DEBUG:
 			print "starting watcher cleanup cron job"
 
-		'''
-		this_dir = os.getcwd()
-		os.chdir(ANNEX_DIR)
-
-		for _, dir, files in os.walk(ANNEX_DIR, topdown=True):
-			dir[:] = [d for d in dir if d not in ['.git']]
-
-			for f in files:
-				with settings(warn_only=True):
-					never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (GIT_ANNEX, f), capture=True)
-
-					if never_upload == "True":
-						if DEBUG: print "%s is never-upload. continuing...\n" % f
-						continue
-
-				with settings(warn_only=True):
-					upload_attempt = local("%s metadata \"%s\" --json --get=uv_uploaded" % (GIT_ANNEX, f), capture=True)
-								
-				if upload_attempt == "False" or upload_attempt == "":
-					file_alias = f
-					with settings(warn_only=True):
-						file_alias = local("%s metadata \"%s\" --json --get=uv_file_alias" % (GIT_ANNEX, f), capture=True)
-
-					self.addToNetcatQueue({
-						'save_as' : f,
-						'file' : os.path.join(ANNEX_DIR, f),
-						'alias' : file_alias
-					})
-
-		os.chdir(this_dir)
-		sleep(5 * 60)
-		self.cleanup_upload_lock = False
-		'''
-
 	def addToNetcatQueue(self, netcat_stub, send_now=True):
 		if netcat_stub['save_as'] not in [ns['save_as'] for ns in self.netcat_queue]:
 			self.netcat_queue.append(netcat_stub)
@@ -114,6 +85,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 	def uploadToAnnex(self, netcat_stub):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
+
+		if GIT_ANNEX is None:
+			if DEBUG:
+				print "GIT ANNEX NOT ATTACHED TO INSTANCE."
+
+			return None
 
 		if type(netcat_stub['file']) in [str, unicode]:
 			with settings(warn_only=True):
@@ -216,6 +193,12 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
+		if GIT_ANNEX is None:
+			if DEBUG:
+				print "GIT ANNEX NOT ATTACHED TO INSTANCE."
+
+			return
+
 		if event.event_type != "created":
 			return
 
