@@ -108,7 +108,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])
 
 				conf_vars = deepcopy(self.application.init_vars)
-				conf_vars['TASK_CHANNEL_URL'] = buildTaskChannelURL(self.request)
+				conf_vars['TASK_CHANNEL_URL'] = buildTaskChannelURL(self.request, 
+					with_status=self.application.do_get_status(self))
 				
 				self.finish(json.dumps(conf_vars))
 				return
