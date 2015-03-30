@@ -150,8 +150,6 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 }
 
 function translate(obj) {
-	console.info($(obj));
-
 	_.each($(obj).find(".uv_translate"), function(item) {
 		var trans = _.filter(UV.TRANSLATE_VALUES, function(t) {
 			return _.find($(item).attr('class').split(' '), function(cn) {

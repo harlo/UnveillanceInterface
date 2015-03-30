@@ -65,7 +65,9 @@ API_PORT = getConfig('api.port')
 
 try:
 	GIT_ANNEX = os.path.join(getConfig('git_annex_dir'), "git-annex")
-except Exception as e: pass
+except Exception as e: 
+	print e, type(e)
+	pass
 
 try:
 	PYTHON_HOME = getConfig('python_home')
