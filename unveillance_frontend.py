@@ -3,6 +3,7 @@ from requests.exceptions import ConnectionError
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep, time
+from copy import deepcopy
 
 import tornado.ioloop
 import tornado.web
@@ -20,7 +21,7 @@ from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
-from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, buildTaskChannelURL, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
 def terminationHandler(signal, frame):
@@ -51,14 +52,13 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads = {}
 		self.get_page_load_extras = {}
 		
-		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL, SHA1_INDEX
+		from conf import buildServerURL, SERVER_PORT, SHA1_INDEX
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
 			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
-			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL,
 			'SHA1_INDEX' : 32 if not SHA1_INDEX else 40
 		}
 		
@@ -105,8 +105,12 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		@tornado.web.asynchronous
 		def get(self, uri):
 			if uri == "conf.json":
-				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])				
-				self.finish(json.dumps(self.application.init_vars))
+				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])
+
+				conf_vars = deepcopy(self.application.init_vars)
+				conf_vars['TASK_CHANNEL_URL'] = buildTaskChannelURL(self.request)
+				
+				self.finish(json.dumps(conf_vars))
 				return
 			
 			static_path = os.path.join(BASE_DIR, "web")

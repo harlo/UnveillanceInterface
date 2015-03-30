@@ -25,6 +25,15 @@ def buildServerURL(port=None):
 	else:
 		return "%s:%d" % (server_url, port)
 
+def buildTaskChannelURL(request):
+	for p in ["host", "protocol", "remote_ip", "path"]:
+		if hasattr(request, p):
+			print "%s : %s" % (p, getattr(request, p))
+
+	return "%s://%s%s" % ( \
+		request.protocol, TASK_CHANNEL_URL, \
+		(":%d" % TASK_CHANNEL_PORT))
+
 def getConfig(key):
 	val = None
 	try:
@@ -106,8 +115,8 @@ try:
 			if getSecrets('server_message_port') in [443] or getSecrets('server_message_use_ssl'):
 				protocol += "s"
 
-			TASK_CHANNEL_URL = "%s://%s:%d" % (protocol, getSecrets('server_host'),
-				getSecrets('server_message_port') if getSecrets('server_message_port') is not None else (getSecrets('server_port') + 1))
+			TASK_CHANNEL_URL = getSecrets('server_host')
+			TASK_CHANNEL_PORT = getSecrets('server_message_port') if getSecrets('server_message_port') is not None else (getSecrets('server_port') + 1)
 		except Exception as e:
 			print "******* TASK CHANNEL ERROR ********"
 			print e
