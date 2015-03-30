@@ -56,7 +56,9 @@ class UnveillanceAPI():
 	def do_import(self, handler):
 		status = self.do_get_status(handler)
 
-		if status not in PERMISSIONS['upload_local']: return None
+		print PERMISSIONS['upload_local']
+		if status not in PERMISSIONS['upload_local']: 
+			return None
 
 		for s_a in handler.request.files.keys():
 			if s_a != "uv_import":
