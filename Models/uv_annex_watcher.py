@@ -8,7 +8,7 @@ from fabric.context_managers import hide
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, GIT_ANNEX, getConfig, buildServerURL, SERVER_HOST, SERVER_PORT
+from conf import DEBUG, ANNEX_DIR, MONITOR_ROOT, getConfig, buildServerURL, SERVER_HOST, SERVER_PORT
 
 try:
 	from lib.Core.Utils.funcs import startDaemon, stopDaemon, generateMD5Hash, hashEntireFile, hashEntireStream
