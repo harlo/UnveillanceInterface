@@ -25,13 +25,16 @@ def buildServerURL(port=None):
 	else:
 		return "%s:%d" % (server_url, port)
 
-def buildTaskChannelURL(request):
+def buildTaskChannelURL(request, with_status=None):
 	for p in ["host", "protocol", "remote_ip", "path"]:
 		if hasattr(request, p):
 			print "%s : %s" % (p, getattr(request, p))
 
-	if TASK_CHANNEL_MASK is not None:
-		return TASK_CHANNEL_MASK
+	if with_status is not None:
+		print "WITH STATUS: ", with_status
+
+		if with_status == 0 and TASK_CHANNEL_MASK is not None:
+			return TASK_CHANNEL_MASK
 
 	return "%s://%s%s" % ( \
 		request.protocol, TASK_CHANNEL_URL, \
