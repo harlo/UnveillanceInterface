@@ -4,6 +4,7 @@ from sys import exit, argv
 from multiprocessing import Process
 from time import sleep, time
 from copy import deepcopy
+from urllib2 import unquote
 
 import tornado.ioloop
 import tornado.web
@@ -49,6 +50,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.restricted_routes_by_status = [[] for i in range(4)]
+		self.restricted_mime_types_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		self.get_page_load_extras = {}
 		
@@ -327,19 +329,42 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 						
 			self.set_status(res.result)					
 			self.finish(res.emit())
+
+	def sanitizeQuery(self, query, status):
+		if len(self.restricted_mime_types_by_status[status]) == 0:
+			return query
+
+		if not re.match(r'.*mime_type=.*', query):
+			return query
+
+		query = query.split("mime_type=")
+
+		query[1] = unquote(query[1])
+		rx = re.compile(".*(%s,?).*" % "|".join(self.restricted_mime_types_by_status[status]))
+		rm = re.findall(rx, query[1])
+		if len(rm) > 0:
+			for r in rm:
+				query[1] = query[1].replace(r, '')
+
+		query = query[0] + "mime_type=" + quote_plus(query[1])
+		return query
 	
 	def passToAnnex(self, handler, uri=None):
+		handler_status = self.do_get_status(handler)
 		if handler.request.body != "":
 			ref = "?%s" % handler.request.body
 		else:
 			ref = handler.request.headers['Referer']
+		
 		query = ""
 		try:
 			query += ref[ref.index("?"):]
 		except ValueError as e: pass
 
+		print self.sanitizeQuery(query, handler_status)
+
 		if uri is None: uri = handler.request.uri
-		url = "%s%s%s" % (buildServerURL(), uri, query)
+		url = "%s%s%s" % (buildServerURL(), uri, self.sanitizeQuery(query, handler_status))
 
 		# TODO: verify=False ... hmm.... no.
 		if DEBUG:

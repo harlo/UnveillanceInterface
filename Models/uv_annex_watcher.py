@@ -51,7 +51,10 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		FileSystemEventHandler.__init__(self)
 
-	def checkForDuplicate(self, _id):
+	def checkForDuplicate(self, _id, from_file=None):
+		if from_file is not None and _id is None:
+			_id = self.get_new_hash(file)
+
 		url = "%s/documents/?_id=%s" % (buildServerURL(), _id)
 		try:
 			r = requests.get(url, verify=False)
@@ -81,6 +84,17 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			self.netcat_queue.append(netcat_stub)
 
 		return self.uploadToAnnex(netcat_stub)
+
+	def get_new_hash(self, file):
+		if type(file) in [str, unicode]:
+			new_hash = hashEntireFile(file)
+		else:
+			new_hash = hashEntireStream(file)
+
+		if DEBUG:
+			print "NEW HASH: %s" % new_hash
+
+		return new_hash
 
 	def uploadToAnnex(self, netcat_stub):
 		this_dir = os.getcwd()
@@ -117,18 +131,14 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			os.chdir(this_dir)
 			return None
 
-		if type(netcat_stub['file']) in [str, unicode]:
-			new_hash = hashEntireFile(netcat_stub['file'])
-		else:
-			new_hash = hashEntireStream(netcat_stub['file'])
-
-		if DEBUG: print "NEW HASH: %s" % new_hash
+		new_hash = self.get_new_hash(netcat_stub['file'])
 
 		possible_duplicate = self.checkForDuplicate(new_hash)
 		if possible_duplicate is not None:
 
 			if DEBUG: 
 				print "Document already exists in Annex and will not be uploaded!  Here it is:"
+				print possible_duplicate
 
 			p = UnveillanceFabricProcess(register_upload_attempt, {'_id' : possible_duplicate['_id'] })
 			p.join()
