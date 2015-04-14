@@ -51,7 +51,10 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		FileSystemEventHandler.__init__(self)
 
-	def checkForDuplicate(self, _id):
+	def checkForDuplicate(self, _id, from_file=None):
+		if from_file is not None and _id is None:
+			_id = self.get_new_hash(file)
+
 		url = "%s/documents/?_id=%s" % (buildServerURL(), _id)
 		try:
 			r = requests.get(url, verify=False)
@@ -82,17 +85,28 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 		return self.uploadToAnnex(netcat_stub)
 
+	def get_new_hash(self, file):
+		if type(file) in [str, unicode]:
+			new_hash = hashEntireFile(file)
+		else:
+			new_hash = hashEntireStream(file)
+
+		if DEBUG:
+			print "NEW HASH: %s" % new_hash
+
+		return new_hash
+
 	def uploadToAnnex(self, netcat_stub):
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
-		if GIT_ANNEX is None:
-			if DEBUG:
-				print "GIT ANNEX NOT ATTACHED TO INSTANCE."
-
-			return None
-
 		if type(netcat_stub['file']) in [str, unicode]:
+			if GIT_ANNEX is None:
+				if DEBUG:
+					print "GIT ANNEX NOT ATTACHED TO INSTANCE."
+
+				return None
+
 			with settings(warn_only=True):
 				# has this stub been uploaded?
 				is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
@@ -117,18 +131,14 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			os.chdir(this_dir)
 			return None
 
-		if type(netcat_stub['file']) in [str, unicode]:
-			new_hash = hashEntireFile(netcat_stub['file'])
-		else:
-			new_hash = hashEntireStream(netcat_stub['file'])
-
-		if DEBUG: print "NEW HASH: %s" % new_hash
+		new_hash = self.get_new_hash(netcat_stub['file'])
 
 		possible_duplicate = self.checkForDuplicate(new_hash)
 		if possible_duplicate is not None:
 
 			if DEBUG: 
 				print "Document already exists in Annex and will not be uploaded!  Here it is:"
+				print possible_duplicate
 
 			p = UnveillanceFabricProcess(register_upload_attempt, {'_id' : possible_duplicate['_id'] })
 			p.join()
@@ -151,7 +161,9 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 
 			with settings(warn_only=True):
 				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
-				local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
+
+				if GIT_ANNEX is not None:
+					local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
 
 			netcat_stub['file'] = new_file
 
@@ -162,7 +174,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		# look up to see if this file is already in the annex
 
 		with settings(warn_only=True):
-			if type(netcat_stub['file']) in [str, unicode]:
+			if type(netcat_stub['file']) in [str, unicode] and GIT_ANNEX is not None:
 				local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
@@ -183,7 +195,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				print "ERROR:"
 				print p.error
 
-			if type(netcat_stub['file']) in [str, unicode]:
+			if type(netcat_stub['file']) in [str, unicode] and GIT_ANNEX is not None:
 				local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
 					GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
 
@@ -223,13 +235,18 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
 				GIT_ANNEX, filename), capture=True)
 
-			if DEBUG: print "%s valid? (uv_never_upload = %s type = %s)" % (
-				filename, never_upload, type(never_upload))
+			if DEBUG: 
+				print "%s valid? (uv_never_upload = %s type = %s)" % ( \
+					filename, never_upload, type(never_upload))
 
 			if never_upload == "True": 
 				never_upload = True
+			elif never_upload == "":
+				never_upload = False
 
-		if never_upload: return
+		print "NEVER UPLOAD? %s" % never_upload
+		if never_upload:
+			return
 
 		netcat_stub = None
 		try:

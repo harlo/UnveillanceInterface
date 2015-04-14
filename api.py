@@ -56,24 +56,26 @@ class UnveillanceAPI():
 	def do_import(self, handler):
 		status = self.do_get_status(handler)
 
-		if status not in PERMISSIONS['upload_local']: return None
+		if status not in PERMISSIONS['upload_local']: 
+			return
 
 		for s_a in handler.request.files.keys():
 			if s_a != "uv_import":
 				save_as = handler.request.files[s_a][0]
 				break
-
 		try:
 			entry = BytesIO()
 			entry.write(save_as['body'])
 		except Exception as e:
-			if DEBUG: print "COULD NOT CREATE FILE FROM BLOB %s" % e
+			if DEBUG: 
+				print "COULD NOT CREATE FILE FROM BLOB %s" % e
+			
 			return None
 
 		netcat_stub = {
 			'save_as' : save_as['filename'],
 			'file' : entry,
-			'importer_source' : "web_frontend"
+			'importer_source' : "web_frontend_status_%d" % status
 		}
 
 		if status not in PERMISSIONS['upload_global']:
@@ -81,20 +83,36 @@ class UnveillanceAPI():
 			if DEBUG:
 				print "SINCE STATUS == %d, this file will be restricted locally" % status
 			
-			netcat_stub['for_local_use_only'] = True
+			#netcat_stub['for_local_use_only'] = True
+			res = self.checkForDuplicate(self.get_new_hash(netcat_stub['file']))
 
-		try:
-			res = self.addToNetcatQueue(netcat_stub)
-			if 'duplicate_attempt' not in res.keys():
-				res.update({
+			if res is None:
+				res = {
 					'file_name' : save_as['filename'],
-					'result' : 200 if res['uploaded'] else 403
+					'result' : 403,
+					'duplicate_attempt' : False
+				}
+			else:
+				res.update({
+					'result' : 200,	# or??
+					'duplicate_attempt' : True
 				})
 
 			return res
-		except Exception as e:
-			if DEBUG:
-				print "ERROR IN NETCAT: %s" % e
+
+		else:
+			try:
+				res = self.addToNetcatQueue(netcat_stub)
+				if 'duplicate_attempt' not in res.keys():
+					res.update({
+						'file_name' : save_as['filename'],
+						'result' : 200 if res['uploaded'] else 403
+					})
+
+				return res
+			except Exception as e:
+				if DEBUG:
+					print "ERROR IN NETCAT: %s" % e
 
 		return None
 	
