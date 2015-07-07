@@ -97,30 +97,33 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		return new_hash
 
 	def uploadToAnnex(self, netcat_stub):
+		use_git_annex = False
 		this_dir = os.getcwd()
 		os.chdir(ANNEX_DIR)
 
 		if type(netcat_stub['file']) in [str, unicode]:
-			if GIT_ANNEX is None:
+			if GIT_ANNEX is not None:
+				use_git_annex = True
 				if DEBUG:
-					print "GIT ANNEX NOT ATTACHED TO INSTANCE."
+					print "GIT ANNEX ATTACHED TO INSTANCE."
 
-				return None
+			if use_git_annex:
+				with settings(warn_only=True):
+					# has this stub been uploaded?
+					is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
+						GIT_ANNEX, netcat_stub['save_as']), capture=True)
 
-			with settings(warn_only=True):
-				# has this stub been uploaded?
-				is_absorbed = local("%s metadata \"%s\" --json --get=uv_uploaded" % (
-					GIT_ANNEX, netcat_stub['save_as']), capture=True)
+					if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
+						netcat_stub['save_as'], is_absorbed, type(is_absorbed))
 
-				if DEBUG: print "%s absorbed? (uv_uploaded = %s type = %s)" % (
-					netcat_stub['save_as'], is_absorbed, type(is_absorbed))
-
-				if is_absorbed == "" or "False":
-					is_absorbed = False
-				elif is_absorbed == "True":
-					is_absorbed = True
-				else:
-					is_absorbed = False
+					if is_absorbed == "" or "False":
+						is_absorbed = False
+					elif is_absorbed == "True":
+						is_absorbed = True
+					else:
+						is_absorbed = False
+			else:
+				is_absorbed = False
 		else:
 			is_absorbed = False
 
@@ -162,7 +165,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 			with settings(warn_only=True):
 				local("mv \"%s\" %s" % (netcat_stub['file'], new_file))
 
-				if GIT_ANNEX is not None:
+				if use_git_annex:
 					local("%s metadata %s --json --set=uv_file_alias=\"%s\"" % (GIT_ANNEX, new_file, netcat_stub['save_as']))
 
 			netcat_stub['file'] = new_file
@@ -174,7 +177,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		# look up to see if this file is already in the annex
 
 		with settings(warn_only=True):
-			if type(netcat_stub['file']) in [str, unicode] and GIT_ANNEX is not None:
+			if type(netcat_stub['file']) in [str, unicode] and use_git_annex:
 				local("%s add %s" % (GIT_ANNEX, netcat_stub['save_as']))
 
 			p = UnveillanceFabricProcess(netcat, netcat_stub)
@@ -195,7 +198,7 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 				print "ERROR:"
 				print p.error
 
-			if type(netcat_stub['file']) in [str, unicode] and GIT_ANNEX is not None:
+			if type(netcat_stub['file']) in [str, unicode] and use_git_annex:
 				local("%s metadata \"%s\" --json --set=uv_uploaded=%s" % (
 					GIT_ANNEX, netcat_stub['save_as'], str(success_tag)))
 
@@ -205,11 +208,13 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		return { 'uploaded' : success_tag, '_id' : new_hash } 
 
 	def on_created(self, event):
-		if GIT_ANNEX is None:
-			if DEBUG:
-				print "GIT ANNEX NOT ATTACHED TO INSTANCE."
+		use_git_annex = False
 
-			return
+		if GIT_ANNEX is not None:
+			if DEBUG:
+				print "GIT ANNEX ATTACHED TO INSTANCE."
+
+			use_git_annex = True
 
 		if event.event_type != "created":
 			return
@@ -230,19 +235,20 @@ class UnveillanceFSEHandler(FileSystemEventHandler):
 		filename = event.src_path.split("/")[-1]
 		never_upload = False
 
-		with settings(warn_only=True):
-			# has this stub been uploaded?
-			never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
-				GIT_ANNEX, filename), capture=True)
+		if use_git_annex:
+			with settings(warn_only=True):
+				# has this stub been uploaded?
+				never_upload = local("%s metadata \"%s\" --json --get=uv_never_upload" % (
+					GIT_ANNEX, filename), capture=True)
 
-			if DEBUG: 
-				print "%s valid? (uv_never_upload = %s type = %s)" % ( \
-					filename, never_upload, type(never_upload))
+				if DEBUG: 
+					print "%s valid? (uv_never_upload = %s type = %s)" % ( \
+						filename, never_upload, type(never_upload))
 
-			if never_upload == "True": 
-				never_upload = True
-			elif never_upload == "":
-				never_upload = False
+				if never_upload == "True": 
+					never_upload = True
+				elif never_upload == "":
+					never_upload = False
 
 		print "NEVER UPLOAD? %s" % never_upload
 		if never_upload:
