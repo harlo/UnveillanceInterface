@@ -1,5 +1,6 @@
-from lib.Core.vars import *
+import os
 from collections import namedtuple
+from lib.Core.vars import *
 
 PostBatchRequestStub = namedtuple("PostBatchRequestStub", "files uri")
 class PostBatchStub(object):
@@ -11,6 +12,7 @@ UnveillanceCookie = unveillance_cookie("uv_admin", "uv_user", "uv_public")
 
 FILE_NON_OVERWRITES = []
 IMPORTER_SOURCES = ["file_added"]
+APP_DIR = os.path.join(os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir)), "app")
 
 USER_CREDENTIAL_PACK = {
 	"username" : "",
