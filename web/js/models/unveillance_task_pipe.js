@@ -1,6 +1,31 @@
 var UnveillanceTaskPipe = Backbone.Model.extend({
 	constructor: function() {
 		Backbone.Model.apply(this, arguments);
+		this.set('task_clone_tmpl', getTemplate("task_clone_li.html"));
+	},
+
+	onDrag: function(evt) {
+		var task_path = $($(evt.target).find('a')).html();
+		evt.dataTransfer.setData("task_path", task_path);
+	},
+
+	onDrop: function(evt) {
+		evt.preventDefault();
+
+    	var task_path = evt.dataTransfer.getData("task_path");
+
+    	if(task_path) {
+    		var drop_clone = Mustache.to_html(this.get('task_clone_tmpl'), {
+    			task_path : task_path,
+    			task_path_hash : "task_path_" + MD5(task_path)
+    		});
+
+    		$(evt.target).append(drop_clone);
+    	}    	
+	},
+
+	onDragOver: function(evt) {
+		evt.preventDefault();
 	},
 
 	setOptions: function(el) {
@@ -24,12 +49,10 @@ var UnveillanceTaskPipe = Backbone.Model.extend({
 		console.info(task);
 	},
 	buildTaskPipeFrom : function(els, docs) {
-		var tasks = _.flatten(_.map(els, function(el) {
-			return _.filter(_.map($(el).val().split(/\s/), function(e) {
-				return e.replace(/,/gi, '');
-			}), function(e) {
-				return !_.isEmpty(e);
-			})
+		console.info(els);
+		var tasks = _.flatten(_.map($(els).children('div.uv_task_pipe_path'), function(t) {
+			var task_path = $($(t).find('span')).html();
+			return task_path;
 		}));
 
 		this.onTaskPipeReady(docs, tasks);

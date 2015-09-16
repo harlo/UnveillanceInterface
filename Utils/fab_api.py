@@ -50,22 +50,20 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 	else:
 		if save_as is None: save_as = "uv_document_%d" % time()
 
-	cmd = [
-		"git-annex add \"%s\"" % save_as,
-		"git-annex metadata \"%s\" --set=importer_source=%s" % (save_as, importer_source),
-		"git-annex metadata \"%s\" --set=imported_by=%s" % (save_as, whoami)
+	cmd_flags = [
+		"--importer_source=%s" % importer_source,
+		"--imported_by=%s" % whoami
 	]
 
 	if alias is not None:
-		cmd.append("git-annex metadata \"%s\" --set=uv_file_alias=\"%s\"" % (save_as, alias))
+		cmd_flags.append("--uv_file_alias=\"%s\"" % alias)
 	
 	if for_local_use_only:
-		cmd.append("git-annex metadata \"%s\" --set=uv_local_only=True" % save_as)
+		cmd_flags.append("--uv_local_only=True")
 	
-	cmd.extend([
-		"git-annex sync",
-		".git/hooks/uv-post-netcat \"%s\"" % save_as
-	])
+	cmd = [
+		".git/hooks/uv-post-netcat \"%s\" %s" % (save_as, " ".join(cmd_flags))
+	]
 
 	if DEBUG: print "ATTEMPTING NETCAT:\nfile:%s" % save_as
 
@@ -104,10 +102,6 @@ def netcat(file, save_as=None, alias=None, for_local_use_only=False, importer_so
 			with open(os.path.join(getSecrets('annex_remote'), save_as), 'wb+') as F:
 				F.write(file.getvalue())
 				file.close()
-
-		for i, c in enumerate(cmd):
-			if i != len(cmd) - 1:
-				cmd[i] = "%s/%s" % (getConfig('git_annex_dir'), c)
 
 		op_dir = getSecrets('annex_remote')
 

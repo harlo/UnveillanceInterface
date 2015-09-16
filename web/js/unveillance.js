@@ -150,11 +150,7 @@ function getTemplate(tmpl, on_complete, static_root, ctx) {
 }
 
 function translate(obj) {
-	console.info($(obj));
-
 	_.each($(obj).find(".uv_translate"), function(item) {
-		console.info($(item));
-
 		var trans = _.filter(UV.TRANSLATE_VALUES, function(t) {
 			return _.find($(item).attr('class').split(' '), function(cn) {
 				return _.contains(t.keys, cn);
@@ -195,9 +191,8 @@ function insertTemplate(tmpl, data, append_root, on_complete, static_root, ctx) 
 	$.ajax(a_obj);
 }
 
-function removeEl() {
-	console.info("removing a genereric element");
-	console.info(this);
+function removeEl(el) {
+	$(el).remove();
 }
 
 function failOut(el, msg) {

@@ -3,6 +3,8 @@ from requests.exceptions import ConnectionError
 from sys import exit, argv
 from multiprocessing import Process
 from time import sleep, time
+from copy import deepcopy
+from urllib2 import unquote
 
 import tornado.ioloop
 import tornado.web
@@ -20,7 +22,7 @@ from lib.Core.vars import Result
 from lib.Core.Utils.funcs import startDaemon, stopDaemon, parseRequestEntity, generateSecureNonce
 
 from conf import DEBUG
-from conf import getConfig, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
+from conf import getConfig, buildTaskChannelURL, MONITOR_ROOT, BASE_DIR, ANNEX_DIR, API_PORT, NUM_PROCESSES, WEB_TITLE, UV_COOKIE_SECRET, buildServerURL
 from vars import CONTENT_TYPES
 
 def terminationHandler(signal, frame):
@@ -48,17 +50,17 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.restricted_routes_by_status = [[] for i in range(4)]
+		self.restricted_mime_types_by_status = [[] for i in range(4)]
 		self.on_loads = {}
 		self.get_page_load_extras = {}
 		
-		from conf import buildServerURL, SERVER_PORT, TASK_CHANNEL_URL, SHA1_INDEX
+		from conf import buildServerURL, SERVER_PORT, SHA1_INDEX
 		from vars import MIME_TYPES, ASSET_TAGS, MIME_TYPE_TASKS
 
 		self.init_vars = {
 			'MIME_TYPES' : MIME_TYPES,
 			'ASSET_TAGS' : ASSET_TAGS,
 			'MIME_TYPE_TASKS' : MIME_TYPE_TASKS,
-			'TASK_CHANNEL_URL' : TASK_CHANNEL_URL,
 			'SHA1_INDEX' : 32 if not SHA1_INDEX else 40
 		}
 		
@@ -105,8 +107,13 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		@tornado.web.asynchronous
 		def get(self, uri):
 			if uri == "conf.json":
-				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])				
-				self.finish(json.dumps(self.application.init_vars))
+				self.set_header("Content-Type", '%s; charset="utf-8"' % CONTENT_TYPES['json'])
+
+				conf_vars = deepcopy(self.application.init_vars)
+				conf_vars['TASK_CHANNEL_URL'] = buildTaskChannelURL(self.request, 
+					with_status=self.application.do_get_status(self))
+				
+				self.finish(json.dumps(conf_vars))
 				return
 			
 			static_path = os.path.join(BASE_DIR, "web")
@@ -322,19 +329,42 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 						
 			self.set_status(res.result)					
 			self.finish(res.emit())
+
+	def sanitizeQuery(self, query, status):
+		if len(self.restricted_mime_types_by_status[status]) == 0:
+			return query
+
+		if not re.match(r'.*mime_type=.*', query):
+			return query
+
+		query = query.split("mime_type=")
+
+		query[1] = unquote(query[1])
+		rx = re.compile(".*(%s,?).*" % "|".join(self.restricted_mime_types_by_status[status]))
+		rm = re.findall(rx, query[1])
+		if len(rm) > 0:
+			for r in rm:
+				query[1] = query[1].replace(r, '')
+
+		query = query[0] + "mime_type=" + quote_plus(query[1])
+		return query
 	
 	def passToAnnex(self, handler, uri=None):
+		handler_status = self.do_get_status(handler)
 		if handler.request.body != "":
 			ref = "?%s" % handler.request.body
 		else:
 			ref = handler.request.headers['Referer']
+		
 		query = ""
 		try:
 			query += ref[ref.index("?"):]
 		except ValueError as e: pass
 
+		print self.sanitizeQuery(query, handler_status)
+
 		if uri is None: uri = handler.request.uri
-		url = "%s%s%s" % (buildServerURL(), uri, query)
+		url = "%s%s%s" % (buildServerURL(), uri, self.sanitizeQuery(query, handler_status))
 
 		# TODO: verify=False ... hmm.... no.
 		if DEBUG:

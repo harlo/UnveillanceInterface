@@ -37,8 +37,6 @@ function onDownloadRequested(file_name, el) {
 		return;
 	}
 
-	//141264
-
 	data_array = new Uint8Array(data.length);
 	console.info(data.length);
 	for(var i=0; i < data.length; i++) {
@@ -89,7 +87,19 @@ function initDocumentBrowser() {
 	}, task_pipe);
 
 	window.onTaskPipeRequested = _.bind(function() {
-		this.buildTaskPipeFrom($("#uv_reindex_custom"));
+		this.buildTaskPipeFrom($("#uv_reindex_task_list_holder"));
+	}, task_pipe);
+
+	window.taskPipeDrop = _.bind(function(evt) {
+		this.onDrop(evt);
+	}, task_pipe);
+
+	window.taskPipeDragOver = _.bind(function(evt) {
+		this.onDragOver(evt);
+	}, task_pipe);
+
+	window.taskPipeDrag = _.bind(function(evt) {
+		this.onDrag(evt);
 	}, task_pipe);
 
 	return true;
