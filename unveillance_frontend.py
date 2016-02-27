@@ -51,6 +51,7 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 		self.on_loads_by_status = [[] for i in range(4)]
 		self.restricted_routes_by_status = [[] for i in range(4)]
 		self.restricted_mime_types_by_status = [[] for i in range(4)]
+		self.restrict_source_files = {}
 		self.on_loads = {}
 		self.get_page_load_extras = {}
 		
@@ -142,6 +143,21 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 	class FileHandler(tornado.web.RequestHandler):
 		@tornado.web.asynchronous
 		def get(self, file):
+			if 'restrict' in self.application.restrict_source_files.keys():
+
+				if 'exempt' not in self.application.restrict_source_files.keys() or \
+				file not in self.application.restrict_source_files['exempt']:
+
+					srx = r'^/files/\.data/.*'
+					if not re.match(srx, self.request.uri):
+						if self.application.do_get_status(self) in self.application.restrict_source_files['restrict']:
+							res = Result()
+							res.result = 403
+
+							self.set_status(res.result)
+							self.finish(res.emit())
+							return
+
 			url = "%s%s" % (buildServerURL(), self.request.uri)
 			if DEBUG:
 				print url
@@ -149,12 +165,6 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 			r = requests.get(url, verify=False)
 
 			self.set_header("Content-Type", r.headers['content-type'])
-			
-			'''
-			self.set_header("Content-Disposition", 
-				'attachment; filename="%s"' % self.request.uri.split('/')[-1])
-			'''
-
 			self.finish(r.content)
 		
 	class TaskHandler(tornado.web.RequestHandler):
@@ -205,7 +215,8 @@ class UnveillanceFrontend(tornado.web.Application, UnveillanceAPI, UnveillanceFS
 
 			if hasattr(self.application, "WEB_TITLE"): 
 				web_title = self.application.WEB_TITLE
-			else: web_title = WEB_TITLE
+			else:
+				web_title = WEB_TITLE
 			
 			if route is None:
 				if hasattr(self.application, "INDEX_HEADER"):
